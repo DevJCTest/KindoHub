@@ -120,17 +120,24 @@ IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Familias' AND schema_id = 
 BEGIN
     CREATE TABLE [dbo].[Familias](
         [Id] [int] IDENTITY(1,1) NOT NULL,
+        [NumeroSocio] [int] NULL,
         [Nombre] [nvarchar](200) NOT NULL,
         [Email] [nvarchar](100) NULL,
         [Telefono] [nvarchar](20) NULL,
+        [Direccion] [nvarchar](255) NULL,
         [Observaciones] [nvarchar](max) NULL,
         [Apa] [bit] NOT NULL,
         [IdEstadoApa] [int] NULL,
         [Mutual] [bit] NOT NULL,
         [IdEstadoMutual] [int] NULL,
+        [BeneficiarioMutual] [bit] NOT NULL,
         [IdFormaPago] [int] NULL,
-        [NumeroSocio] [int] NULL,
-        [Direccion] [nvarchar](255) NULL,
+        IBAN NVARCHAR(34) NULL,
+        IBAN_Enmascarado AS (
+        LEFT(IBAN, 2) + 
+        REPLICATE('*', LEN(IBAN) - 6) + 
+        RIGHT(IBAN, 4)
+        ) PERSISTED,
 
         
         
