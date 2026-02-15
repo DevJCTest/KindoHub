@@ -1,0 +1,322 @@
+openapi: 3.0.3
+info:
+  title: API de Gestión de Familias
+  version: 1.0.0
+  description: API REST para gestionar familias en el sistema KindoHub.
+
+servers:
+  - url: https://api.kindohub.com
+    description: Servidor de producción
+
+security:
+  - bearerAuth: []
+
+paths:
+  /api/familias:
+    post:
+      summary: Crear una nueva familia
+      description: Valida datos obligatorios, aplica reglas de negocio y registra auditoría.
+      operationId: createFamilia
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FamiliaDto'
+            example:
+              nombre: "Familia García"
+              email: "garcia@example.com"
+              telefono: "123456789"
+              observaciones: "Nueva familia"
+              apa: true
+              idEstadoApa: 1
+              mutual: false
+              idEstadoMutual: null
+              beneficiarioMutual: false
+              idFormaPago: 1
+              iban: "GI75NIBL0000000000000000"
+              numeroSocio: null
+              direccion: "Calle Ficticia 123"
+      responses:
+        '201':
+          description: Familia creada exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamiliaDto'
+              example:
+                id: 1
+                nombre: "Familia García"
+                email: "garcia@example.com"
+                telefono: "123456789"
+                observaciones: "Nueva familia"
+                apa: true
+                idEstadoApa: 1
+                mutual: false
+                idEstadoMutual: null
+                beneficiarioMutual: false
+                idFormaPago: 1
+                iban: "GI75NIBL0000000000000000"
+                numeroSocio: null
+                direccion: "Calle Ficticia 123"
+                versionfila: 1
+        '400':
+          description: Datos inválidos
+        '403':
+          description: No autorizado
+      security:
+        - bearerAuth: []
+    get:
+      summary: Obtener todas las familias
+      description: Lista familias con paginación y filtros opcionales.
+      operationId: getFamilias
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: filterByEstado
+          in: query
+          schema:
+            type: string
+        - name: filterByNombre
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista de familias
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamiliasResponse'
+              example:
+                data:
+                  - id: 1
+                    nombre: "Familia García"
+                    email: "garcia@example.com"
+                    telefono: "123456789"
+                    observaciones: "Nueva familia"
+                    apa: true
+                    idEstadoApa: 1
+                    mutual: false
+                    idEstadoMutual: null
+                    beneficiarioMutual: false
+                    idFormaPago: 1
+                    iban: "GI75NIBL0000000000000000"
+                    numeroSocio: null
+                    direccion: "Calle Ficticia 123"
+                    versionfila: 1
+                page: 1
+                size: 10
+                total: 1
+        '403':
+          description: No autorizado
+      security:
+        - bearerAuth: []
+
+  /api/familias/{id}:
+    get:
+      summary: Obtener familia por ID
+      description: Devuelve datos de una familia específica.
+      operationId: getFamiliaById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Familia encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamiliaDto'
+              example:
+                id: 1
+                nombre: "Familia García"
+                email: "garcia@example.com"
+                telefono: "123456789"
+                observaciones: "Nueva familia"
+                apa: true
+                idEstadoApa: 1
+                mutual: false
+                idEstadoMutual: null
+                beneficiarioMutual: false
+                idFormaPago: 1
+                iban: "GI75NIBL0000000000000000"
+                numeroSocio: null
+                direccion: "Calle Ficticia 123"
+                versionfila: 1
+        '404':
+          description: Familia no encontrada
+        '403':
+          description: No autorizado
+      security:
+        - bearerAuth: []
+    put:
+      summary: Actualizar familia
+      description: Valida cambios y actualiza la familia.
+      operationId: updateFamilia
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FamiliaDto'
+            example:
+              id: 1
+              nombre: "Familia García"
+              email: "garcia@example.com"
+              telefono: "123456789"
+              observaciones: "Familia actualizada"
+              apa: true
+              idEstadoApa: 1
+              mutual: false
+              idEstadoMutual: null
+              beneficiarioMutual: false
+              idFormaPago: 1
+              iban: "GI75NIBL0000000000000000"
+              numeroSocio: null
+              direccion: "Calle Ficticia 123"
+              versionfila: 1
+      responses:
+        '200':
+          description: Familia actualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamiliaDto'
+              example:
+                id: 1
+                nombre: "Familia García"
+                email: "garcia@example.com"
+                telefono: "123456789"
+                observaciones: "Familia actualizada"
+                apa: true
+                idEstadoApa: 1
+                mutual: false
+                idEstadoMutual: null
+                beneficiarioMutual: false
+                idFormaPago: 1
+                iban: "GI75NIBL0000000000000000"
+                numeroSocio: null
+                direccion: "Calle Ficticia 123"
+                versionfila: 2
+        '404':
+          description: Familia no encontrada
+        '400':
+          description: Datos inválidos
+        '403':
+          description: No autorizado
+      security:
+        - bearerAuth: []
+    delete:
+      summary: Eliminar familia
+      description: Realiza soft delete verificando dependencias y versión.
+      operationId: deleteFamilia
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: versionfila
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Familia eliminada
+        '404':
+          description: Familia no encontrada
+        '409':
+          description: Conflicto (dependencias o versión incorrecta)
+        '403':
+          description: No autorizado
+      security:
+        - bearerAuth: []
+
+components:
+  schemas:
+    FamiliaDto:
+      type: object
+      properties:
+        id:
+          type: integer
+        nombre:
+          type: string
+        email:
+          type: string
+          nullable: true
+        telefono:
+          type: string
+          nullable: true
+        observaciones:
+          type: string
+          nullable: true
+        apa:
+          type: boolean
+        idEstadoApa:
+          type: integer
+          nullable: true
+        mutual:
+          type: boolean
+        idEstadoMutual:
+          type: integer
+          nullable: true
+        beneficiarioMutual:
+          type: boolean
+        idFormaPago:
+          type: integer
+          nullable: true
+        iban:
+          type: string
+          nullable: true
+        numeroSocio:
+          type: integer
+          nullable: true
+        direccion:
+          type: string
+          nullable: true
+        versionfila:
+          type: integer
+          format: int64
+      required:
+        - nombre
+        - apa
+        - mutual
+        - beneficiarioMutual
+    FamiliasResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/FamiliaDto'
+        page:
+          type: integer
+        size:
+          type: integer
+        total:
+          type: integer
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
