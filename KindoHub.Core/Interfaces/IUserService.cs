@@ -16,5 +16,7 @@ namespace KindoHub.Core.Interfaces
         Task<(bool Success, string Message)> ChangePasswordAsync(ChangePasswordDto dto, string currentUser);
         Task<(bool Success, string Message)> DeleteUserAsync(string username, string currentUser);
         Task<(bool Success, string Message)> ChangeAdminStatusAsync(ChangeAdminStatusDto dto, string currentUser);
+        Task<(bool Success, string Message)> ChangeActivStatusAsync(ChangeActivStatusDto dto, string currentUser);
+        Task<(bool Success, string Message)> ChangeRolStatusAsync(ChangeUserRoleDto dto, string currentUser);
     }
 }

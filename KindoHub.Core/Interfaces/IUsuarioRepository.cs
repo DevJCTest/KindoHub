@@ -14,6 +14,9 @@ namespace KindoHub.Core.Interfaces
         Task<bool> UpdatePasswordAsync(string nombre, string newPasswordHash, byte[] versionFila);
         Task<bool> DeleteAsync(string nombre, byte[] versionFila);
         Task<bool> UpdateAdminStatusAsync(string nombre, int isAdmin, byte[] versionFila);
+        Task<bool> UpdateActivStatusAsync(string nombre, int isActiv, byte[] versionFila);
+        Task<bool> UpdateRolStatusAsync(string nombre, int gestionFamilias, int consultaFamilias,
+             int gestionGastos, int consultaGastos, byte[] versionFila);
         Task<IEnumerable<UsuarioEntity>> GetAllAsync();
     }
 }

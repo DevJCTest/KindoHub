@@ -197,6 +197,65 @@ namespace KindoHub.Services.Services
                 return (false, "Error al actualizar el estado de administrador");
             }
         }
+
+        public async Task<(bool Success, string Message)> ChangeActivStatusAsync(ChangeActivStatusDto dto, string currentUser)
+        {
+            // Verificar que el usuario actual sea administrador
+            var currentUsuario = await _usuarioRepository.GetByNombreAsync(currentUser);
+            if (currentUsuario == null || currentUsuario.EsAdministrador != 1)
+            {
+                return (false, "No tienes permisos para cambiar el estado de administrador");
+            }
+
+            // Verificar que el usuario a cambiar exista
+            var targetUsuario = await _usuarioRepository.GetByNombreAsync(dto.Username);
+            if (targetUsuario == null)
+            {
+                return (false, "El usuario a cambiar no existe");
+            }
+
+
+            // Actualizar el estado de activo
+            var updated = await _usuarioRepository.UpdateActivStatusAsync(dto.Username, dto.IsActive, targetUsuario.VersionFila);
+            if (updated)
+            {
+                return (true, "Estado de usuario actualizado exitosamente");
+            }
+            else
+            {
+                return (false, "Error al actualizar el estado del usuario");
+            }
+        }
+
+        public async Task<(bool Success, string Message)> ChangeRolStatusAsync(ChangeUserRoleDto dto, string currentUser)
+        {
+            // Verificar que el usuario actual sea administrador
+            var currentUsuario = await _usuarioRepository.GetByNombreAsync(currentUser);
+            if (currentUsuario == null || currentUsuario.EsAdministrador != 1)
+            {
+                return (false, "No tienes permisos para cambiar el rol a los usuarios");
+            }
+
+            // Verificar que el usuario a cambiar exista
+            var targetUsuario = await _usuarioRepository.GetByNombreAsync(dto.Username);
+            if (targetUsuario == null)
+            {
+                return (false, "El usuario a cambiar no existe");
+            }
+
+
+            // Actualizar el estado de activo
+            var updated = await _usuarioRepository.UpdateRolStatusAsync(dto.Username,dto.GestionFamilias, dto.ConsultaFamilias, 
+                dto.GestionGastos, dto.ConsultaGastos, targetUsuario.VersionFila);
+            if (updated)
+            {
+                return (true, "Rol de usuario actualizado exitosamente");
+            }
+            else
+            {
+                return (false, "Error al actualizar el rol del usuario");
+            }
+        }
     }
 
 }

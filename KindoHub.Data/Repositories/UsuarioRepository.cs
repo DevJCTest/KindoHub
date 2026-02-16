@@ -117,7 +117,7 @@ namespace KindoHub.Data.Repositories
             const string query = @"
             UPDATE usuarios
             SET EsAdministrador = @IsAdmin
-            WHERE nombre = @Nombre";
+            WHERE nombre = @Nombre and VersionFila=@versionfila";
 
             await using var connection = await _connectionFactory.CreateConnectionAsync();
             await connection.OpenAsync();
@@ -154,6 +154,46 @@ namespace KindoHub.Data.Repositories
             }
 
             return usuarios;
+        }
+
+        public async Task<bool> UpdateActivStatusAsync(string nombre, int isActiv, byte[] versionFila)
+        {
+            const string query = @"
+            UPDATE usuarios
+            SET Activo = @Activo
+            WHERE nombre = @Nombre and VersionFila=@versionfila";
+
+            await using var connection = await _connectionFactory.CreateConnectionAsync();
+            await connection.OpenAsync();
+            await using var command = new SqlCommand(query, connection);
+            command.Parameters.AddWithValue("@Nombre", nombre);
+            command.Parameters.AddWithValue("@Activo", isActiv);
+            command.Parameters.AddWithValue("@versionfila", versionFila);
+
+            var result = await command.ExecuteNonQueryAsync();
+            return result > 0;
+        }
+
+        public async Task<bool> UpdateRolStatusAsync(string nombre, int gestionFamilias, int consultaFamilias, int gestionGastos, int consultaGastos, byte[] versionFila)
+        {
+            const string query = @"
+            UPDATE usuarios
+            SET GestionFamilias=@GestionFamilias, ConsultaFamilias=@ConsultaFamilias,
+            GestionGastos=@GestionGastos, ConsultaGastos=@ConsultaGastos
+            WHERE nombre = @Nombre and VersionFila=@versionfila";
+
+            await using var connection = await _connectionFactory.CreateConnectionAsync();
+            await connection.OpenAsync();
+            await using var command = new SqlCommand(query, connection);
+            command.Parameters.AddWithValue("@Nombre", nombre);
+            command.Parameters.AddWithValue("@GestionFamilias", gestionFamilias);   
+            command.Parameters.AddWithValue("@ConsultaFamilias", consultaFamilias);
+            command.Parameters.AddWithValue("@GestionGastos", gestionGastos);
+            command.Parameters.AddWithValue("@ConsultaGastos", consultaGastos);
+            command.Parameters.AddWithValue("@versionfila", versionFila);
+
+            var result = await command.ExecuteNonQueryAsync();
+            return result > 0;
         }
     }
 

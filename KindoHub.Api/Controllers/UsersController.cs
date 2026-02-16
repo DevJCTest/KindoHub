@@ -291,6 +291,121 @@ namespace KindoHub.Api.Controllers
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }
+
+        [HttpPatch("change-activ-status")]
+        [Authorize(Roles = "Administrator")]
+        public async Task<IActionResult> ChangeActivStatus([FromBody] ChangeActivStatusDto request)
+        {
+            // 400 - Validación de modelo
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Change activ status request with invalid model");
+                return BadRequest(new { message = "Datos inválidos" });
+            }
+
+            // 401 - Usuario no autenticado
+            var currentUser = User.Identity?.Name;
+            if (string.IsNullOrEmpty(currentUser))
+            {
+                _logger.LogWarning("Change activ status request without authenticated user");
+                return Unauthorized(new { message = "Usuario no autenticado" });
+            }
+
+            try
+            {
+                var result = await _userService.ChangeActivStatusAsync(request, currentUser);
+
+                if (result.Success)
+                {
+                    _logger.LogWarning("Activ status changed for user: {TargetUser} by {AdminUser}. New status: {IsActive}",
+                        request.Username, currentUser, request.IsActive);
+                    return Ok(new { message = result.Message });
+                }
+
+                // 404 - Usuario no existe
+                if (result.Message.Contains("no existe"))
+                {
+                    _logger.LogWarning("Change activ status attempt for non-existent user: {Username}", request.Username);
+                    return NotFound(new { message = result.Message });
+                }
+
+                // 403 - Sin permisos
+                if (result.Message.Contains("permisos"))
+                {
+                    _logger.LogWarning("Unauthorized activ status change attempt by user: {User}", currentUser);
+                    return StatusCode(403, new { message = result.Message });
+                }
+
+
+                // 400 - Otros errores
+                _logger.LogWarning("Active status change failed: {Message}", result.Message);
+                return BadRequest(new { message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                // 500 - Error interno
+                _logger.LogError(ex, "Error changing active status for user: {Username}", request.Username);
+                return StatusCode(500, new { message = "Error interno del servidor" });
+            }
+        }
+
+        [HttpPatch("change-rol-status")]
+        [Authorize(Roles = "Administrator")]
+        public async Task<IActionResult> ChangeRolStatus([FromBody] ChangeUserRoleDto request)
+        {
+            // 400 - Validación de modelo
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Change rol status request with invalid model");
+                return BadRequest(new { message = "Datos inválidos" });
+            }
+
+            // 401 - Usuario no autenticado
+            var currentUser = User.Identity?.Name;
+            if (string.IsNullOrEmpty(currentUser))
+            {
+                _logger.LogWarning("Change rol status request without authenticated user");
+                return Unauthorized(new { message = "Usuario no autenticado" });
+            }
+
+            try
+            {
+                var result = await _userService.ChangeRolStatusAsync(request, currentUser);
+
+                if (result.Success)
+                {
+                    _logger.LogWarning("Rol status changed for user: {TargetUser} by {AdminUser}.",
+                        request.Username, currentUser);
+                    return Ok(new { message = result.Message });
+                }
+
+                // 404 - Usuario no existe
+                if (result.Message.Contains("no existe"))
+                {
+                    _logger.LogWarning("Change rol status attempt for non-existent user: {Username}", request.Username);
+                    return NotFound(new { message = result.Message });
+                }
+
+                // 403 - Sin permisos
+                if (result.Message.Contains("permisos"))
+                {
+                    _logger.LogWarning("Unauthorized rol status change attempt by user: {User}", currentUser);
+                    return StatusCode(403, new { message = result.Message });
+                }
+
+
+                // 400 - Otros errores
+                _logger.LogWarning("Rol status change failed: {Message}", result.Message);
+                return BadRequest(new { message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                // 500 - Error interno
+                _logger.LogError(ex, "Error changing rol status for user: {Username}", request.Username);
+                return StatusCode(500, new { message = "Error interno del servidor" });
+            }
+        }
+
     }
 
 }

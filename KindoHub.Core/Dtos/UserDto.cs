@@ -8,6 +8,8 @@ public class UserDto
 
     public string? Password { get; set; }
 
+    public int Activo { get; set; }
+
     public int EsAdministrador { get; set; }
 
     public int GestionFamilias { get; set; }
