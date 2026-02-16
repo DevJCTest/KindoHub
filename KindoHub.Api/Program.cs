@@ -7,103 +7,167 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using Serilog;
+using Serilog.Events;
+using KindoHub.Api.Middleware;
 
-var builder = WebApplication.CreateBuilder(args);
+// ========================================
+// CONFIGURACIÓN DE SERILOG (PASO 1)
+// ========================================
+// Logger temporal para el bootstrap
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .CreateBootstrapLogger();
 
-// Add services to the container.
-
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options =>
+try
 {
-    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    Log.Information("🚀 Starting KindoHub API...");
+
+    var builder = WebApplication.CreateBuilder(args);
+
+    // ========================================
+    // CONFIGURAR SERILOG DESDE APPSETTINGS (PASO 2)
+    // ========================================
+    builder.Host.UseSerilog((context, services, configuration) => configuration
+        .ReadFrom.Configuration(context.Configuration)
+        .ReadFrom.Services(services)
+        .Enrich.FromLogContext()
+        .Enrich.WithMachineName()
+        .Enrich.WithThreadId()
+        .Enrich.WithProperty("Environment", context.HostingEnvironment.EnvironmentName)
+    );
+
+    // Add services to the container.
+
+    builder.Services.AddControllers();
+    // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen(options =>
     {
-        Description = "Pega 'Bearer TU_TOKEN_AQUI caballero'",
-        Name = "Authorization",
-        In = ParameterLocation.Header,
-        Type = SecuritySchemeType.Http,
-        Scheme = "Bearer",
-        BearerFormat = "JWT"
-    });
-    options.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
+        options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
         {
-            new OpenApiSecurityScheme
+            Description = "Pega 'Bearer TU_TOKEN_AQUI caballero'",
+            Name = "Authorization",
+            In = ParameterLocation.Header,
+            Type = SecuritySchemeType.Http,
+            Scheme = "Bearer",
+            BearerFormat = "JWT"
+        });
+        options.AddSecurityRequirement(new OpenApiSecurityRequirement
+        {
             {
-                Reference = new OpenApiReference
+                new OpenApiSecurityScheme
                 {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            Array.Empty<string>()
-        }
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                },
+                Array.Empty<string>()
+            }
+        });
     });
-});
 
-builder.Services.AddHttpContextAccessor();
+    builder.Services.AddHttpContextAccessor();
 
-builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
+    builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
 
-// DbContext propio
-builder.Services.AddScoped<IDbConnectionFactory>(sp => new SqlConnectionFactory(builder.Configuration));
-builder.Services.AddScoped<IDbConnectionFactoryFactory, DbConnectionFactoryFactory>();
-builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<ITokenService, JwtTokenService>();
-builder.Services.AddScoped<IUserService, UserService>();
+    // DbContext propio
+    builder.Services.AddScoped<IDbConnectionFactory>(sp => new SqlConnectionFactory(builder.Configuration));
+    builder.Services.AddScoped<IDbConnectionFactoryFactory, DbConnectionFactoryFactory>();
+    builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+    builder.Services.AddScoped<IAuthService, AuthService>();
+    builder.Services.AddScoped<ITokenService, JwtTokenService>();
+    builder.Services.AddScoped<IUserService, UserService>();
 
 
-// Configuración JWT
-var jwtSettings = builder.Configuration.GetSection("Jwt");
-var key = Encoding.ASCII.GetBytes(jwtSettings["Key"]);
+    // Configuración JWT
+    var jwtSettings = builder.Configuration.GetSection("Jwt");
+    var key = Encoding.ASCII.GetBytes(jwtSettings["Key"]);
 
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-    .AddJwtBearer(options =>
+    builder.Services.AddAuthentication(options =>
     {
-        options.MapInboundClaims = false;
-        options.TokenValidationParameters = new TokenValidationParameters
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+        .AddJwtBearer(options =>
         {
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(key),
-            ValidateIssuer = true,
-            ValidIssuer = jwtSettings["Issuer"],
-            ValidateAudience = true,
-            ValidAudience = jwtSettings["Audience"],
-            ValidateLifetime = true,
-            NameClaimType = "sub",  // Asegura que el claim "sub" se use como nombre de usuario
-            ClockSkew = TimeSpan.Zero
+            options.MapInboundClaims = false;
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(key),
+                ValidateIssuer = true,
+                ValidIssuer = jwtSettings["Issuer"],
+                ValidateAudience = true,
+                ValidAudience = jwtSettings["Audience"],
+                ValidateLifetime = true,
+                NameClaimType = "sub",  // Asegura que el claim "sub" se use como nombre de usuario
+                ClockSkew = TimeSpan.Zero
+            };
+        });
+
+    builder.Services.AddAuthorization(options =>
+    {
+        options.AddPolicy("Gestion_Familias", policy => policy.RequireClaim("permission", "Gestion_Familias"));
+        options.AddPolicy("Consulta_Familias", policy => policy.RequireClaim("permission", "Consulta_Familias"));
+        options.AddPolicy("Gestion_Gastos", policy => policy.RequireClaim("permission", "Gestion_Gastos"));
+        options.AddPolicy("Consulta_Gastos", policy => policy.RequireClaim("permission", "Consulta_Gastos"));
+    });
+
+
+    var app = builder.Build();
+
+    // ========================================
+    // MIDDLEWARE DE SERILOG (PASO 3)
+    // ========================================
+    app.UseSerilogRequestLogging(options =>
+    {
+        options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
+        options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
+        {
+            diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
+            diagnosticContext.Set("RequestScheme", httpContext.Request.Scheme);
+            diagnosticContext.Set("RemoteIpAddress", httpContext.Connection.RemoteIpAddress);
+            diagnosticContext.Set("UserAgent", httpContext.Request.Headers["User-Agent"].ToString());
+
+            // Enriquecer con información del usuario autenticado
+            if (httpContext.User.Identity?.IsAuthenticated == true)
+            {
+                diagnosticContext.Set("UserId", httpContext.User.FindFirst("sub")?.Value);
+                diagnosticContext.Set("Username", httpContext.User.Identity.Name);
+            }
         };
     });
 
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("Gestion_Familias", policy => policy.RequireClaim("permission", "Gestion_Familias"));
-    options.AddPolicy("Consulta_Familias", policy => policy.RequireClaim("permission", "Consulta_Familias"));
-    options.AddPolicy("Gestion_Gastos", policy => policy.RequireClaim("permission", "Gestion_Gastos"));
-    options.AddPolicy("Consulta_Gastos", policy => policy.RequireClaim("permission", "Consulta_Gastos"));
-});
+    // Configure the HTTP request pipeline.
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI();
+    }
 
+    app.UseHttpsRedirection();
 
-var app = builder.Build();
+    app.UseAuthentication();
+    app.UseSerilogEnrichment();  // ← Middleware para propagar contexto a todos los logs
+    app.UseAuthorization();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.MapControllers();
+
+    Log.Information("✅ KindoHub API started successfully on {Environment}", app.Environment.EnvironmentName);
+    app.Run();
 }
-
-app.UseHttpsRedirection();
-
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.MapControllers();
-
-app.Run();
+catch (Exception ex)
+{
+    Log.Fatal(ex, "❌ KindoHub API failed to start");
+    throw;
+}
+finally
+{
+    Log.Information("🛑 Shutting down KindoHub API");
+    Log.CloseAndFlush();
+}
