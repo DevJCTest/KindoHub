@@ -4,10 +4,17 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>1ccbfe4d-18fb-45f7-989c-d85b0385e395</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\KindoHub.Core\KindoHub.Core.csproj" />
+    <ProjectReference Include="..\KindoHub.Data\KindoHub.Data.csproj" />
+    <ProjectReference Include="..\KindoHub.Services\KindoHub.Services.csproj" />
   </ItemGroup>
 
 </Project>
