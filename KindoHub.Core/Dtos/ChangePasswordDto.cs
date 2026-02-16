@@ -19,5 +19,6 @@ namespace KindoHub.Core.Dtos
         [Required]
         [Compare("NewPassword")]
         public string ConfirmPassword { get; set; } = string.Empty;
+        public byte[] VersionFila { get; set; } = null!;
     }
 }

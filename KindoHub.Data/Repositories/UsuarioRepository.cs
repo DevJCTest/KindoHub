@@ -21,7 +21,7 @@ namespace KindoHub.Data.Repositories
         public async Task<UsuarioEntity?> GetByNombreAsync(string nombre)
         {
             const string query = @"
-            SELECT UsuarioId, Nombre, Password, EsAdministrador, GestionFamilias,
+            SELECT UsuarioId, Nombre, Password, Activo, EsAdministrador, GestionFamilias,
             ConsultaFamilias, GestionGastos, ConsultaGastos, VersionFila 
             FROM usuarios
             WHERE nombre = @Nombre";
@@ -44,6 +44,7 @@ namespace KindoHub.Data.Repositories
                 Password = reader.IsDBNull(reader.GetOrdinal("Password"))
                     ? null
                     : reader.GetString(reader.GetOrdinal("Password")),
+                Activo = reader.GetInt32(reader.GetOrdinal("Activo")),
                 EsAdministrador = reader.GetInt32(reader.GetOrdinal("EsAdministrador")),
                 GestionFamilias = reader.GetInt32(reader.GetOrdinal("GestionFamilias")),
                 ConsultaFamilias = reader.GetInt32(reader.GetOrdinal("ConsultaFamilias")),
@@ -78,39 +79,40 @@ namespace KindoHub.Data.Repositories
             }
         }
 
-        public async Task<bool> UpdatePasswordAsync(string nombre, string newPasswordHash)
+        public async Task<bool> UpdatePasswordAsync(string nombre, string newPasswordHash, byte[] versionFila  )
         {
             const string query = @"
             UPDATE usuarios
             SET password = @NewPasswordHash
-            WHERE nombre = @Nombre";
+            WHERE nombre = @Nombre and VersionFila=@versionfila";
 
             await using var connection = await _connectionFactory.CreateConnectionAsync();
             await connection.OpenAsync();
             await using var command = new SqlCommand(query, connection);
             command.Parameters.AddWithValue("@Nombre", nombre);
+            command.Parameters.AddWithValue("@versionfila", versionFila); 
             command.Parameters.AddWithValue("@NewPasswordHash", newPasswordHash);
 
             var result = await command.ExecuteNonQueryAsync();
             return result > 0;
         }
 
-        public async Task<bool> DeleteAsync(string nombre)
+        public async Task<bool> DeleteAsync(string nombre, byte[] versionFila)
         {
             const string query = @"
             DELETE FROM usuarios
-            WHERE nombre = @Nombre";
+            WHERE nombre = @Nombre and VersionFila=@versionfila";
 
             await using var connection = await _connectionFactory.CreateConnectionAsync();
             await connection.OpenAsync();
             await using var command = new SqlCommand(query, connection);
             command.Parameters.AddWithValue("@Nombre", nombre);
-
+            command.Parameters.AddWithValue("@versionfila", versionFila);
             var result = await command.ExecuteNonQueryAsync();
             return result > 0;
         }
 
-        public async Task<bool> UpdateAdminStatusAsync(string nombre, int isAdmin)
+        public async Task<bool> UpdateAdminStatusAsync(string nombre, int isAdmin, byte[] versionFila)
         {
             const string query = @"
             UPDATE usuarios
@@ -122,6 +124,7 @@ namespace KindoHub.Data.Repositories
             await using var command = new SqlCommand(query, connection);
             command.Parameters.AddWithValue("@Nombre", nombre);
             command.Parameters.AddWithValue("@IsAdmin", isAdmin);
+            command.Parameters.AddWithValue("@versionfila", versionFila);
 
             var result = await command.ExecuteNonQueryAsync();
             return result > 0;

@@ -30,8 +30,15 @@ namespace KindoHub.Services.Services
 
             return new UserDto
             {
+                UsuarioId = usuario.UsuarioId,
                 Nombre = usuario.Nombre,
-                EsAdministrador= usuario.EsAdministrador
+                Password = null,  // No exponer password en consultas
+                EsAdministrador= usuario.EsAdministrador,
+                GestionFamilias = usuario.GestionFamilias,
+                ConsultaFamilias = usuario.ConsultaFamilias,
+                GestionGastos = usuario.GestionGastos,
+                ConsultaGastos = usuario.ConsultaGastos,
+                VersionFila=usuario.VersionFila
                 // Policies no se incluyen aquí, se obtienen por separado
             };
         }
@@ -42,8 +49,15 @@ namespace KindoHub.Services.Services
             var usuarios = await _usuarioRepository.GetAllAsync();
             return usuarios.Select(u => new UserDto
             {
+                UsuarioId = u.UsuarioId,
                 Nombre = u.Nombre,
-                EsAdministrador = u.EsAdministrador
+                Password = null,  // No exponer password
+                EsAdministrador = u.EsAdministrador,
+                GestionFamilias = u.GestionFamilias,
+                ConsultaFamilias = u.ConsultaFamilias,
+                GestionGastos = u.GestionGastos,
+                ConsultaGastos = u.ConsultaGastos,
+                VersionFila = u.VersionFila
             });
         }
 
@@ -105,7 +119,7 @@ namespace KindoHub.Services.Services
             var newPasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
 
             // Actualizar la contraseña
-            var updated = await _usuarioRepository.UpdatePasswordAsync(dto.Username, newPasswordHash);
+            var updated = await _usuarioRepository.UpdatePasswordAsync(dto.Username, newPasswordHash, targetUsuario.VersionFila);
             if (updated)
             {
                 return (true, "Contraseña actualizada exitosamente");
@@ -139,7 +153,7 @@ namespace KindoHub.Services.Services
             }
 
             // Eliminar el usuario
-            var deleted = await _usuarioRepository.DeleteAsync(username);
+            var deleted = await _usuarioRepository.DeleteAsync(username, targetUsuario.VersionFila);
             if (deleted)
             {
                 return (true, "Usuario eliminado exitosamente");
@@ -173,7 +187,7 @@ namespace KindoHub.Services.Services
             }
 
             // Actualizar el estado de administrador
-            var updated = await _usuarioRepository.UpdateAdminStatusAsync(dto.Username, dto.IsAdmin);
+            var updated = await _usuarioRepository.UpdateAdminStatusAsync(dto.Username, dto.IsAdmin, targetUsuario.VersionFila);
             if (updated)
             {
                 return (true, "Estado de administrador actualizado exitosamente");
