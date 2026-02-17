@@ -26,11 +26,9 @@ namespace KindoHub.Services.Services
 
         public async Task<(bool Success, string Message, FamiliaDto? Familia)> CreateAsync(RegisterFamiliaDto dto, string usuarioActual)
         {
-            _logger.LogInformation("Iniciando registro de familia: {Nombre} por {CurrentUser}",
-                dto.Nombre, usuarioActual);
-
             var familia=FamiliaMapper.MapToFamiliaEntity(dto);
 
+            // Establecer los valores predetermiandos para los campos que no se proporcionan en el DTO
             familia.IdEstadoApa= dto.Apa ? (int?)1 : null; // Asumiendo que 1 es el ID para "Activo" en el estado APA
             familia.IdEstadoMutual= dto.Mutual ? (int?)1 : null; // Asumiendo que 1 es el ID para "Activo" en el estado Mutual
             familia.IdFormaPago= !string.IsNullOrEmpty(dto.NombreFormaPago) ? (int?)1 : 1; // Asumiendo que 1 es el ID para la forma de pago proporcionada
@@ -38,13 +36,10 @@ namespace KindoHub.Services.Services
             var createdFamilia = await _familiaRepository.CreateAsync(familia, usuarioActual);
             if (createdFamilia != null)
             {
-                _logger.LogInformation("Familia registrada exitosamente: {Nombre} con ID: {FamiliaId}",
-                    createdFamilia.Nombre, createdFamilia.FamiliaId);
-                return (true, "Familia registrada exitosamente", FamiliaMapper.MapToFamiliaDto(createdFamilia));
+                return (true, "Familia registrada correctamente", FamiliaMapper.MapToFamiliaDto(createdFamilia));
             }
             else
             {
-                _logger.LogError("Error al registrar familia: {Name}", dto.Nombre);
                 return (false, "Error al registrar la familia", null);
             }
         }
@@ -62,7 +57,6 @@ namespace KindoHub.Services.Services
 
 
 
-           // Eliminar el usuario
             var deleted = await _familiaRepository.DeleteAsync(familiaId, versionFila);
             if (deleted)
             {
