@@ -6,10 +6,11 @@ Este proyecto contiene tests unitarios completos para los servicios del proyecto
 
 ## 🎯 Cobertura
 
-- **Total de Tests:** 76
-- **Servicios cubiertos:** 2
+- **Total de Tests:** 94
+- **Servicios cubiertos:** 3
   - UserService: 58 tests
   - FormaPagoService: 18 tests
+  - EstadoAsociadoService: 18 tests
 - **Cobertura de métodos:** 100%
 
 ## 📦 Estructura de Tests
@@ -18,7 +19,8 @@ Este proyecto contiene tests unitarios completos para los servicios del proyecto
 KindoHub.Services.Tests/
 ├── Services/
 │   ├── UserServiceTests.cs (58 tests)
-│   └── FormaPagoServiceTests.cs (18 tests)
+│   ├── FormaPagoServiceTests.cs (18 tests)
+│   └── EstadoAsociadoServiceTests.cs (18 tests)
 ├── KindoHub.Services.Tests.csproj
 └── README.md
 ```
@@ -118,6 +120,31 @@ KindoHub.Services.Tests/
 
 ---
 
+## 🧪 EstadoAsociadoService - Métodos Testeados (18 tests)
+
+### 1. GetAllEstadoAsociadoAsync (5 tests)
+- ✅ Retorna colección de estados de asociado
+- ✅ Retorna colección vacía
+- ✅ Mapeo correcto de todos los campos
+- ✅ Verifica llamada al repositorio
+- ✅ Maneja múltiples estados de asociado
+
+### 2. GetEstadoAsociadoAsync(string name) (7 tests)
+- ✅ Retorna estado de asociado cuando existe
+- ✅ Retorna null cuando no existe
+- ✅ Valida nombre null/vacío/whitespace
+- ✅ Verifica llamada correcta al repositorio
+- ✅ Mapeo correcto de campos (Activo, Inactivo, Temporal)
+
+### 3. GetEstadoAsociadoAsync(int id) (6 tests)
+- ✅ Retorna estado de asociado cuando existe
+- ✅ Retorna null cuando no existe
+- ✅ Valida ID cero o negativo
+- ✅ Verifica llamada correcta al repositorio
+- ✅ Mapeo correcto de campos
+
+---
+
 ## 🛠️ Tecnologías Utilizadas
 
 - **xUnit** 2.9.3 - Framework de testing
@@ -140,6 +167,11 @@ dotnet test --filter "FullyQualifiedName~UserServiceTests"
 ### Solo tests de FormaPagoService
 ```bash
 dotnet test --filter "FullyQualifiedName~FormaPagoServiceTests"
+```
+
+### Solo tests de EstadoAsociadoService
+```bash
+dotnet test --filter "FullyQualifiedName~EstadoAsociadoServiceTests"
 ```
 
 ### Con verbosidad detallada

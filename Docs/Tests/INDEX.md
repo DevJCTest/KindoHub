@@ -97,6 +97,26 @@ Este directorio contiene toda la documentación relacionada con los tests unitar
 
 ---
 
+### 🟢 EstadoAsociadoService (✅ Implementado)
+
+#### 1️⃣ Resumen de Implementación
+**Archivo:** [`EstadoAsociadoService_Summary.md`](./EstadoAsociadoService_Summary.md)
+
+**Para quién:** Todos
+
+**Contenido:**
+- Resumen de implementación completa
+- ≈90% reutilización de código de FormaPagoService
+- 18 tests implementados en ~12 minutos
+- Datos de prueba reales (Activo, Inactivo, Temporal)
+- Patrón copy-paste + renombrado validado
+
+**Estado:** ✅ Implementado (18 tests)
+
+**Tiempo de lectura:** ~2 minutos
+
+---
+
 ## 🗂️ Estructura de Archivos
 
 ```
@@ -112,19 +132,23 @@ KindoHub/
 │       ├── FormaPagoService_TestPlan.md (✅)
 │       ├── FormaPagoService_Summary.md (✅)
 │       │
+│       ├── EstadoAsociadoService_Summary.md (✅)
+│       │
 │       └── README.md (resumen general)
 │
 ├── KindoHub.Services.Tests/
 │   ├── Services/
 │   │   ├── UserServiceTests.cs (✅ 58 tests)
-│   │   └── FormaPagoServiceTests.cs (✅ 18 tests)
+│   │   ├── FormaPagoServiceTests.cs (✅ 18 tests)
+│   │   └── EstadoAsociadoServiceTests.cs (✅ 18 tests)
 │   ├── KindoHub.Services.Tests.csproj
 │   └── README.md
 │
 └── KindoHub.Services/
     └── Services/
         ├── UserService.cs (✅ testeado)
-        └── FormaPagoService.cs (✅ testeado)
+        ├── FormaPagoService.cs (✅ testeado)
+        └── EstadoAsociadoService.cs (✅ testeado)
 ```
 
 ---
