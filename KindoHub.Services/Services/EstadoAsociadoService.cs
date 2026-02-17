@@ -54,5 +54,37 @@ namespace KindoHub.Services.Services
 
             return EstadoAsociadoMapper.MapToEstadoAsociadoDto(estadoAsociado);
         }
+
+        public async Task<EstadoAsociadoDto?> GetPredeterminadoAsync()
+        {
+            var estadoAsociado = await _estadoAsociadoRepository.GetPredeterminadoAsync();
+            if (estadoAsociado == null)
+                return null;
+
+            return EstadoAsociadoMapper.MapToEstadoAsociadoDto(estadoAsociado);
+        }
+
+        public async Task<(bool Success, string Message, EstadoAsociadoDto? EstadoAsociado)> SetPredeterminadoAsync(int id)
+        {
+            // Verificar que el la familia a cambiar exista
+            var targetEstadoPrevio = await _estadoAsociadoRepository.GetEstadoAsociadoAsync(id);
+            if (targetEstadoPrevio == null)
+            {
+                return (false, "La familia a cambiar no existe", null);
+            }
+
+                       
+            var updated = await _estadoAsociadoRepository.SetPredeterminadoAsync(id);
+            if (updated)
+            {
+                var updatedEstadoPrevio = await _estadoAsociadoRepository.GetEstadoAsociadoAsync(id);
+                if (updatedEstadoPrevio != null)
+                {
+                    return (true, "Actualización realizada",EstadoAsociadoMapper.MapToEstadoAsociadoDto(updatedEstadoPrevio));
+                }
+            }
+
+            return (false, "Error al establecer el EstadoAsociado predeterminado", null);
+        }
     }
 }

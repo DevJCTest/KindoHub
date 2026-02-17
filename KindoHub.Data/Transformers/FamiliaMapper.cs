@@ -14,7 +14,7 @@ namespace KindoHub.Data.Transformers
     {
         public static FamiliaEntity MapToFamiliaEntity(SqlDataReader reader)
         {
-            return = new FamiliaEntity
+            return new FamiliaEntity
             {
                 FamiliaId = reader.GetInt32(reader.GetOrdinal("FamiliaId")),
                 NumeroSocio = reader.IsDBNull(reader.GetOrdinal("NumeroSocio"))

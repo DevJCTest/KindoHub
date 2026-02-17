@@ -11,6 +11,8 @@ namespace KindoHub.Core.Interfaces
     {
         Task<EstadoAsociadoEntity?> GetEstadoAsociadoAsync(string nombre);
         Task<EstadoAsociadoEntity?> GetEstadoAsociadoAsync(int id);
+        Task<bool> SetPredeterminadoAsync(int id);
+        Task<EstadoAsociadoEntity?> GetPredeterminadoAsync();
         Task<IEnumerable<EstadoAsociadoEntity>> GetAllEstadoAsociadoAsync();
 
     }

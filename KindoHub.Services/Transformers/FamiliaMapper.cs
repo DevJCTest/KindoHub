@@ -62,7 +62,7 @@ namespace KindoHub.Services.Transformers
             return new FamiliaEntity
             {
                 FamiliaId = dto.FamiliaId,
-                NumeroSocio = dto.NumeroSocio,
+                NumeroSocio = dto.NumeroSocio??0,
                 Nombre = dto.Nombre,
                 Email = dto.Email,
                 Telefono = dto.Telefono,
