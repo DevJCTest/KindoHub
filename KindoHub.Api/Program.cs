@@ -80,12 +80,12 @@ try
     builder.Services.AddScoped<IDbConnectionFactoryFactory, DbConnectionFactoryFactory>();
     builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
     builder.Services.AddScoped<IFormaPagoRepository, FormaPagoRepository>(); 
+    builder.Services.AddScoped<IEstadoAsociadoRepository, EstadoAsociadoRepository>();
     builder.Services.AddScoped<IAuthService, AuthService>();
     builder.Services.AddScoped<ITokenService, JwtTokenService>();
     builder.Services.AddScoped<IUserService, UserService>();
     builder.Services.AddScoped<IFormaPagoService, FormaPagoService>();
-  
-
+    builder.Services.AddScoped<IEstadoAsociadoService, EstadoAsociadoService>();
 
     // Configuración JWT
     var jwtSettings = builder.Configuration.GetSection("Jwt");
