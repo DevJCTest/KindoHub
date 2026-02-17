@@ -97,6 +97,45 @@ Este directorio contiene toda la documentación relacionada con los tests unitar
 
 ---
 
+### 🟡 EstadoAsociadoService (⏳ Pendiente de Autorización)
+
+#### 1️⃣ Plan de Tests Detallado
+**Archivo:** [`EstadoAsociadoService_TestPlan.md`](./EstadoAsociadoService_TestPlan.md)
+
+**Para quién:** Desarrolladores, QA Engineers, Arquitectos
+
+**Contenido:**
+- Análisis de la clase bajo test
+- Comparación con FormaPagoService (≈100% idéntico)
+- Tabla de 18 casos de test propuestos
+- Estrategia de copy-paste + renombrado
+- Datos de prueba (Activo, Inactivo, Temporal)
+- Estimación muy reducida (10-20 min)
+
+**Estado:** ⏳ Esperando autorización
+
+**Tiempo de lectura:** ~8 minutos
+
+---
+
+#### 2️⃣ Resumen Ejecutivo
+**Archivo:** [`EstadoAsociadoService_Summary.md`](./EstadoAsociadoService_Summary.md)
+
+**Para quién:** Product Owners, Project Managers, Tech Leads
+
+**Contenido:**
+- Resumen rápido del planteamiento
+- Comparación directa con FormaPagoService
+- 18 tests propuestos (≈90% reutilización)
+- Estrategia de implementación rápida
+- Recomendación de autorización
+
+**Estado:** ⏳ Esperando autorización
+
+**Tiempo de lectura:** ~2 minutos
+
+---
+
 ## 🗂️ Estructura de Archivos
 
 ```
@@ -112,19 +151,24 @@ KindoHub/
 │       ├── FormaPagoService_TestPlan.md (✅)
 │       ├── FormaPagoService_Summary.md (✅)
 │       │
+│       ├── EstadoAsociadoService_TestPlan.md (⏳)
+│       ├── EstadoAsociadoService_Summary.md (⏳)
+│       │
 │       └── README.md (resumen general)
 │
 ├── KindoHub.Services.Tests/
 │   ├── Services/
 │   │   ├── UserServiceTests.cs (✅ 58 tests)
-│   │   └── FormaPagoServiceTests.cs (✅ 18 tests)
+│   │   ├── FormaPagoServiceTests.cs (✅ 18 tests)
+│   │   └── EstadoAsociadoServiceTests.cs (⏳ pendiente)
 │   ├── KindoHub.Services.Tests.csproj
 │   └── README.md
 │
 └── KindoHub.Services/
     └── Services/
         ├── UserService.cs (✅ testeado)
-        └── FormaPagoService.cs (✅ testeado)
+        ├── FormaPagoService.cs (✅ testeado)
+        └── EstadoAsociadoService.cs (⏳ planteado)
 ```
 
 ---
@@ -138,10 +182,10 @@ KindoHub/
 2. Enfócate en: Sección "Resultados" y "Hallazgos Importantes"
 3. Revisa: Sección "Próximos Pasos Recomendados"
 
-#### Para FormaPagoService (✅ Implementado)
-1. Lee: [`FormaPagoService_Summary.md`](./FormaPagoService_Summary.md)
-2. Revisa: Resultados de implementación
-3. Valida: Ejecutar tests y verificar cobertura
+#### Para EstadoAsociadoService (⏳ Pendiente)
+1. Lee: [`EstadoAsociadoService_Summary.md`](./EstadoAsociadoService_Summary.md)
+2. Revisa: ≈90% reutilización de FormaPagoService
+3. Decide: Autorizar (recomendado - solo 10-20 min)
 
 ---
 
@@ -170,6 +214,22 @@ KindoHub/
 1. Lee: [`FormaPagoService_TestPlan.md`](./FormaPagoService_TestPlan.md) - Para revisar cobertura implementada
 2. Ejecuta: Tests para validar
 3. Revisa: Reporte de cobertura cuando esté disponible
+
+#### Para EstadoAsociadoService (⏳ Pendiente)
+1. Lee: [`EstadoAsociadoService_TestPlan.md`](./EstadoAsociadoService_TestPlan.md) - Para revisar plan
+2. Nota: ≈100% idéntico a FormaPagoService
+3. Valida: Plan antes de autorizar (recomendado)
+
+---
+
+### Si necesitas **autorizar EstadoAsociadoService**
+1. Lee: [`EstadoAsociadoService_Summary.md`](./EstadoAsociadoService_Summary.md) - Resumen rápido (2 min)
+2. Revisa: [`EstadoAsociadoService_TestPlan.md`](./EstadoAsociadoService_TestPlan.md) - Plan detallado (8 min)
+3. Nota: Copy-paste de FormaPagoService con renombrado
+4. Decide:
+   - ✅ "Autorizado" - Proceder (10-20 min)
+   - 📝 "Modificar X" - Ajustar plan
+   - ❌ "Cancelar" - No implementar
 
 ---
 
@@ -208,13 +268,23 @@ KindoHub/
 | Cobertura Generada | ⏳ Pendiente |
 | Issues Detectados | ⚠️ Logger no usado, nombres inconsistentes |
 
+### EstadoAsociadoService
+| Item | Estado |
+|------|--------|
+| Documentación | ✅ Planteamiento completo |
+| Tests Propuestos | 📋 18 tests |
+| Similitud | ≈100% idéntico a FormaPagoService |
+| Estimación | ⏱️ 10-20 minutos |
+| Reutilización | ≈90% código de FormaPago |
+| Autorización | ⏳ **PENDIENTE** |
+
 ### Resumen General
-| Métrica | Actual |
-|---------|--------|
-| Servicios con tests | 2 (UserService, FormaPagoService) |
-| Total de tests | 76 (58 + 18) |
-| Documentos generados | 6 |
-| Estado general | ✅ Compilando correctamente |
+| Métrica | Actual | Con EstadoAsociado |
+|---------|--------|-------------------|
+| Servicios con tests | 2 | 3 |
+| Total de tests | 76 | 94 (+24%) |
+| Documentos generados | 6 | 8 |
+| Estado general | ✅ Compilando | ⏳ Esperando autorización |
 
 ---
 
@@ -244,6 +314,10 @@ Hay un bug crítico identificado en `UserService.DeleteUserAsync` (línea 161). 
 - **Logger no utilizado**: Se inyecta pero nunca se usa
 - **Inconsistencia de nombres**: `GetFormapagoAsync` debería ser `GetFormaPagoAsync`
 
+#### EstadoAsociadoService
+- **Logger no utilizado**: Se inyecta pero nunca se usa (igual que FormaPago)
+- **Patrón idéntico**: Mismos issues potenciales que FormaPagoService
+
 ### 🎯 Cobertura Objetivo
 - **Líneas:** ≥ 90%
 - **Ramas:** ≥ 85%
@@ -263,6 +337,12 @@ Hay un bug crítico identificado en `UserService.DeleteUserAsync` (línea 161). 
 3. ⏳ Validar cobertura >95%
 4. ⏳ Documentar resultados
 
+#### EstadoAsociadoService
+1. ⏳ **Esperar autorización** para implementar
+2. Copiar FormaPagoServiceTests.cs (10-20 min)
+3. Renombrar y ajustar nombres
+4. Ejecutar tests y validar
+
 ---
 
 ## 📞 Soporte
@@ -279,6 +359,12 @@ Hay un bug crítico identificado en `UserService.DeleteUserAsync` (línea 161). 
 - **Resumen de implementación**: Ver [`FormaPagoService_Summary.md`](./FormaPagoService_Summary.md)
 - **Ejecutar tests**: `dotnet test --filter "FullyQualifiedName~FormaPagoServiceTests"`
 
+### Para EstadoAsociadoService
+- **Planteamiento completo**: Ver [`EstadoAsociadoService_TestPlan.md`](./EstadoAsociadoService_TestPlan.md)
+- **Resumen rápido**: Ver [`EstadoAsociadoService_Summary.md`](./EstadoAsociadoService_Summary.md)
+- **Autorización**: Responder "Autorizado" para proceder
+- **Tiempo estimado**: 10-20 minutos
+
 ---
 
 ## 🎉 Estado General del Proyecto de Tests
@@ -291,17 +377,25 @@ Hay un bug crítico identificado en `UserService.DeleteUserAsync` (línea 161). 
 - **1 bug crítico** identificado en UserService
 - **2 issues** detectados en FormaPagoService
 
+### ⏳ En Proceso
+- **EstadoAsociadoService** - Planteamiento completo (esperando autorización)
+- Potencial de **18 tests adicionales** en 10-20 minutos
+- **≈90% de reutilización** de código de FormaPagoService
+
 ### ⏳ Pendiente
 - Ejecutar suite completa de tests
 - Generar reporte de cobertura consolidado
 - Validar cobertura >90%
 - Integrar en CI/CD
 
-### 📊 Métricas
+### 📊 Métricas Actuales
 - **Cobertura de servicios:** 2 de N
-- **Tests totales:** 76
-- **Documentos:** 6
-- **Tiempo invertido:** ~4-5 horas total
+- **Tests implementados:** 76
+- **Tests propuestos:** +18 (EstadoAsociado)
+- **Total potencial:** 94 tests
+- **Documentos:** 8 (6 implementados, 2 planteados)
+- **Tiempo invertido:** ~5 horas
+- **Tiempo estimado adicional:** 10-20 min
 - **Estado general**: Ver [`UserService_ExecutiveSummary.md`](./UserService_ExecutiveSummary.md)
 
 ---
