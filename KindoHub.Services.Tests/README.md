@@ -1,27 +1,31 @@
-# Tests de UserService - KindoHub
+# Tests de Servicios - KindoHub
 
 ## 📋 Resumen
 
-Este proyecto contiene tests unitarios completos para la clase `UserService` del proyecto KindoHub.
+Este proyecto contiene tests unitarios completos para los servicios del proyecto KindoHub.
 
 ## 🎯 Cobertura
 
-- **Total de Tests:** 58
-- **Métodos cubiertos:** 8/8 (100%)
-- **Prioridad Crítica:** 16 tests
-- **Prioridad Alta:** 25 tests
+- **Total de Tests:** 76
+- **Servicios cubiertos:** 2
+  - UserService: 58 tests
+  - FormaPagoService: 18 tests
+- **Cobertura de métodos:** 100%
 
 ## 📦 Estructura de Tests
 
 ```
 KindoHub.Services.Tests/
 ├── Services/
-│   └── UserServiceTests.cs (58 tests)
+│   ├── UserServiceTests.cs (58 tests)
+│   └── FormaPagoServiceTests.cs (18 tests)
 ├── KindoHub.Services.Tests.csproj
 └── README.md
 ```
 
-## 🧪 Métodos Testeados
+---
+
+## 🧪 UserService - Métodos Testeados (58 tests)
 
 ### 1. GetUserAsync (6 tests)
 - ✅ Retorna usuario cuando existe
@@ -85,13 +89,57 @@ KindoHub.Services.Tests/
 - **xUnit** 2.9.3 - Framework de testing
 - **Moq** 4.20.70 - Mocking de dependencias
 - **FluentAssertions** 6.12.0 - Assertions legibles
-- **BCrypt.Net** - Verificación de hash de contraseñas
+- **BCrypt.Net** - Verificación de hash de contraseñas (solo UserService)
+
+---
+
+## 🧪 FormaPagoService - Métodos Testeados (18 tests)
+
+### 1. GetAllFormasPagoAsync (5 tests)
+- ✅ Retorna colección de formas de pago
+- ✅ Retorna colección vacía
+- ✅ Mapeo correcto de todos los campos
+- ✅ Verifica llamada al repositorio
+- ✅ Maneja múltiples formas de pago
+
+### 2. GetFormapagoAsync(string name) (7 tests)
+- ✅ Retorna forma de pago cuando existe
+- ✅ Retorna null cuando no existe
+- ✅ Valida nombre null/vacío/whitespace
+- ✅ Verifica llamada correcta al repositorio
+- ✅ Mapeo correcto de campos
+
+### 3. GetFormapagoAsync(int id) (6 tests)
+- ✅ Retorna forma de pago cuando existe
+- ✅ Retorna null cuando no existe
+- ✅ Valida ID cero o negativo
+- ✅ Verifica llamada correcta al repositorio
+- ✅ Mapeo correcto de campos
+
+---
+
+## 🛠️ Tecnologías Utilizadas
+
+- **xUnit** 2.9.3 - Framework de testing
+- **Moq** 4.20.70 - Mocking de dependencias
+- **FluentAssertions** 6.12.0 - Assertions legibles
+- **BCrypt.Net** - Verificación de hash de contraseñas (solo UserService)
 
 ## 🚀 Ejecutar Tests
 
 ### Todos los tests
 ```bash
 dotnet test KindoHub.Services.Tests/KindoHub.Services.Tests.csproj
+```
+
+### Solo tests de UserService
+```bash
+dotnet test --filter "FullyQualifiedName~UserServiceTests"
+```
+
+### Solo tests de FormaPagoService
+```bash
+dotnet test --filter "FullyQualifiedName~FormaPagoServiceTests"
 ```
 
 ### Con verbosidad detallada
