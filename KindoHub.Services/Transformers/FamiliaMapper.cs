@@ -85,14 +85,14 @@ namespace KindoHub.Services.Transformers
             return new FamiliaEntity
             {
                 Nombre = dto.Nombre,
-                Email = dto.Email,
-                Telefono = dto.Telefono,
-                Direccion = dto.Direccion,
-                Observaciones = dto.Observaciones,
+                Email = dto.Email?? string.Empty,
+                Telefono = dto.Telefono?? string.Empty,
+                Direccion = dto.Direccion ?? string.Empty,
+                Observaciones = dto.Observaciones ?? string.Empty,
                 Apa = dto.Apa,
                 Mutual = dto.Mutual,
-                NombreFormaPago = dto.NombreFormaPago,
-                IBAN = dto.IBAN,
+                NombreFormaPago = dto.NombreFormaPago ?? string.Empty,
+                IBAN = dto.IBAN ?? string.Empty,
             };
         }
 
