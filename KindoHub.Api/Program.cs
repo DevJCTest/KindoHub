@@ -83,6 +83,7 @@ try
     builder.Services.AddScoped<IEstadoAsociadoRepository, EstadoAsociadoRepository>();
     builder.Services.AddScoped<IFamiliaRepository, FamiliaRepository>();
     builder.Services.AddScoped<IAnotacionRepository, AnotacionRepository>();
+    builder.Services.AddScoped<ICursoRepository, CursoRepository>();
     builder.Services.AddScoped<IAuthService, AuthService>();
     builder.Services.AddScoped<ITokenService, JwtTokenService>();
     builder.Services.AddScoped<IUserService, UserService>();
@@ -90,6 +91,7 @@ try
     builder.Services.AddScoped<IEstadoAsociadoService, EstadoAsociadoService>();
     builder.Services.AddScoped<IFamiliaService, FamiliaService>();
     builder.Services.AddScoped<IAnotacionService, AnotacionService>();
+    builder.Services.AddScoped<ICursoService, CursoService>();
 
     // Configuración JWT
     var jwtSettings = builder.Configuration.GetSection("Jwt");
