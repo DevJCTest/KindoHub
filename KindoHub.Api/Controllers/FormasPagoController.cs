@@ -18,6 +18,7 @@ namespace KindoHub.Api.Controllers
             _logger = logger;
         }
 
+        [Authorize]
         [HttpGet("by-name")]
         public async Task<IActionResult> GetFormaPagoByName(string name)
         {
@@ -50,6 +51,7 @@ namespace KindoHub.Api.Controllers
             }
         }
 
+        [Authorize]
         [HttpGet("by-id")]
         public async Task<IActionResult> GetFormaPagoById(int  id)
         {
@@ -82,6 +84,7 @@ namespace KindoHub.Api.Controllers
             }
         }
 
+        [Authorize]
         [HttpGet]
         public async Task<IActionResult> GetAllFormasPago()
         {
