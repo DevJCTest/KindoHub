@@ -12,11 +12,11 @@ namespace KindoHub.Core.Interfaces
     {
         Task<UserDto?> GetUserAsync(string username);
         Task<IEnumerable<UserDto>> GetAllUsersAsync();
-        Task<(bool Success, string Message)> RegisterAsync(RegisterUserDto registerDto);
-        Task<(bool Success, string Message)> ChangePasswordAsync(ChangePasswordDto dto, string currentUser);
-        Task<(bool Success, string Message)> DeleteUserAsync(string username, string currentUser);
-        Task<(bool Success, string Message)> ChangeAdminStatusAsync(ChangeAdminStatusDto dto, string currentUser);
-        Task<(bool Success, string Message)> ChangeActivStatusAsync(ChangeActivStatusDto dto, string currentUser);
-        Task<(bool Success, string Message)> ChangeRolStatusAsync(ChangeUserRoleDto dto, string currentUser);
+        Task<(bool Success, string Message, UserDto? User)> RegisterAsync(RegisterUserDto registerDto, string currentUser);
+        Task<(bool Success, string Message, UserDto? User)> ChangePasswordAsync(ChangePasswordDto dto, string currentUser);
+        Task<(bool Success, string Message)> DeleteUserAsync(DeleteUserDto dto, string currentUser);
+        Task<(bool Success, string Message, UserDto? User)> ChangeAdminStatusAsync(ChangeAdminStatusDto dto, string currentUser);
+        Task<(bool Success, string Message, UserDto? User)> ChangeActivStatusAsync(ChangeActivStatusDto dto, string currentUser);
+        Task<(bool Success, string Message, UserDto? User)> ChangeRolStatusAsync(ChangeUserRoleDto dto, string currentUser);
     }
 }

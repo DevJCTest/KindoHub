@@ -84,12 +84,19 @@ namespace KindoHub.Api.Controllers
 
             try
             {
-                var result = await _userService.RegisterAsync(request);
+                var currentUser = User.Identity?.Name ?? "SYSTEM";
+                var result = await _userService.RegisterAsync(request, currentUser);
 
                 if (result.Success)
                 {
-                    _logger.LogInformation("User registered successfully: {Username}", request.Username);
-                    return Created($"/api/users/{request.Username}", new { message = result.Message });
+                    _logger.LogInformation("User registered successfully: {Username} with ID: {UsuarioId}", 
+                        request.Username, result.User?.UsuarioId);
+
+                    return Created($"/api/users/{request.Username}", new 
+                    { 
+                        message = result.Message,
+                        user = result.User
+                    });
                 }
 
                 // 409 - Usuario ya existe
@@ -112,7 +119,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpPatch("change-password")]
-        [Authorize(Roles = "Administrator")]
+        [Authorize]  // Cualquier usuario autenticado puede intentar cambiar contraseña
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto request)
         {
             // 400 - Validación de modelo
@@ -130,15 +137,40 @@ namespace KindoHub.Api.Controllers
                 return Unauthorized(new { message = "Usuario no autenticado" });
             }
 
+            // Verificar si el usuario es administrador
+            var isAdmin = User.IsInRole("Administrator");
+
+            // 403 - Si NO es admin, solo puede cambiar su propia contraseña
+            if (!isAdmin && request.Username != currentUser)
+            {
+                _logger.LogWarning("User {CurrentUser} attempted to change password for {TargetUser} without admin permissions", 
+                    currentUser, request.Username);
+                return StatusCode(403, new { message = "No tienes permisos para cambiar la contraseña de otro usuario" });
+            }
+
             try
             {
                 var result = await _userService.ChangePasswordAsync(request, currentUser);
 
                 if (result.Success)
                 {
-                    _logger.LogInformation("Password changed for user: {TargetUser} by {AdminUser}", 
-                        request.Username, currentUser);
-                    return Ok(new { message = result.Message });
+                    // Log diferenciado según escenario
+                    if (isAdmin && request.Username != currentUser)
+                    {
+                        _logger.LogInformation("Admin {AdminUser} changed password for user: {TargetUser} (ID: {UsuarioId})", 
+                            currentUser, request.Username, result.User?.UsuarioId);
+                    }
+                    else
+                    {
+                        _logger.LogInformation("User {Username} changed their own password (ID: {UsuarioId})", 
+                            currentUser, result.User?.UsuarioId);
+                    }
+
+                    return Ok(new 
+                    { 
+                        message = result.Message,
+                        user = result.User
+                    });
                 }
 
                 // 404 - Usuario no existe
@@ -167,15 +199,22 @@ namespace KindoHub.Api.Controllers
             }
         }
 
-        [HttpDelete("{username}")]
+        [HttpDelete]
         [Authorize(Roles = "Administrator")]
-        public async Task<IActionResult> DeleteUser(string username)
+        public async Task<IActionResult> DeleteUser([FromBody] DeleteUserDto request)
         {
             // 400 - Validación de username
-            if (string.IsNullOrWhiteSpace(username))
+            if (string.IsNullOrWhiteSpace(request.Username))
             {
                 _logger.LogWarning("DeleteUser request with empty username");
                 return BadRequest(new { message = "El username es requerido" });
+            }
+
+            // 400 - Validación de VersionFila
+            if (request.VersionFila == null || request.VersionFila.Length == 0)
+            {
+                _logger.LogWarning("DeleteUser request with empty VersionFila");
+                return BadRequest(new { message = "La versión de fila es requerida" });
             }
 
             // 401 - Usuario no autenticado
@@ -188,18 +227,18 @@ namespace KindoHub.Api.Controllers
 
             try
             {
-                var result = await _userService.DeleteUserAsync(username, currentUser);
+                var result = await _userService.DeleteUserAsync(request, currentUser);
 
                 if (result.Success)
                 {
-                    _logger.LogWarning("User deleted: {Username} by {AdminUser}", username, currentUser);
+                    _logger.LogWarning("User deleted: {Username} by {AdminUser}", request.Username, currentUser);
                     return NoContent();
                 }
 
                 // 404 - Usuario no existe
                 if (result.Message.Contains("no existe"))
                 {
-                    _logger.LogWarning("Delete attempt for non-existent user: {Username}", username);
+                    _logger.LogWarning("Delete attempt for non-existent user: {Username}", request.Username);
                     return NotFound(new { message = result.Message });
                 }
 
@@ -224,7 +263,7 @@ namespace KindoHub.Api.Controllers
             catch (Exception ex)
             {
                 // 500 - Error interno
-                _logger.LogError(ex, "Error deleting user: {Username}", username);
+                _logger.LogError(ex, "Error deleting user: {Username}", request.Username);
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }
@@ -254,9 +293,14 @@ namespace KindoHub.Api.Controllers
 
                 if (result.Success)
                 {
-                    _logger.LogWarning("Admin status changed for user: {TargetUser} by {AdminUser}. New status: {IsAdmin}", 
-                        request.Username, currentUser, request.IsAdmin);
-                    return Ok(new { message = result.Message });
+                    _logger.LogWarning("Admin status changed for user: {TargetUser} (ID: {UsuarioId}) by {AdminUser}. New status: {IsAdmin}", 
+                        request.Username, result.User?.UsuarioId, currentUser, request.IsAdmin);
+
+                    return Ok(new 
+                    { 
+                        message = result.Message,
+                        user = result.User
+                    });
                 }
 
                 // 404 - Usuario no existe
@@ -317,9 +361,14 @@ namespace KindoHub.Api.Controllers
 
                 if (result.Success)
                 {
-                    _logger.LogWarning("Activ status changed for user: {TargetUser} by {AdminUser}. New status: {IsActive}",
-                        request.Username, currentUser, request.IsActive);
-                    return Ok(new { message = result.Message });
+                    _logger.LogWarning("Activ status changed for user: {TargetUser} (ID: {UsuarioId}) by {AdminUser}. New status: {IsActive}",
+                        request.Username, result.User?.UsuarioId, currentUser, request.IsActive);
+
+                    return Ok(new 
+                    { 
+                        message = result.Message,
+                        user = result.User
+                    });
                 }
 
                 // 404 - Usuario no existe
@@ -374,9 +423,14 @@ namespace KindoHub.Api.Controllers
 
                 if (result.Success)
                 {
-                    _logger.LogWarning("Rol status changed for user: {TargetUser} by {AdminUser}.",
-                        request.Username, currentUser);
-                    return Ok(new { message = result.Message });
+                    _logger.LogWarning("Rol status changed for user: {TargetUser} (ID: {UsuarioId}) by {AdminUser}.",
+                        request.Username, result.User?.UsuarioId, currentUser);
+
+                    return Ok(new 
+                    { 
+                        message = result.Message,
+                        user = result.User
+                    });
                 }
 
                 // 404 - Usuario no existe

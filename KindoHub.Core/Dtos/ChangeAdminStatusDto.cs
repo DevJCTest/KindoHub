@@ -15,5 +15,8 @@ namespace KindoHub.Core.Dtos
         [Required]
         [Range(0, 1)]
         public int IsAdmin { get; set; } = 0;
+
+        [Required]
+        public byte[] VersionFila { get; set; } = null!;
     }
 }

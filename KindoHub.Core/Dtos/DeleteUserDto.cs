@@ -11,5 +11,7 @@ namespace KindoHub.Core.Dtos
     {
         [Required]
         public string Username { get; set; } = string.Empty;
+        [Required]
+        public byte[] VersionFila { get; set; } = null!;
     }
 }
