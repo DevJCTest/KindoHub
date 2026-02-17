@@ -15,11 +15,18 @@ namespace KindoHub.Services.Services
     {
         private readonly IFamiliaRepository _familiaRepository;
         private readonly ILogger<FamiliaService> _logger;
+        private readonly IFormaPagoService _formaPagoService;
 
-        public FamiliaService(IFamiliaRepository familiaRepository, ILogger<FamiliaService> logger)
+        private const int cteApaPredeterminado = 0;
+        private const int cteMutualPredeterminado = 0;
+        private const int cteFormaPagoEfectivo=1;
+        private const int cteFormaPagoBanco = 2;
+
+        public FamiliaService(IFamiliaRepository familiaRepository, ILogger<FamiliaService> logger, IFormaPagoService formapagoService)
         {
             _familiaRepository = familiaRepository;
             _logger = logger;
+            _formaPagoService = formapagoService;
         }
 
 
@@ -28,10 +35,20 @@ namespace KindoHub.Services.Services
         {
             var familia=FamiliaMapper.MapToFamiliaEntity(dto);
 
-            // Establecer los valores predetermiandos para los campos que no se proporcionan en el DTO
-            familia.IdEstadoApa= dto.Apa ? (int?)1 : null; // Asumiendo que 1 es el ID para "Activo" en el estado APA
-            familia.IdEstadoMutual= dto.Mutual ? (int?)1 : null; // Asumiendo que 1 es el ID para "Activo" en el estado Mutual
-            familia.IdFormaPago= !string.IsNullOrEmpty(dto.NombreFormaPago) ? (int?)1 : 1; // Asumiendo que 1 es el ID para la forma de pago proporcionada
+            if (!string.IsNullOrEmpty(dto.NombreFormaPago))
+            {
+                var formaPago = await _formaPagoService.GetFormapagoAsync(dto.NombreFormaPago);
+                if (formaPago == null)
+                {
+                    return (false, $"La forma de pago '{dto.NombreFormaPago}' no existe", null);
+                }
+
+                familia.IdFormaPago = formaPago.FormaPagoId;
+            }
+            else
+            {
+                familia.IdFormaPago=cteFormaPagoEfectivo; 
+            }
 
             var createdFamilia = await _familiaRepository.CreateAsync(familia, usuarioActual);
             if (createdFamilia != null)
