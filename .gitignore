@@ -11,6 +11,31 @@
 *.sln.docstates
 *.env
 
+# Archivos de configuración con datos sensibles (JWT keys, connection strings, etc.)
+appsettings.Development.json
+appsettings.Production.json
+appsettings.Staging.json
+appsettings.Local.json
+appsettings.*.json
+!appsettings.json
+!appsettings.*.template.json
+
+# Certificados y claves privadas
+*.p12
+*.key
+*.pem
+*.crt
+*.cer
+
+# Archivos de secretos
+secrets.json
+secrets.*.json
+*.secrets.json
+
+# Archivos de configuración local
+local.settings.json
+*.local.json
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 

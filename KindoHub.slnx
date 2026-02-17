@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="../../../../Documents/Desarrollo/PruebaProyecto/GestionUsuarios.Tests/GestionUsuarios.Tests.csproj" />
+  <Project Path="KindoHub.Api/KindoHub.Api.csproj" />
+  <Project Path="KindoHub.Core/KindoHub.Core.csproj" />
+  <Project Path="KindoHub.Data/KindoHub.Data.csproj" />
+  <Project Path="KindoHub.Services/KindoHub.Services.csproj" />
+</Solution>
