@@ -18,8 +18,8 @@ namespace KindoHub.Api.Controllers
             _logger = logger;
         }
 
-        [HttpGet("{name}")]
-        public async Task<IActionResult> GetFormaPago(string name)
+        [HttpGet("by-name")]
+        public async Task<IActionResult> GetFormaPagoByName(string name)
         {
             // 400 - Validación de username
             if (string.IsNullOrWhiteSpace(name))
@@ -50,8 +50,8 @@ namespace KindoHub.Api.Controllers
             }
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetFormaPago(int  id)
+        [HttpGet("by-id")]
+        public async Task<IActionResult> GetFormaPagoById(int  id)
         {
             // 400 - Validación de username
             if (id<=0)

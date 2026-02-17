@@ -23,9 +23,10 @@ namespace KindoHub.Services.Services
 
 
 
-        public Task<IEnumerable<FormaPagoDto>> GetAllFormasPagoAsync()
+        public async Task<IEnumerable<FormaPagoDto>> GetAllFormasPagoAsync()
         {
-            throw new NotImplementedException();
+            var formasPago = await _formaPagoRepository.GetAllFormasPagoAsync();
+            return formasPago.Select(u => FormaPagoMapper.MapToFormaPagoDto(u));
         }
 
         public async Task<FormaPagoDto?> GetFormapagoAsync(string name)
