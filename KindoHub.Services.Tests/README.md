@@ -6,11 +6,12 @@ Este proyecto contiene tests unitarios completos para los servicios del proyecto
 
 ## 🎯 Cobertura
 
-- **Total de Tests:** 94
-- **Servicios cubiertos:** 3
+- **Total de Tests:** 134
+- **Servicios cubiertos:** 4
   - UserService: 58 tests
   - FormaPagoService: 18 tests
   - EstadoAsociadoService: 18 tests
+  - FamiliaService: 40 tests
 - **Cobertura de métodos:** 100%
 
 ## 📦 Estructura de Tests
@@ -20,7 +21,8 @@ KindoHub.Services.Tests/
 ├── Services/
 │   ├── UserServiceTests.cs (58 tests)
 │   ├── FormaPagoServiceTests.cs (18 tests)
-│   └── EstadoAsociadoServiceTests.cs (18 tests)
+│   ├── EstadoAsociadoServiceTests.cs (18 tests)
+│   └── FamiliaServiceTests.cs (40 tests)
 ├── KindoHub.Services.Tests.csproj
 └── README.md
 ```
@@ -145,6 +147,51 @@ KindoHub.Services.Tests/
 
 ---
 
+## 🧪 FamiliaService - Métodos Testeados (40 tests)
+
+### 1. GetAllAsync (5 tests)
+- ✅ Retorna colección de familias
+- ✅ Retorna colección vacía
+- ✅ Mapeo correcto de todos los 17 campos
+- ✅ Verifica llamada al repositorio
+- ✅ Maneja múltiples familias
+
+### 2. GetByFamiliaIdAsync(int) (7 tests)
+- ✅ Retorna familia cuando existe
+- ✅ Retorna null cuando no existe
+- ✅ Valida ID cero o negativo
+- ✅ Verifica llamada correcta al repositorio
+- ✅ Mapeo correcto de todos los campos
+- ✅ IBAN enmascarado correcto
+
+### 3. CreateAsync(RegisterFamiliaDto, string) (16 tests)
+- ✅ Creación exitosa
+- ✅ Error en repositorio
+- ✅ Lógica Apa: true → IdEstadoApa=1, false → null
+- ✅ Lógica Mutual: true → IdEstadoMutual=1, false → null
+- ⚠️ **BUG DOCUMENTADO:** IdFormaPago siempre es 1 (2 tests)
+- ✅ Logging: inicio, éxito, error (3 tests)
+- ✅ Mapeo RegisterDto → Entity
+- ✅ Mapeo Entity → Dto en respuesta
+- ✅ Mensajes correctos
+
+### 4. UpdateFamiliaAsync(FamiliaDto, string) (12 tests)
+- ✅ Actualización exitosa
+- ✅ Familia no existe
+- ⚠️ **TODO:** No valida IdEstadoApa (test documentado)
+- ⚠️ **MISSING:** No valida VersionFila (test documentado)
+- ✅ Error en update
+- ✅ Error en re-lectura
+- ✅ Parámetro usuarioActual pasado correctamente
+- ✅ Mapeo Dto → Entity
+- ✅ Mapeo Entity → Dto en respuesta
+- ✅ Mensajes correctos
+
+### 5. DeleteAsync(int, byte[]) (1 test)
+- ✅ Lanza NotImplementedException
+
+---
+
 ## 🛠️ Tecnologías Utilizadas
 
 - **xUnit** 2.9.3 - Framework de testing
@@ -172,6 +219,11 @@ dotnet test --filter "FullyQualifiedName~FormaPagoServiceTests"
 ### Solo tests de EstadoAsociadoService
 ```bash
 dotnet test --filter "FullyQualifiedName~EstadoAsociadoServiceTests"
+```
+
+### Solo tests de FamiliaService
+```bash
+dotnet test --filter "FullyQualifiedName~FamiliaServiceTests"
 ```
 
 ### Con verbosidad detallada

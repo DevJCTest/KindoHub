@@ -81,11 +81,13 @@ try
     builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
     builder.Services.AddScoped<IFormaPagoRepository, FormaPagoRepository>(); 
     builder.Services.AddScoped<IEstadoAsociadoRepository, EstadoAsociadoRepository>();
+    builder.Services.AddScoped<IFamiliaRepository, FamiliaRepository>();
     builder.Services.AddScoped<IAuthService, AuthService>();
     builder.Services.AddScoped<ITokenService, JwtTokenService>();
     builder.Services.AddScoped<IUserService, UserService>();
     builder.Services.AddScoped<IFormaPagoService, FormaPagoService>();
     builder.Services.AddScoped<IEstadoAsociadoService, EstadoAsociadoService>();
+    builder.Services.AddScoped<IFamiliaService, FamiliaService>();
 
     // Configuración JWT
     var jwtSettings = builder.Configuration.GetSection("Jwt");
