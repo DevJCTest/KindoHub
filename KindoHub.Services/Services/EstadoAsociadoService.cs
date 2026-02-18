@@ -54,14 +54,12 @@ namespace KindoHub.Services.Services
 
         public async Task<(bool Success, EstadoAsociadoDto? EstadoAsociado)> EstablecerPredeterminado(int id)
         {
-            // Verificar que el la familia a cambiar exista
-            var targetEstadoPrevio = await _estadoAsociadoRepository.LeerPorId(id);
-            if (targetEstadoPrevio == null)
+            if(id<=0)
             {
                 return (false, null);
             }
 
-                       
+
             var updated = await _estadoAsociadoRepository.EstablecerPredeterminado(id);
             if (updated)
             {

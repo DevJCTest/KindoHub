@@ -30,8 +30,6 @@ namespace KindoHub.Data.Repositories
 
         public async Task<IEnumerable<EstadoAsociadoEntity>> LeerTodos()
         {
-            _logger.LogDebug("Obteniendo todos los estados asociados");
-
             const string query = @"
             SELECT EstadoId, Nombre, Descripcion, Predeterminado 
             FROM EstadosAsociado
@@ -48,18 +46,9 @@ namespace KindoHub.Data.Repositories
                 await using var reader = await command.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
                 {
-                    //estadoAsociado.Add(new EstadoAsociadoEntity
-                    //{
-                    //    EstadoAsociadoId = reader.GetInt32(reader.GetOrdinal("EstadoId")),
-                    //    Nombre = reader.GetString(reader.GetOrdinal("Nombre")),
-                    //    Descripcion = reader.GetString(reader.GetOrdinal("Descripcion")),
-                    //    Predeterminado = reader.GetBoolean(reader.GetOrdinal("Predeterminado"))
-                    //});
-
                     estadoAsociado.Add(EstadoAsociadoMapper.MapToEstadoAsociadoEntity(reader));
                 }
 
-                _logger.LogInformation("Se obtuvieron {Count} estados asociados", estadoAsociado.Count);
                 return estadoAsociado;
             }
             catch (SqlException ex)
@@ -72,9 +61,7 @@ namespace KindoHub.Data.Repositories
         public async Task<EstadoAsociadoEntity?> LeerPorNombre(string nombre)
         {
             if (string.IsNullOrWhiteSpace(nombre))
-                throw new ArgumentException("El nombre del estado asociado no puede estar vacío.", nameof(nombre));
-
-            _logger.LogDebug("Buscando estado asociado: {Nombre}", nombre);
+                throw new ArgumentException("Nombre no asignado", nameof(nombre));
 
             const string query = @"
             SELECT EstadoId, Nombre, Descripcion, Predeterminado 
@@ -91,24 +78,23 @@ namespace KindoHub.Data.Repositories
                 await using var reader = await command.ExecuteReaderAsync();
                 if (!await reader.ReadAsync())
                 {
-                    _logger.LogDebug("Estado asociado no encontrado: {Nombre}", nombre);
                     return null;
                 }
 
-                var estadoAsociado = new EstadoAsociadoEntity
-                {
-                    Id = reader.GetInt32(reader.GetOrdinal("EstadoId")),
-                    Nombre = reader.GetString(reader.GetOrdinal("Nombre")),
-                    Descripcion = reader.GetString(reader.GetOrdinal("Descripcion")),
-                    Predeterminado = reader.GetBoolean(reader.GetOrdinal("Predeterminado"))
-                };
+                var estadoAsociado= EstadoAsociadoMapper.MapToEstadoAsociadoEntity(reader);
+                //var estadoAsociado = new EstadoAsociadoEntity
+                //{
+                //    Id = reader.GetInt32(reader.GetOrdinal("EstadoId")),
+                //    Nombre = reader.GetString(reader.GetOrdinal("Nombre")),
+                //    Descripcion = reader.GetString(reader.GetOrdinal("Descripcion")),
+                //    Predeterminado = reader.GetBoolean(reader.GetOrdinal("Predeterminado"))
+                //};
 
-                _logger.LogInformation("Estado asociado encontrado: {EstadoId} - {Nombre}", estadoAsociado.Id, estadoAsociado.Nombre);
                 return estadoAsociado;
             }
             catch (SqlException ex)
             {
-                _logger.LogError(ex, "Error SQL al buscar estado asociado: {Nombre}", nombre);
+                _logger.LogError(ex, "Error SQL al buscar estado asociado por nombre: {Nombre}", nombre);
                 throw;
             }
         }
@@ -116,8 +102,9 @@ namespace KindoHub.Data.Repositories
         public async Task<EstadoAsociadoEntity?> LeerPorId(int id)
         {
             if (id <= 0)
-                throw new ArgumentException("El ID del estado asociado no puede ser menor o igual a cero.", nameof(id));
-            _logger.LogDebug("Buscando estado asociado: {EstadoAsociadoId}", id);
+                throw new ArgumentException("Id no asignado", nameof(id));
+            
+
             const string query = @"
             SELECT EstadoId, Nombre, Descripcion, Predeterminado 
             FROM EstadosAsociado
@@ -132,7 +119,6 @@ namespace KindoHub.Data.Repositories
                 await using var reader = await command.ExecuteReaderAsync();
                 if (!await reader.ReadAsync())
                 {
-                    _logger.LogDebug("Estado asociado no encontrado: {EstadoAsociadoId}", id);
                     return null;
                 }
 
@@ -146,12 +132,11 @@ namespace KindoHub.Data.Repositories
                 //    Predeterminado = reader.GetBoolean(reader.GetOrdinal("Predeterminado"))
                 //};
 
-                _logger.LogInformation("Estado asociado encontrado: {EstadoId} - {Nombre}", estadoAsociado.Id, estadoAsociado.Nombre);
                 return estadoAsociado;
             }
             catch (SqlException ex)
             {
-                _logger.LogError(ex, "Error SQL al buscar estado asociado: {EstadoId}", id);
+                _logger.LogError(ex, "Error SQL al buscar estado asociado por Id: {EstadoId}", id);
                 throw;
             }
         }
@@ -171,7 +156,6 @@ namespace KindoHub.Data.Repositories
                 await using var reader = await command.ExecuteReaderAsync();
                 if (!await reader.ReadAsync())
                 {
-                    _logger.LogDebug("No se encontró ningún EstadoAsociado marcado como predeterminado");
                     return null;
                 }
 
@@ -185,7 +169,6 @@ namespace KindoHub.Data.Repositories
                 //    Predeterminado = reader.GetBoolean(reader.GetOrdinal("Predeterminado"))
                 //};
 
-                _logger.LogInformation("Estado asociado encontrado: {EstadoId} - {Nombre}", estadoAsociado.Id, estadoAsociado.Nombre);
                 return estadoAsociado;
             }
             catch (SqlException ex)
@@ -198,9 +181,8 @@ namespace KindoHub.Data.Repositories
         public async Task<bool> EstablecerPredeterminado(int id)
         {
             if (id<=0)
-                throw new ArgumentException("El identificador del EstadoAsociado debe ser mayor que cero.");
+                throw new ArgumentException("Id no asignado");
 
-            _logger.LogInformation("Actualizando EstadoAsociado predeterminado: {EstadoAsociadoId}", id);
 
             const string queryPrevia = @"
             UPDATE [dbo].[EstadosAsociado]
@@ -224,17 +206,11 @@ namespace KindoHub.Data.Repositories
 
                 var result = await command.ExecuteNonQueryAsync();
 
-                if (result > 0)
-                    _logger.LogInformation("Actualizado correctamente {EstadoId}", id);
-                else
-                    _logger.LogWarning("No se pudo actualizar estado predeterminado (posible conflicto de concurrencia)" );
-
-
                 return result > 0;
             }
             catch (SqlException ex)
             {
-                _logger.LogError(ex, "Error SQL al actualizar password para usuario");
+                _logger.LogError(ex, "Error SQL al establecer estado asociado como predeterminado");
                 throw;
             }
         }

@@ -16,7 +16,8 @@ namespace KindoHub.Services.Transformers
             {
                 Id = entity.Id,
                 Nombre = entity.Nombre,
-                Descripcion = entity.Descripcion
+                Descripcion = entity.Descripcion,
+                Predeterminado=entity.Predeterminado
             };
         }
     }

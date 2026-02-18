@@ -1,3 +1,6 @@
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using KindoHub.Api.Middleware;
 using KindoHub.Core;
 using KindoHub.Core.Interfaces;
 using KindoHub.Data;
@@ -6,10 +9,9 @@ using KindoHub.Services.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System.Text;
 using Serilog;
 using Serilog.Events;
-using KindoHub.Api.Middleware;
+using System.Text;
 
 // ========================================
 // CONFIGURACIÓN DE SERILOG (PASO 1)
@@ -42,6 +44,11 @@ try
     // Add services to the container.
 
     builder.Services.AddControllers();
+
+    // Registrar FluentValidation
+    builder.Services.AddFluentValidationAutoValidation();
+    builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen(options =>

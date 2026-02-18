@@ -1,4 +1,5 @@
 ﻿using Azure.Core;
+using KindoHub.Core.Dtos;
 using KindoHub.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,33 +20,30 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpGet("por-nombre")]
-        public async Task<IActionResult> LeerPorNombre(string name)
+        public async Task<IActionResult> LeerPorNombre(string nombre)
         {
-            // 400 - Validación de username
-            if (string.IsNullOrWhiteSpace(name))
+            // 400 
+            if (string.IsNullOrWhiteSpace(nombre))
             {
-                _logger.LogWarning("GetEstadoAsociado request with empty name");
-                return BadRequest(new { message = "El name es requerido" });
+                return BadRequest(new { message = "El nombre es obligatorio" });
             }
 
             try
             {
-                var dto = await _estadoAsociadoService.LeerPorNombre(name);
+                var dto = await _estadoAsociadoService.LeerPorNombre(nombre);
 
-                // 404 - Forma pago no encontrada
+                // 404 
                 if (dto == null)
                 {
-                    _logger.LogWarning("Estado asociado not found: {Name}", name);
-                    return NotFound(new { message = $"EstadoAsociado '{name}' no encontrada" });
+                    return NotFound(new { message = $"EstadoAsociado '{nombre}' no encontrado" });
                 }
 
-                _logger.LogInformation("Estado asociado retrieved: {Name}", name);
                 return Ok(dto);
             }
             catch (Exception ex)
             {
-                // 500 - Error interno
-                _logger.LogError(ex, "Error retrieving estado asociado: {Name}", name);
+                // 500 
+                _logger.LogError(ex, "Error leyendo estado asociado por nombre: {Name}", nombre);
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }
@@ -56,14 +54,13 @@ namespace KindoHub.Api.Controllers
         {
             try
             {
-                var estadosAsociado = await _estadoAsociadoService.LeerTodos();
-                _logger.LogInformation("All estados asociado retrieved. Count: {Count}", estadosAsociado.Count());
+                var estadosAsociado = await _estadoAsociadoService.LeerTodos();               
                 return Ok(estadosAsociado);
             }
             catch (Exception ex)
             {
-                // 500 - Error interno
-                _logger.LogError(ex, "Error retrieving all estados asociado");
+                // 500 
+                _logger.LogError(ex, "Error leyendo los estados de asociado");
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }
@@ -77,20 +74,18 @@ namespace KindoHub.Api.Controllers
             {
                 var dto = await _estadoAsociadoService.LeerPredeterminado();
 
-                // 404 - Estado asociado no encontrado
+                // 404
                 if (dto == null)
                 {
-                    _logger.LogWarning("No se encontró ningún EstadoAsociado marcado como predeterminado");
-                    return NotFound(new { message = $"No se encontró el EstadoAsociado predeterminado" });
+                    return NotFound(new { message = $"No se encontró el estado de asociado predeterminado" });
                 }
 
-                _logger.LogInformation("Estado asociado retrieved: {EstadoAsociadoId}", dto.Id);
                 return Ok(dto);
             }
             catch (Exception ex)
             {
                 // 500 - Error interno
-                _logger.LogError(ex, "Error retrieving estado asociado predeterminado");
+                _logger.LogError(ex, "Error al leer el estado asociado predeterminado");
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }
@@ -101,8 +96,7 @@ namespace KindoHub.Api.Controllers
             // 400 - Validación de username
             if (id <= 0)
             {
-                _logger.LogWarning("GetEstadoAsociado request with id <= 0");
-                return BadRequest(new { message = "El id es requerido" });
+                return BadRequest(new { message = "Id no válido" });
             }
 
             try
@@ -111,22 +105,18 @@ namespace KindoHub.Api.Controllers
 
                 if (result.Success)
                 {
-                    _logger.LogInformation("Establecido como predeterminado EstadoAsociado with ID: {EstadoAsociadoId}",
-                        id);
-
                     return Ok(new
                     {
-                        familia = result.EstadoAsociado
+                        EstadoAsociado = result.EstadoAsociado
                     });
                 }
 
-                _logger.LogInformation("Estado asociado retrieved: {EstadoAsociadoId}", id);
                 return BadRequest();
             }
             catch (Exception ex)
             {
                 // 500 - Error interno
-                _logger.LogError(ex, "Error retrieving estado asociado: {EstadoAsociadoId}", id);
+                _logger.LogError(ex, "Error al establecer el estado de asociado predeterminado: {EstadoAsociadoId}", id);
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }
