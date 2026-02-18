@@ -18,8 +18,8 @@ namespace KindoHub.Api.Controllers
             _logger = logger;
         }
 
-        [HttpGet("by-name")]
-        public async Task<IActionResult> GetEstadoAsociadoByName(string name)
+        [HttpGet("por-nombre")]
+        public async Task<IActionResult> LeerPorNombre(string name)
         {
             // 400 - Validación de username
             if (string.IsNullOrWhiteSpace(name))
@@ -30,7 +30,7 @@ namespace KindoHub.Api.Controllers
 
             try
             {
-                var dto = await _estadoAsociadoService.GetEstadoAsociadoAsync(name);
+                var dto = await _estadoAsociadoService.LeerPorNombre(name);
 
                 // 404 - Forma pago no encontrada
                 if (dto == null)
@@ -50,44 +50,13 @@ namespace KindoHub.Api.Controllers
             }
         }
 
-        [HttpGet("by-id")]
-        public async Task<IActionResult> GetEstadoAsociadoById(int id)
-        {
-            // 400 - Validación de username
-            if (id <= 0)
-            {
-                _logger.LogWarning("GetEstadoAsociado request with id <= 0");
-                return BadRequest(new { message = "El id es requerido" });
-            }
-
-            try
-            {
-                var dto = await _estadoAsociadoService.GetEstadoAsociadoAsync(id);
-
-                // 404 - Estado asociado no encontrado
-                if (dto == null)
-                {
-                    _logger.LogWarning("Estado asociado not found: {EstadoAsociadoId}", id);
-                    return NotFound(new { message = $"EstadoAsociado '{id}' no encontrada" });
-                }
-
-                _logger.LogInformation("Estado asociado retrieved: {EstadoAsociadoId}", id);
-                return Ok(dto);
-            }
-            catch (Exception ex)
-            {
-                // 500 - Error interno
-                _logger.LogError(ex, "Error retrieving estado asociado: {EstadoAsociadoId}", id);
-                return StatusCode(500, new { message = "Error interno del servidor" });
-            }
-        }
-
+       
         [HttpGet]
-        public async Task<IActionResult> GetAllEstadosAsociado()
+        public async Task<IActionResult> LeerTodos()
         {
             try
             {
-                var estadosAsociado = await _estadoAsociadoService.GetAllEstadoAsociadoAsync();
+                var estadosAsociado = await _estadoAsociadoService.LeerTodos();
                 _logger.LogInformation("All estados asociado retrieved. Count: {Count}", estadosAsociado.Count());
                 return Ok(estadosAsociado);
             }
@@ -100,13 +69,13 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpGet("predeterminado")]
-        public async Task<IActionResult> GetPredeterminado()
+        public async Task<IActionResult> LeerPredeterminado()
         {
 
 
             try
             {
-                var dto = await _estadoAsociadoService.GetPredeterminadoAsync();
+                var dto = await _estadoAsociadoService.LeerPredeterminado();
 
                 // 404 - Estado asociado no encontrado
                 if (dto == null)
@@ -115,7 +84,7 @@ namespace KindoHub.Api.Controllers
                     return NotFound(new { message = $"No se encontró el EstadoAsociado predeterminado" });
                 }
 
-                _logger.LogInformation("Estado asociado retrieved: {EstadoAsociadoId}", dto.EstadoAsociadoId);
+                _logger.LogInformation("Estado asociado retrieved: {EstadoAsociadoId}", dto.Id);
                 return Ok(dto);
             }
             catch (Exception ex)
@@ -126,8 +95,8 @@ namespace KindoHub.Api.Controllers
             }
         }
 
-        [HttpGet("set-predeterminado")]
-        public async Task<IActionResult> SetPredeterminado(int id)
+        [HttpGet("asignar-predeterminado")]
+        public async Task<IActionResult> EstablecerPredeterminado(int id)
         {
             // 400 - Validación de username
             if (id <= 0)
@@ -138,7 +107,7 @@ namespace KindoHub.Api.Controllers
 
             try
             {
-                var result = await _estadoAsociadoService.SetPredeterminadoAsync(id);
+                var result = await _estadoAsociadoService.EstablecerPredeterminado(id);
 
                 if (result.Success)
                 {
@@ -147,20 +116,12 @@ namespace KindoHub.Api.Controllers
 
                     return Ok(new
                     {
-                        message = result.Message,
                         familia = result.EstadoAsociado
                     });
                 }
 
-                // 404 - Familia no existe
-                if (result.Message.Contains("no existe"))
-                {
-                    _logger.LogWarning("Change attempt for non-existent family: {EstadoAsociadoId}", id);
-                    return NotFound(new { message = result.Message });
-                }
-
                 _logger.LogInformation("Estado asociado retrieved: {EstadoAsociadoId}", id);
-                return BadRequest(new { message = result.Message });
+                return BadRequest();
             }
             catch (Exception ex)
             {

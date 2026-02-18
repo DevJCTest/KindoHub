@@ -14,7 +14,7 @@ namespace KindoHub.Services.Transformers
         {
             return new EstadoAsociadoDto
             {
-                EstadoAsociadoId = entity.EstadoAsociadoId,
+                Id = entity.Id,
                 Nombre = entity.Nombre,
                 Descripcion = entity.Descripcion
             };

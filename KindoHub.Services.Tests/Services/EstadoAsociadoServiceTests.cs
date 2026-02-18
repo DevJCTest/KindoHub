@@ -33,11 +33,11 @@ namespace KindoHub.Services.Tests.Services
                 CreateTestEstadoAsociadoEntity(2, "Inactivo"),
                 CreateTestEstadoAsociadoEntity(3, "Temporal")
             };
-            _mockRepository.Setup(r => r.GetAllEstadoAsociadoAsync())
+            _mockRepository.Setup(r => r.LeerTodos())
                 .ReturnsAsync(estadosAsociado);
 
             // Act
-            var result = await _sut.GetAllEstadoAsociadoAsync();
+            var result = await _sut.LeerTodos();
 
             // Assert
             result.Should().HaveCount(3);
@@ -51,11 +51,11 @@ namespace KindoHub.Services.Tests.Services
         public async Task GetAllEstadoAsociadoAsync_WhenNoEstadosAsociado_ShouldReturnEmptyCollection()
         {
             // Arrange
-            _mockRepository.Setup(r => r.GetAllEstadoAsociadoAsync())
+            _mockRepository.Setup(r => r.LeerTodos())
                 .ReturnsAsync(new List<EstadoAsociadoEntity>());
 
             // Act
-            var result = await _sut.GetAllEstadoAsociadoAsync();
+            var result = await _sut.LeerTodos();
 
             // Assert
             result.Should().BeEmpty();
@@ -69,15 +69,15 @@ namespace KindoHub.Services.Tests.Services
             {
                 CreateTestEstadoAsociadoEntity(1, "Activo")
             };
-            _mockRepository.Setup(r => r.GetAllEstadoAsociadoAsync())
+            _mockRepository.Setup(r => r.LeerTodos())
                 .ReturnsAsync(estadosAsociado);
 
             // Act
-            var result = await _sut.GetAllEstadoAsociadoAsync();
+            var result = await _sut.LeerTodos();
 
             // Assert
             var estadoAsociado = result.First();
-            estadoAsociado.EstadoAsociadoId.Should().Be(1);
+            estadoAsociado.Id.Should().Be(1);
             estadoAsociado.Nombre.Should().Be("Activo");
             estadoAsociado.Descripcion.Should().Be("Al corriente de las obligaciones");
         }
@@ -86,14 +86,14 @@ namespace KindoHub.Services.Tests.Services
         public async Task GetAllEstadoAsociadoAsync_ShouldCallRepositoryGetAllEstadoAsociadoAsync()
         {
             // Arrange
-            _mockRepository.Setup(r => r.GetAllEstadoAsociadoAsync())
+            _mockRepository.Setup(r => r.LeerTodos())
                 .ReturnsAsync(new List<EstadoAsociadoEntity>());
 
             // Act
-            await _sut.GetAllEstadoAsociadoAsync();
+            await _sut.LeerTodos();
 
             // Assert
-            _mockRepository.Verify(r => r.GetAllEstadoAsociadoAsync(), Times.Once);
+            _mockRepository.Verify(r => r.LeerTodos(), Times.Once);
         }
 
         [Fact]
@@ -113,17 +113,17 @@ namespace KindoHub.Services.Tests.Services
                 CreateTestEstadoAsociadoEntity(9, "Rechazado"),
                 CreateTestEstadoAsociadoEntity(10, "Otro")
             };
-            _mockRepository.Setup(r => r.GetAllEstadoAsociadoAsync())
+            _mockRepository.Setup(r => r.LeerTodos())
                 .ReturnsAsync(estadosAsociado);
 
             // Act
-            var result = await _sut.GetAllEstadoAsociadoAsync();
+            var result = await _sut.LeerTodos();
 
             // Assert
             result.Should().HaveCount(10);
             result.Should().AllSatisfy(ea => 
             {
-                ea.EstadoAsociadoId.Should().BeGreaterThan(0);
+                ea.Id.Should().BeGreaterThan(0);
                 ea.Nombre.Should().NotBeNullOrWhiteSpace();
                 ea.Descripcion.Should().NotBeNullOrWhiteSpace();
             });
@@ -139,15 +139,15 @@ namespace KindoHub.Services.Tests.Services
             // Arrange
             var nombre = "Activo";
             var estadoAsociadoEntity = CreateTestEstadoAsociadoEntity(1, nombre);
-            _mockRepository.Setup(r => r.GetEstadoAsociadoAsync(nombre))
+            _mockRepository.Setup(r => r.LeerPorNombre(nombre))
                 .ReturnsAsync(estadoAsociadoEntity);
 
             // Act
-            var result = await _sut.GetEstadoAsociadoAsync(nombre);
+            var result = await _sut.LeerPorNombre(nombre);
 
             // Assert
             result.Should().NotBeNull();
-            result!.EstadoAsociadoId.Should().Be(1);
+            result!.Id.Should().Be(1);
             result.Nombre.Should().Be(nombre);
             result.Descripcion.Should().Be("Al corriente de las obligaciones");
         }
@@ -157,11 +157,11 @@ namespace KindoHub.Services.Tests.Services
         {
             // Arrange
             var nombre = "NoExiste";
-            _mockRepository.Setup(r => r.GetEstadoAsociadoAsync(nombre))
+            _mockRepository.Setup(r => r.LeerPorNombre(nombre))
                 .ReturnsAsync((EstadoAsociadoEntity?)null);
 
             // Act
-            var result = await _sut.GetEstadoAsociadoAsync(nombre);
+            var result = await _sut.LeerPorNombre(nombre);
 
             // Assert
             result.Should().BeNull();
@@ -171,33 +171,33 @@ namespace KindoHub.Services.Tests.Services
         public async Task GetEstadoAsociadoAsync_ByName_WhenNameIsNull_ShouldReturnNull()
         {
             // Act
-            var result = await _sut.GetEstadoAsociadoAsync((string)null!);
+            var result = await _sut.LeerPorNombre((string)null!);
 
             // Assert
             result.Should().BeNull();
-            _mockRepository.Verify(r => r.GetEstadoAsociadoAsync(It.IsAny<string>()), Times.Never);
+            _mockRepository.Verify(r => r.LeerPorNombre(It.IsAny<string>()), Times.Never);
         }
 
         [Fact]
         public async Task GetEstadoAsociadoAsync_ByName_WhenNameIsEmpty_ShouldReturnNull()
         {
             // Act
-            var result = await _sut.GetEstadoAsociadoAsync(string.Empty);
+            var result = await _sut.LeerPorNombre(string.Empty);
 
             // Assert
             result.Should().BeNull();
-            _mockRepository.Verify(r => r.GetEstadoAsociadoAsync(It.IsAny<string>()), Times.Never);
+            _mockRepository.Verify(r => r.LeerPorNombre(It.IsAny<string>()), Times.Never);
         }
 
         [Fact]
         public async Task GetEstadoAsociadoAsync_ByName_WhenNameIsWhitespace_ShouldReturnNull()
         {
             // Act
-            var result = await _sut.GetEstadoAsociadoAsync("   ");
+            var result = await _sut.LeerPorNombre("   ");
 
             // Assert
             result.Should().BeNull();
-            _mockRepository.Verify(r => r.GetEstadoAsociadoAsync(It.IsAny<string>()), Times.Never);
+            _mockRepository.Verify(r => r.LeerPorNombre(It.IsAny<string>()), Times.Never);
         }
 
         [Fact]
@@ -205,14 +205,14 @@ namespace KindoHub.Services.Tests.Services
         {
             // Arrange
             var nombre = "Inactivo";
-            _mockRepository.Setup(r => r.GetEstadoAsociadoAsync(nombre))
+            _mockRepository.Setup(r => r.LeerPorNombre(nombre))
                 .ReturnsAsync((EstadoAsociadoEntity?)null);
 
             // Act
-            await _sut.GetEstadoAsociadoAsync(nombre);
+            await _sut.LeerPorNombre(nombre);
 
             // Assert
-            _mockRepository.Verify(r => r.GetEstadoAsociadoAsync(nombre), Times.Once);
+            _mockRepository.Verify(r => r.LeerPorNombre(nombre), Times.Once);
         }
 
         [Fact]
@@ -221,15 +221,15 @@ namespace KindoHub.Services.Tests.Services
             // Arrange
             var nombre = "Temporal";
             var estadoAsociadoEntity = CreateTestEstadoAsociadoEntity(3, nombre);
-            _mockRepository.Setup(r => r.GetEstadoAsociadoAsync(nombre))
+            _mockRepository.Setup(r => r.LeerPorNombre(nombre))
                 .ReturnsAsync(estadoAsociadoEntity);
 
             // Act
-            var result = await _sut.GetEstadoAsociadoAsync(nombre);
+            var result = await _sut.LeerPorNombre(nombre);
 
             // Assert
             result.Should().NotBeNull();
-            result!.EstadoAsociadoId.Should().Be(3);
+            result!.Id.Should().Be(3);
             result.Nombre.Should().Be(nombre);
             result.Descripcion.Should().Be("Todavía no se le ha pasado el recibo");
         }
@@ -252,7 +252,7 @@ namespace KindoHub.Services.Tests.Services
 
             // Assert
             result.Should().NotBeNull();
-            result!.EstadoAsociadoId.Should().Be(id);
+            result!.Id.Should().Be(id);
             result.Nombre.Should().Be("Activo");
             result.Descripcion.Should().Be("Al corriente de las obligaciones");
         }
@@ -323,7 +323,7 @@ namespace KindoHub.Services.Tests.Services
 
             // Assert
             result.Should().NotBeNull();
-            result!.EstadoAsociadoId.Should().Be(id);
+            result!.Id.Should().Be(id);
             result.Nombre.Should().Be("Inactivo");
             result.Descripcion.Should().Be("No está al corriente de las obligaciones");
         }
@@ -344,7 +344,7 @@ namespace KindoHub.Services.Tests.Services
 
             return new EstadoAsociadoEntity
             {
-                EstadoAsociadoId = id,
+                Id = id,
                 Nombre = nombre,
                 Descripcion = descripciones.GetValueOrDefault(nombre, $"Descripción de {nombre}")
             };
