@@ -16,22 +16,25 @@ namespace KindoHub.Services.Services
         private readonly IFamiliaRepository _familiaRepository;
         private readonly ILogger<FamiliaService> _logger;
         private readonly IFormaPagoService _formaPagoService;
+        private readonly IAlumnoService _alumnoService;
 
         private const int cteApaPredeterminado = 0;
         private const int cteMutualPredeterminado = 0;
         private const int cteFormaPagoEfectivo=1;
         private const int cteFormaPagoBanco = 2;
 
-        public FamiliaService(IFamiliaRepository familiaRepository, ILogger<FamiliaService> logger, IFormaPagoService formapagoService)
+        public FamiliaService(IFamiliaRepository familiaRepository, ILogger<FamiliaService> logger, IFormaPagoService formapagoService,
+             IAlumnoService alumnoService)
         {
             _familiaRepository = familiaRepository;
             _logger = logger;
             _formaPagoService = formapagoService;
+            _alumnoService = alumnoService;
         }
 
 
 
-        public async Task<(bool Success, string Message, FamiliaDto? Familia)> CreateAsync(RegisterFamiliaDto dto, string usuarioActual)
+        public async Task<(bool Success, FamiliaDto? Familia)> Crear(RegisterFamiliaDto dto, string usuarioActual)
         {
             var familia=FamiliaMapper.MapToFamiliaEntity(dto);
 
@@ -40,7 +43,7 @@ namespace KindoHub.Services.Services
                 var formaPago = await _formaPagoService.GetFormapagoAsync(dto.NombreFormaPago);
                 if (formaPago == null)
                 {
-                    return (false, $"La forma de pago '{dto.NombreFormaPago}' no existe", null);
+                    return (false, null);
                 }
 
                 familia.IdFormaPago = formaPago.FormaPagoId;
@@ -50,66 +53,66 @@ namespace KindoHub.Services.Services
                 familia.IdFormaPago=cteFormaPagoEfectivo; 
             }
 
-            var createdFamilia = await _familiaRepository.CreateAsync(familia, usuarioActual);
+            var createdFamilia = await _familiaRepository.Crear(familia, usuarioActual);
             if (createdFamilia != null)
             {
-                return (true, "Familia registrada correctamente", FamiliaMapper.MapToFamiliaDto(createdFamilia));
+                return (true, FamiliaMapper.MapToFamiliaDto(createdFamilia));
             }
             else
             {
-                return (false, "Error al registrar la familia", null);
+                return (false,  null);
             }
         }
 
-        public async Task<(bool Success, string Message)> DeleteAsync(int familiaId, byte[] versionFila)
+        public async Task<bool> Eliminar(int id, byte[] versionFila, string usuarioActual)
         {
 
             // Verificar que el usuario a eliminar exista
-            var targetFamilia = await _familiaRepository.GetByFamiliaIdAsync(familiaId);
+            var targetFamilia = await _familiaRepository.LeerPorId(id);
             if (targetFamilia == null)
             {
-                return (false, "La familia a eliminar no existe");
+                return (false);
             }
 
 
 
 
-            var deleted = await _familiaRepository.DeleteAsync(familiaId, versionFila);
+            var deleted = await _familiaRepository.Eliminar(id, versionFila, usuarioActual);
             if (deleted)
             {
-                return (true, "Familia eliminada exitosamente");
+                return (true);
             }
             else
             {
-                return (false, "Error al eliminar la familia");
+                return (false);
             }
         }
 
-        public async Task<IEnumerable<FamiliaDto>> GetAllAsync()
+        public async Task<IEnumerable<FamiliaDto>> LeerTodos()
         {
-            var familias = await _familiaRepository.GetAllAsync();
+            var familias = await _familiaRepository.LeerTodos();
             return familias.Select(u => FamiliaMapper.MapToFamiliaDto(u));
         }
 
-        public async Task<FamiliaDto?> GetByFamiliaIdAsync(int familiaId)
+        public async Task<FamiliaDto?> LeerPorId(int id)
         {
-            if (familiaId<=0)
+            if (id<=0)
                 return null;
 
-            var familia = await _familiaRepository.GetByFamiliaIdAsync(familiaId);
+            var familia = await _familiaRepository.LeerPorId(id);
             if (familia == null)
                 return null;
 
             return FamiliaMapper.MapToFamiliaDto(familia);
         }
 
-        public  async Task<(bool Success, string Message, FamiliaDto? Familia)> UpdateFamiliaAsync(ChangeFamiliaDto dto, string usuarioActual)
+        public  async Task<(bool Success, FamiliaDto? Familia)> Actualizar(ChangeFamiliaDto dto, string usuarioActual)
         {
             // Verificar que el la familia a cambiar exista
-            var targetFamilia = await _familiaRepository.GetByFamiliaIdAsync(dto.FamiliaId);
+            var targetFamilia = await _familiaRepository.LeerPorId(dto.Id);
             if (targetFamilia == null)
             {
-                return (false, "La familia a cambiar no existe", null);
+                return (false, null);
             }
 
             if(!dto.NumeroSocio.HasValue || dto.NumeroSocio < 0)
@@ -143,21 +146,33 @@ namespace KindoHub.Services.Services
                 dto.IBAN= targetFamilia.IBAN;
 
 
-            //TODO: comprobar si IdEstadoApa es valido...
 
             var familiaEntity = FamiliaMapper.MapToFamiliaEntity(dto);
 
-            var updated = await _familiaRepository.UpdateFamiliaAsync(familiaEntity, usuarioActual);
+            var updated = await _familiaRepository.Actualizar(familiaEntity, usuarioActual);
             if (updated)
             {
-                var updatedFamilia = await _familiaRepository.GetByFamiliaIdAsync(dto.FamiliaId);
+                var updatedFamilia = await _familiaRepository.LeerPorId(dto.Id);
                 if (updatedFamilia != null)
                 {
-                    return (true, "Actualización de familia exitosamente", FamiliaMapper.MapToFamiliaDto(updatedFamilia));
+                    return (true,  FamiliaMapper.MapToFamiliaDto(updatedFamilia));
                 }
             }
 
-            return (false, "Error al actualizar la familia", null);
+            return (false,  null);
+        }
+
+
+        public async Task<IEnumerable<FamiliaHistoriaDto>> LeerHistoria(int id)
+        {
+            var familias = await _familiaRepository.LeerHistoria(id);
+            return familias.Select(u => FamiliaMapper.MapToFamiliaHistoriaDto(u));
+        }
+
+        public async Task<bool> EsEliminable(int id)
+        {
+            var alumnos = await _alumnoService.GetPorFamiliaId(id);
+            return !alumnos.Any();
         }
     }
 }

@@ -51,7 +51,7 @@ namespace KindoHub.Services.Services
         public async Task<(bool Success, string Message, AnotacionDto? Anotacion)> CreateAsync(
             RegisterAnotacionDto dto, string usuarioActual)
         {
-            var familia = await _familiaRepository.GetByFamiliaIdAsync(dto.IdFamilia);
+            var familia = await _familiaRepository.LeerPorId(dto.IdFamilia);
             if (familia == null)
             {
                 return (false, $"La familia con ID '{dto.IdFamilia}' no existe", null);
@@ -79,7 +79,7 @@ namespace KindoHub.Services.Services
                 return (false, "La anotación a actualizar no existe", null);
             }
 
-            var familia = await _familiaRepository.GetByFamiliaIdAsync(dto.IdFamilia);
+            var familia = await _familiaRepository.LeerPorId(dto.IdFamilia);
             if (familia == null)
             {
                 return (false, $"La familia con ID '{dto.IdFamilia}' no existe", null);

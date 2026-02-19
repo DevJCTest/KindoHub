@@ -11,11 +11,12 @@ namespace KindoHub.Core.Interfaces
 {
     public interface IFamiliaService
     {
-        Task<FamiliaDto?> GetByFamiliaIdAsync(int familiaId);
-        Task<IEnumerable<FamiliaDto>> GetAllAsync();
-
-        Task<(bool Success, string Message, FamiliaDto? Familia)> CreateAsync(RegisterFamiliaDto dto, string usuarioActual);
-        Task<(bool Success, string Message, FamiliaDto? Familia)> UpdateFamiliaAsync(ChangeFamiliaDto dto, string usuarioActual);
-        Task<(bool Success, string Message)> DeleteAsync(int familiaId, byte[] versionFila);
+        Task<FamiliaDto?> LeerPorId(int id);
+        Task<bool> EsEliminable(int id);
+        Task<IEnumerable<FamiliaDto>> LeerTodos();
+        Task<(bool Success, FamiliaDto? Familia)> Crear(RegisterFamiliaDto dto, string usuarioActual);
+        Task<(bool Success,FamiliaDto? Familia)> Actualizar(ChangeFamiliaDto dto, string usuarioActual);
+        Task<bool> Eliminar(int familiaId, byte[] versionFila, string usuarioActual);
+        Task<IEnumerable<FamiliaHistoriaDto>> LeerHistoria(int id);
     }
 }

@@ -15,7 +15,7 @@ namespace KindoHub.Services.Transformers
         {
             return new FamiliaDto
             {
-                FamiliaId = entity.FamiliaId,
+                Id = entity.Id,
                 NumeroSocio = entity.NumeroSocio,
                 Nombre = entity.Nombre,
                 Email = entity.Email,
@@ -34,11 +34,51 @@ namespace KindoHub.Services.Transformers
             };
         }
 
+
+        public static FamiliaHistoriaDto MapToFamiliaHistoriaDto(FamiliaHistoriaEntity entity)
+        {
+            if (entity == null)
+            {
+                return null;
+            }
+
+            return new FamiliaHistoriaDto
+            {
+                Id = entity.Id,
+                Referencia = entity.Referencia,
+                NumeroSocio = entity.NumeroSocio,
+                Nombre = entity.Nombre,
+                Email = entity.Email,
+                Telefono = entity.Telefono,
+                Direccion = entity.Direccion,
+                Observaciones = entity.Observaciones,
+                Apa = entity.Apa,
+                IdEstadoApa = entity.IdEstadoApa,
+                NombreEstadoApa = entity.NombreEstadoApa,
+                Mutual = entity.Mutual,
+                IdEstadoMutual = entity.IdEstadoMutual,
+                NombreEstadoMutual = entity.NombreEstadoMutual,
+                BeneficiarioMutual = entity.BeneficiarioMutual,
+                IdFormaPago = entity.IdFormaPago,
+                NombreFormaPago = entity.NombreFormaPago,
+                IBAN = entity.IBAN,
+                IBAN_Enmascarado = entity.IBAN_Enmascarado,
+                CreadoPor = entity.CreadoPor,
+                FechaCreacion = entity.FechaCreacion,
+                ModificadoPor = entity.ModificadoPor,
+                FechaModificacion = entity.FechaModificacion,
+                VersionFila = entity.VersionFila,
+                SysStartTime = entity.SysStartTime,
+                SysEndTime = entity.SysEndTime
+            };
+
+        }
+
         public static FamiliaEntity MapToFamiliaEntity(FamiliaDto dto)
         {
             return new FamiliaEntity
             {
-                FamiliaId = dto.FamiliaId,
+                Id = dto.Id,
                 NumeroSocio = dto.NumeroSocio,
                 Nombre = dto.Nombre,
                 Email = dto.Email,
@@ -61,7 +101,7 @@ namespace KindoHub.Services.Transformers
         {
             return new FamiliaEntity
             {
-                FamiliaId = dto.FamiliaId,
+                Id = dto.Id,
                 NumeroSocio = dto.NumeroSocio??0,
                 Nombre = dto.Nombre,
                 Email = dto.Email,

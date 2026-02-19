@@ -15,5 +15,6 @@ namespace KindoHub.Core.Interfaces
         Task<IEnumerable<AlumnoDto>> GetByFamiliaIdAsync(int familiaId);
         Task<IEnumerable<AlumnoDto>> GetSinFamiliaAsync();
         Task<IEnumerable<AlumnoDto>> GetByCursoIdAsync(int cursoId);
+        Task<IEnumerable<AlumnoDto>> GetPorFamiliaId(int id);
     }
 }

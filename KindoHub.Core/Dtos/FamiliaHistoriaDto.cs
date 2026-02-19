@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace KindoHub.Core.Dtos
 {
-    public class FamiliaDto
+    public class FamiliaHistoriaDto
     {
         public int Id { get; set; }
 
@@ -27,10 +25,10 @@ namespace KindoHub.Core.Dtos
 
         public bool Apa { get; set; }
 
-        public int? IdEstadoApa { get; set; }    
+        public int? IdEstadoApa { get; set; }
 
         public string? NombreEstadoApa { get; set; }
-        
+
         public bool Mutual { get; set; }
 
         public int? IdEstadoMutual { get; set; }
@@ -46,6 +44,12 @@ namespace KindoHub.Core.Dtos
 
         public string IBAN_Enmascarado { get; set; }
 
+        public string CreadoPor { get; set; }
+        public DateTime FechaCreacion { get; set; }
+        public string ModificadoPor { get; set; }
+        public DateTime FechaModificacion { get; set; }
         public byte[] VersionFila { get; set; }
+        public DateTime SysStartTime { get; set; }
+        public DateTime SysEndTime { get; set; }
     }
 }

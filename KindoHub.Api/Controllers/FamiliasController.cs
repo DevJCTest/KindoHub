@@ -20,11 +20,11 @@ namespace KindoHub.Api.Controllers
         }
 
 
-        [HttpGet("{familiaId}")]
-        public async Task<IActionResult> GetFamilia(int familiaId)
+        [HttpGet("{id}")]
+        public async Task<IActionResult> LeerFamilia(int id)
         {
             // 400 - Validación de username
-            if (familiaId<=0)
+            if (id<=0)
             {
                 _logger.LogWarning("GetFamilia request with empty familiaId");
                 return BadRequest(new { message = "El familiaId es requerido" });
@@ -32,218 +32,161 @@ namespace KindoHub.Api.Controllers
 
             try
             {
-                var dto = await _familiaService.GetByFamiliaIdAsync(familiaId);
+                var dto = await _familiaService.LeerPorId(id);
 
                 // 404 - Usuario no encontrado
                 if (dto == null)
                 {
-                    _logger.LogWarning("Familia not found: {FamiliaId}", familiaId);
-                    return NotFound(new { message = $"Familia '{familiaId}' no encontrada" });
+                    return NotFound();
                 }
 
-                _logger.LogInformation("Familia retrieved: {FamiliaId}", familiaId);
                 return Ok(dto);
             }
             catch (Exception ex)
             {
                 // 500 - Error interno
-                _logger.LogError(ex, "Error retrieving familia: {FamiliaId}", familiaId);
+                _logger.LogError(ex, "Error al leer la familia {FamiliaId}", id);
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }
 
 
         [HttpGet]
-        public async Task<IActionResult> GetAllFamilias()
+        public async Task<IActionResult> LeerTodas()
         {
             try
             {
-                var familias = await _familiaService.GetAllAsync();
+                var familias = await _familiaService.LeerTodos();
 
-                _logger.LogInformation("All familias retrieved. Count: {Count}", familias.Count());
                 return Ok(familias);
             }
             catch (Exception ex)
             {
                 // 500 - Error interno
-                _logger.LogError(ex, "Error retrieving all familias");
+                _logger.LogError(ex, "Error al leer todas las familias");
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }
 
-        [HttpPost("register")]
+
+        [HttpGet("historia")]
+        public async Task<IActionResult> LeerHistoria(int id)
+        {
+            try
+            {
+                var familias = await _familiaService.LeerHistoria(id);
+
+                return Ok(familias);
+            }
+            catch (Exception ex)
+            {
+                // 500 - Error interno
+                _logger.LogError(ex, "Error al leer la historia de las familias");
+                return StatusCode(500, new { message = "Error interno del servidor" });
+            }
+        }
+        [HttpPost("registrar")]
         public async Task<IActionResult> Register([FromBody] RegisterFamiliaDto request)
         {
             // 400 - Validación de modelo
             if (!ModelState.IsValid)
             {
-                _logger.LogWarning("Register familia with invalid model");
                 return BadRequest(new { message = "Datos de registro inválidos" });
             }
 
             try
             {
                 var currentUser = User.Identity?.Name ?? "SYSTEM";
-                var result = await _familiaService.CreateAsync(request, currentUser);
+                var result = await _familiaService.Crear(request, currentUser);
 
                 if (result.Success)
                 {
-                    _logger.LogInformation("Familia registered successfully: {Nombre} with ID: {FamiliaId}",
-                        request.Nombre, result.Familia?.FamiliaId);
-
-                    return Created($"/api/familias/{result.Familia?.FamiliaId}", new
+                    return Ok(new
                     {
-                        message = result.Message,
-                        familia = result.Familia
+                        Familia = result.Familia
                     });
                 }
 
-                // 409 - Usuario ya existe
-                if (result.Message.Contains("ya existe"))
-                {
-                    _logger.LogWarning("Register attempt for existing familia: {Nombre}", request.Nombre);
-                    return Conflict(new { message = result.Message });
-                }
-
-                // 400 - Otros errores de validación
-                _logger.LogWarning("Familia registration failed: {Message}", result.Message);
-                return BadRequest(new { message = result.Message });
+                return BadRequest();
             }
             catch (Exception ex)
             {
                 // 500 - Error interno
-                _logger.LogError(ex, "Error registering familia: {Nombre}", request.Nombre);
+                _logger.LogError(ex, "Error al registrar la familia: {Nombre}", request.Nombre);
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }
 
-        [HttpPatch("update")]
-        public async Task<IActionResult> UpdateFamily([FromBody] ChangeFamiliaDto request)
+        [HttpPatch("actualizar")]
+        public async Task<IActionResult> Actualizar([FromBody] ChangeFamiliaDto request)
         {
             // 400 - Validación de modelo
             if (!ModelState.IsValid)
             {
-                _logger.LogWarning("Request with invalid model");
-                return BadRequest(new { message = "Datos inválidos" });
+                return BadRequest();
             }
 
             // 401 - Usuario no autenticado
             var currentUser = User.Identity?.Name ?? "SYSTEM";
-            if (string.IsNullOrEmpty(currentUser))
-            {
-                _logger.LogWarning("Change request without authenticated user");
-                return Unauthorized(new { message = "Usuario no autenticado" });
-            }
 
 
 
             try
             {
-                var result = await _familiaService.UpdateFamiliaAsync(request, currentUser);
+                var result = await _familiaService.Actualizar(request, currentUser);
 
                 if (result.Success)
                 {
-
-                    _logger.LogInformation("Familia {Username} changed  (ID: {FamiliaId})",
-                        currentUser, result.Familia?.FamiliaId);
-
                     return Ok(new
                     {
-                        message = result.Message,
                         user = result.Familia
                     });
                 }
 
-                // 404 - Familia no existe
-                if (result.Message.Contains("no existe"))
-                {
-                    _logger.LogWarning("Change attempt for non-existent family: {FamiliaId}", request.FamiliaId);
-                    return NotFound(new { message = result.Message });
-                }
-
-                // 403 - Sin permisos
-                if (result.Message.Contains("permisos"))
-                {
-                    _logger.LogWarning("Unauthorized password change attempt by user: {User}", currentUser);
-                    return StatusCode(403, new { message = result.Message });
-                }
-
-                // 400 - Otros errores de validación
-                _logger.LogWarning("Change validation failed: {Message}", result.Message);
-                return BadRequest(new { message = result.Message });
+                return BadRequest();
             }
             catch (Exception ex)
             {
                 // 500 - Error interno
-                _logger.LogError(ex, "Error changing for family: {FamiliaId}", request.FamiliaId);
+                _logger.LogError(ex, "Error al actualizar la familia {FamiliaId}", request.Id);
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }
 
         [HttpDelete]
-        public async Task<IActionResult> DeleteFamily([FromBody] DeleteFamilyDto request)
+        public async Task<IActionResult> Eliminar([FromBody] DeleteFamilyDto request)
         {
             // 400 - Validación de username
-            if (request.FamiliaId<=0)
+            if (request.Id<=0)
             {
-                _logger.LogWarning("DeleteFamily request with empty familiaId");
-                return BadRequest(new { message = "El FamiliaId es requerido" });
+                return BadRequest(new { message = "El id es requerido" });
             }
 
             // 400 - Validación de VersionFila
             if (request.VersionFila == null || request.VersionFila.Length == 0)
             {
-                _logger.LogWarning("DeleteFamily request with empty VersionFila");
                 return BadRequest(new { message = "La versión de fila es requerida" });
             }
 
             // 401 - Usuario no autenticado
             var currentUser = User.Identity?.Name ?? "SYSTEM";
-            if (string.IsNullOrEmpty(currentUser))
-            {
-                _logger.LogWarning("DeleteUser request without authenticated user");
-                return Unauthorized(new { message = "Usuario no autenticado" });
-            }
+
 
             try
             {
-                var result = await _familiaService.DeleteAsync(request.FamiliaId, request.VersionFila);
+                var result = await _familiaService.Eliminar(request.Id, request.VersionFila, currentUser);
 
-                if (result.Success)
+                if (result)
                 {
-                    _logger.LogWarning("Family deleted: {FamiliaId} by {Nombre}", request.FamiliaId, currentUser);
-                    return NoContent();
+                    return Ok();
                 }
 
-                // 404 - Familia no existe
-                if (result.Message.Contains("no existe"))
-                {
-                    _logger.LogWarning("Delete attempt for non-existent family: {FamiliaId}", request.FamiliaId);
-                    return NotFound(new { message = result.Message });
-                }
-
-                // 403 - Sin permisos
-                if (result.Message.Contains("permisos"))
-                {
-                    _logger.LogWarning("Unauthorized delete attempt by user: {User}", currentUser);
-                    return StatusCode(403, new { message = result.Message });
-                }
-
-                // 400 o 409 - Auto-eliminación u otras restricciones
-                if (result.Message.Contains("eliminarte"))
-                {
-                    _logger.LogWarning("Self-delete attempt by user: {User}", currentUser);
-                    return BadRequest(new { message = result.Message });
-                }
-
-                // 400 - Otros errores
-                _logger.LogWarning("Family deletion failed: {Message}", result.Message);
-                return BadRequest(new { message = result.Message });
+                return BadRequest();
             }
             catch (Exception ex)
             {
                 // 500 - Error interno
-                _logger.LogError(ex, "Error deleting family: {FamiliaId}", request.FamiliaId);
+                _logger.LogError(ex, "Error al eliminar la familia {FamiliaId}", request.Id);
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }

@@ -45,7 +45,7 @@ namespace KindoHub.Services.Services
         {
             if (dto.IdFamilia.HasValue && dto.IdFamilia.Value > 0)
             {
-                var familia = await _familiaRepository.GetByFamiliaIdAsync(dto.IdFamilia.Value);
+                var familia = await _familiaRepository.LeerPorId(dto.IdFamilia.Value);
                 if (familia == null)
                 {
                     _logger.LogWarning("Attempt to create alumno with non-existent familia: {FamiliaId}", dto.IdFamilia.Value);
@@ -91,7 +91,7 @@ namespace KindoHub.Services.Services
 
             if (dto.IdFamilia.HasValue && dto.IdFamilia.Value > 0)
             {
-                var familia = await _familiaRepository.GetByFamiliaIdAsync(dto.IdFamilia.Value);
+                var familia = await _familiaRepository.LeerPorId(dto.IdFamilia.Value);
                 if (familia == null)
                 {
                     _logger.LogWarning("Attempt to update alumno with non-existent familia: {FamiliaId}", dto.IdFamilia.Value);
@@ -168,6 +168,11 @@ namespace KindoHub.Services.Services
         {
             var alumnos = await _alumnoRepository.GetByCursoIdAsync(cursoId);
             return alumnos.Select(a => AlumnoMapper.MapToDto(a));
+        }
+
+        public Task<IEnumerable<AlumnoDto>> GetPorFamiliaId(int id)
+        {
+            throw new NotImplementedException();
         }
     }
 }

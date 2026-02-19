@@ -10,7 +10,9 @@ namespace KindoHub.Core.Entities
 {
     public class FamiliaEntity
     {
-        public int FamiliaId { get; set; }
+        public int Id { get; set; }
+
+        public int Referencia { get; set; }
 
         public int NumeroSocio { get; set; }
         

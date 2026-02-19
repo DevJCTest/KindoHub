@@ -32,11 +32,11 @@ namespace KindoHub.Services.Tests.Services
                 CreateTestFamiliaEntity(1, "Familia García"),
                 CreateTestFamiliaEntity(2, "Familia López")
             };
-            _mockRepository.Setup(r => r.GetAllAsync())
+            _mockRepository.Setup(r => r.LeerTodos())
                 .ReturnsAsync(familias);
 
             // Act
-            var result = await _sut.GetAllAsync();
+            var result = await _sut.LeerTodos();
 
             // Assert
             result.Should().HaveCount(2);
@@ -49,11 +49,11 @@ namespace KindoHub.Services.Tests.Services
         public async Task GetAllAsync_WhenNoFamilias_ShouldReturnEmptyCollection()
         {
             // Arrange
-            _mockRepository.Setup(r => r.GetAllAsync())
+            _mockRepository.Setup(r => r.LeerTodos())
                 .ReturnsAsync(new List<FamiliaEntity>());
 
             // Act
-            var result = await _sut.GetAllAsync();
+            var result = await _sut.LeerTodos();
 
             // Assert
             result.Should().BeEmpty();
@@ -67,15 +67,15 @@ namespace KindoHub.Services.Tests.Services
             {
                 CreateTestFamiliaEntity(1, "Familia Test")
             };
-            _mockRepository.Setup(r => r.GetAllAsync())
+            _mockRepository.Setup(r => r.LeerTodos())
                 .ReturnsAsync(familias);
 
             // Act
-            var result = await _sut.GetAllAsync();
+            var result = await _sut.LeerTodos();
 
             // Assert
             var familia = result.First();
-            familia.FamiliaId.Should().Be(1);
+            familia.Id.Should().Be(1);
             familia.NumeroSocio.Should().Be(100);
             familia.Nombre.Should().Be("Familia Test");
             familia.Email.Should().Be("test@familia.com");
@@ -97,14 +97,14 @@ namespace KindoHub.Services.Tests.Services
         public async Task GetAllAsync_ShouldCallRepositoryGetAllAsync()
         {
             // Arrange
-            _mockRepository.Setup(r => r.GetAllAsync())
+            _mockRepository.Setup(r => r.LeerTodos())
                 .ReturnsAsync(new List<FamiliaEntity>());
 
             // Act
-            await _sut.GetAllAsync();
+            await _sut.LeerTodos();
 
             // Assert
-            _mockRepository.Verify(r => r.GetAllAsync(), Times.Once);
+            _mockRepository.Verify(r => r.LeerTodos(), Times.Once);
         }
 
         [Fact]
@@ -124,17 +124,17 @@ namespace KindoHub.Services.Tests.Services
                 CreateTestFamiliaEntity(9, "Familia 9"),
                 CreateTestFamiliaEntity(10, "Familia 10")
             };
-            _mockRepository.Setup(r => r.GetAllAsync())
+            _mockRepository.Setup(r => r.LeerTodos())
                 .ReturnsAsync(familias);
 
             // Act
-            var result = await _sut.GetAllAsync();
+            var result = await _sut.LeerTodos();
 
             // Assert
             result.Should().HaveCount(10);
             result.Should().AllSatisfy(f =>
             {
-                f.FamiliaId.Should().BeGreaterThan(0);
+                f.Id.Should().BeGreaterThan(0);
                 f.Nombre.Should().NotBeNullOrWhiteSpace();
             });
         }
@@ -149,15 +149,15 @@ namespace KindoHub.Services.Tests.Services
             // Arrange
             var familiaId = 1;
             var familiaEntity = CreateTestFamiliaEntity(familiaId, "Familia García");
-            _mockRepository.Setup(r => r.GetByFamiliaIdAsync(familiaId))
+            _mockRepository.Setup(r => r.LeerPorId(familiaId))
                 .ReturnsAsync(familiaEntity);
 
             // Act
-            var result = await _sut.GetByFamiliaIdAsync(familiaId);
+            var result = await _sut.LeerPorId(familiaId);
 
             // Assert
             result.Should().NotBeNull();
-            result!.FamiliaId.Should().Be(familiaId);
+            result!.Id.Should().Be(familiaId);
             result.Nombre.Should().Be("Familia García");
         }
 
@@ -166,11 +166,11 @@ namespace KindoHub.Services.Tests.Services
         {
             // Arrange
             var familiaId = 999;
-            _mockRepository.Setup(r => r.GetByFamiliaIdAsync(familiaId))
+            _mockRepository.Setup(r => r.LeerPorId(familiaId))
                 .ReturnsAsync((FamiliaEntity?)null);
 
             // Act
-            var result = await _sut.GetByFamiliaIdAsync(familiaId);
+            var result = await _sut.LeerPorId(familiaId);
 
             // Assert
             result.Should().BeNull();
@@ -180,22 +180,22 @@ namespace KindoHub.Services.Tests.Services
         public async Task GetByFamiliaIdAsync_WhenIdIsZero_ShouldReturnNull()
         {
             // Act
-            var result = await _sut.GetByFamiliaIdAsync(0);
+            var result = await _sut.LeerPorId(0);
 
             // Assert
             result.Should().BeNull();
-            _mockRepository.Verify(r => r.GetByFamiliaIdAsync(It.IsAny<int>()), Times.Never);
+            _mockRepository.Verify(r => r.LeerPorId(It.IsAny<int>()), Times.Never);
         }
 
         [Fact]
         public async Task GetByFamiliaIdAsync_WhenIdIsNegative_ShouldReturnNull()
         {
             // Act
-            var result = await _sut.GetByFamiliaIdAsync(-1);
+            var result = await _sut.LeerPorId(-1);
 
             // Assert
             result.Should().BeNull();
-            _mockRepository.Verify(r => r.GetByFamiliaIdAsync(It.IsAny<int>()), Times.Never);
+            _mockRepository.Verify(r => r.LeerPorId(It.IsAny<int>()), Times.Never);
         }
 
         [Fact]
@@ -203,14 +203,14 @@ namespace KindoHub.Services.Tests.Services
         {
             // Arrange
             var familiaId = 5;
-            _mockRepository.Setup(r => r.GetByFamiliaIdAsync(familiaId))
+            _mockRepository.Setup(r => r.LeerPorId(familiaId))
                 .ReturnsAsync((FamiliaEntity?)null);
 
             // Act
-            await _sut.GetByFamiliaIdAsync(familiaId);
+            await _sut.LeerPorId(familiaId);
 
             // Assert
-            _mockRepository.Verify(r => r.GetByFamiliaIdAsync(familiaId), Times.Once);
+            _mockRepository.Verify(r => r.LeerPorId(familiaId), Times.Once);
         }
 
         [Fact]
@@ -219,15 +219,15 @@ namespace KindoHub.Services.Tests.Services
             // Arrange
             var familiaId = 1;
             var familiaEntity = CreateTestFamiliaEntity(familiaId, "Familia Completa");
-            _mockRepository.Setup(r => r.GetByFamiliaIdAsync(familiaId))
+            _mockRepository.Setup(r => r.LeerPorId(familiaId))
                 .ReturnsAsync(familiaEntity);
 
             // Act
-            var result = await _sut.GetByFamiliaIdAsync(familiaId);
+            var result = await _sut.LeerPorId(familiaId);
 
             // Assert
             result.Should().NotBeNull();
-            result!.FamiliaId.Should().Be(familiaId);
+            result!.Id.Should().Be(familiaId);
             result.NumeroSocio.Should().Be(100);
             result.Email.Should().NotBeNullOrEmpty();
             result.Telefono.Should().NotBeNullOrEmpty();
@@ -245,11 +245,11 @@ namespace KindoHub.Services.Tests.Services
             var familiaEntity = CreateTestFamiliaEntity(familiaId, "Familia Test");
             familiaEntity.IBAN = "ES7921000813610123456789";
             familiaEntity.IBAN_Enmascarado = "ES********************6789";
-            _mockRepository.Setup(r => r.GetByFamiliaIdAsync(familiaId))
+            _mockRepository.Setup(r => r.LeerPorId(familiaId))
                 .ReturnsAsync(familiaEntity);
 
             // Act
-            var result = await _sut.GetByFamiliaIdAsync(familiaId);
+            var result = await _sut.LeerPorId(familiaId);
 
             // Assert
             result.Should().NotBeNull();
@@ -267,11 +267,11 @@ namespace KindoHub.Services.Tests.Services
             // Arrange
             var dto = CreateTestRegisterDto("Familia Nueva");
             var createdEntity = CreateTestFamiliaEntity(1, "Familia Nueva");
-            _mockRepository.Setup(r => r.CreateAsync(It.IsAny<FamiliaEntity>(), "Admin"))
+            _mockRepository.Setup(r => r.Crear(It.IsAny<FamiliaEntity>(), "Admin"))
                 .ReturnsAsync(createdEntity);
 
             // Act
-            var (success, message, familia) = await _sut.CreateAsync(dto, "Admin");
+            var (success, message, familia) = await _sut.Crear(dto, "Admin");
 
             // Assert
             success.Should().BeTrue();
@@ -285,11 +285,11 @@ namespace KindoHub.Services.Tests.Services
         {
             // Arrange
             var dto = CreateTestRegisterDto("Familia Test");
-            _mockRepository.Setup(r => r.CreateAsync(It.IsAny<FamiliaEntity>(), "Admin"))
+            _mockRepository.Setup(r => r.Crear(It.IsAny<FamiliaEntity>(), "Admin"))
                 .ReturnsAsync((FamiliaEntity?)null);
 
             // Act
-            var (success, message, familia) = await _sut.CreateAsync(dto, "Admin");
+            var (success, message, familia) = await _sut.Crear(dto, "Admin");
 
             // Assert
             success.Should().BeFalse();
@@ -304,12 +304,12 @@ namespace KindoHub.Services.Tests.Services
             var dto = CreateTestRegisterDto("Familia Test");
             dto.Apa = true;
             FamiliaEntity? capturedEntity = null;
-            _mockRepository.Setup(r => r.CreateAsync(It.IsAny<FamiliaEntity>(), "Admin"))
+            _mockRepository.Setup(r => r.Crear(It.IsAny<FamiliaEntity>(), "Admin"))
                 .Callback<FamiliaEntity, string>((entity, user) => capturedEntity = entity)
                 .ReturnsAsync(CreateTestFamiliaEntity(1, "Familia Test"));
 
             // Act
-            await _sut.CreateAsync(dto, "Admin");
+            await _sut.Crear(dto, "Admin");
 
             // Assert
             capturedEntity.Should().NotBeNull();
@@ -323,12 +323,12 @@ namespace KindoHub.Services.Tests.Services
             var dto = CreateTestRegisterDto("Familia Test");
             dto.Apa = false;
             FamiliaEntity? capturedEntity = null;
-            _mockRepository.Setup(r => r.CreateAsync(It.IsAny<FamiliaEntity>(), "Admin"))
+            _mockRepository.Setup(r => r.Crear(It.IsAny<FamiliaEntity>(), "Admin"))
                 .Callback<FamiliaEntity, string>((entity, user) => capturedEntity = entity)
                 .ReturnsAsync(CreateTestFamiliaEntity(1, "Familia Test"));
 
             // Act
-            await _sut.CreateAsync(dto, "Admin");
+            await _sut.Crear(dto, "Admin");
 
             // Assert
             capturedEntity.Should().NotBeNull();
@@ -342,12 +342,12 @@ namespace KindoHub.Services.Tests.Services
             var dto = CreateTestRegisterDto("Familia Test");
             dto.Mutual = true;
             FamiliaEntity? capturedEntity = null;
-            _mockRepository.Setup(r => r.CreateAsync(It.IsAny<FamiliaEntity>(), "Admin"))
+            _mockRepository.Setup(r => r.Crear(It.IsAny<FamiliaEntity>(), "Admin"))
                 .Callback<FamiliaEntity, string>((entity, user) => capturedEntity = entity)
                 .ReturnsAsync(CreateTestFamiliaEntity(1, "Familia Test"));
 
             // Act
-            await _sut.CreateAsync(dto, "Admin");
+            await _sut.Crear(dto, "Admin");
 
             // Assert
             capturedEntity.Should().NotBeNull();
@@ -361,12 +361,12 @@ namespace KindoHub.Services.Tests.Services
             var dto = CreateTestRegisterDto("Familia Test");
             dto.Mutual = false;
             FamiliaEntity? capturedEntity = null;
-            _mockRepository.Setup(r => r.CreateAsync(It.IsAny<FamiliaEntity>(), "Admin"))
+            _mockRepository.Setup(r => r.Crear(It.IsAny<FamiliaEntity>(), "Admin"))
                 .Callback<FamiliaEntity, string>((entity, user) => capturedEntity = entity)
                 .ReturnsAsync(CreateTestFamiliaEntity(1, "Familia Test"));
 
             // Act
-            await _sut.CreateAsync(dto, "Admin");
+            await _sut.Crear(dto, "Admin");
 
             // Assert
             capturedEntity.Should().NotBeNull();
@@ -380,12 +380,12 @@ namespace KindoHub.Services.Tests.Services
             var dto = CreateTestRegisterDto("Familia Test");
             dto.NombreFormaPago = "Banco"; // Diferente forma de pago
             FamiliaEntity? capturedEntity = null;
-            _mockRepository.Setup(r => r.CreateAsync(It.IsAny<FamiliaEntity>(), "Admin"))
+            _mockRepository.Setup(r => r.Crear(It.IsAny<FamiliaEntity>(), "Admin"))
                 .Callback<FamiliaEntity, string>((entity, user) => capturedEntity = entity)
                 .ReturnsAsync(CreateTestFamiliaEntity(1, "Familia Test"));
 
             // Act
-            await _sut.CreateAsync(dto, "Admin");
+            await _sut.Crear(dto, "Admin");
 
             // Assert - BUG DOCUMENTADO: IdFormaPago siempre es 1
             capturedEntity.Should().NotBeNull();
@@ -400,12 +400,12 @@ namespace KindoHub.Services.Tests.Services
             var dto = CreateTestRegisterDto("Familia Test");
             dto.NombreFormaPago = null;
             FamiliaEntity? capturedEntity = null;
-            _mockRepository.Setup(r => r.CreateAsync(It.IsAny<FamiliaEntity>(), "Admin"))
+            _mockRepository.Setup(r => r.Crear(It.IsAny<FamiliaEntity>(), "Admin"))
                 .Callback<FamiliaEntity, string>((entity, user) => capturedEntity = entity)
                 .ReturnsAsync(CreateTestFamiliaEntity(1, "Familia Test"));
 
             // Act
-            await _sut.CreateAsync(dto, "Admin");
+            await _sut.Crear(dto, "Admin");
 
             // Assert - BUG DOCUMENTADO: IdFormaPago siempre es 1
             capturedEntity.Should().NotBeNull();
@@ -417,11 +417,11 @@ namespace KindoHub.Services.Tests.Services
         {
             // Arrange
             var dto = CreateTestRegisterDto("Familia García");
-            _mockRepository.Setup(r => r.CreateAsync(It.IsAny<FamiliaEntity>(), "Admin"))
+            _mockRepository.Setup(r => r.Crear(It.IsAny<FamiliaEntity>(), "Admin"))
                 .ReturnsAsync(CreateTestFamiliaEntity(1, "Familia García"));
 
             // Act
-            await _sut.CreateAsync(dto, "Admin");
+            await _sut.Crear(dto, "Admin");
 
             // Assert
             _mockLogger.Verify(
@@ -440,11 +440,11 @@ namespace KindoHub.Services.Tests.Services
             // Arrange
             var dto = CreateTestRegisterDto("Familia Test");
             var createdEntity = CreateTestFamiliaEntity(1, "Familia Test");
-            _mockRepository.Setup(r => r.CreateAsync(It.IsAny<FamiliaEntity>(), "Admin"))
+            _mockRepository.Setup(r => r.Crear(It.IsAny<FamiliaEntity>(), "Admin"))
                 .ReturnsAsync(createdEntity);
 
             // Act
-            await _sut.CreateAsync(dto, "Admin");
+            await _sut.Crear(dto, "Admin");
 
             // Assert
             _mockLogger.Verify(
@@ -462,11 +462,11 @@ namespace KindoHub.Services.Tests.Services
         {
             // Arrange
             var dto = CreateTestRegisterDto("Familia Test");
-            _mockRepository.Setup(r => r.CreateAsync(It.IsAny<FamiliaEntity>(), "Admin"))
+            _mockRepository.Setup(r => r.Crear(It.IsAny<FamiliaEntity>(), "Admin"))
                 .ReturnsAsync((FamiliaEntity?)null);
 
             // Act
-            await _sut.CreateAsync(dto, "Admin");
+            await _sut.Crear(dto, "Admin");
 
             // Assert
             _mockLogger.Verify(
@@ -489,12 +489,12 @@ namespace KindoHub.Services.Tests.Services
             dto.Direccion = "Calle Mapeo 456";
             dto.IBAN = "ES1234567890123456789012";
             FamiliaEntity? capturedEntity = null;
-            _mockRepository.Setup(r => r.CreateAsync(It.IsAny<FamiliaEntity>(), "Admin"))
+            _mockRepository.Setup(r => r.Crear(It.IsAny<FamiliaEntity>(), "Admin"))
                 .Callback<FamiliaEntity, string>((entity, user) => capturedEntity = entity)
                 .ReturnsAsync(CreateTestFamiliaEntity(1, "Familia Mapeo"));
 
             // Act
-            await _sut.CreateAsync(dto, "Admin");
+            await _sut.Crear(dto, "Admin");
 
             // Assert
             capturedEntity.Should().NotBeNull();
@@ -512,16 +512,16 @@ namespace KindoHub.Services.Tests.Services
             var dto = CreateTestRegisterDto("Familia Test");
             var createdEntity = CreateTestFamiliaEntity(10, "Familia Test");
             createdEntity.Email = "response@test.com";
-            _mockRepository.Setup(r => r.CreateAsync(It.IsAny<FamiliaEntity>(), "Admin"))
+            _mockRepository.Setup(r => r.Crear(It.IsAny<FamiliaEntity>(), "Admin"))
                 .ReturnsAsync(createdEntity);
 
             // Act
-            var (success, _, familia) = await _sut.CreateAsync(dto, "Admin");
+            var (success, _, familia) = await _sut.Crear(dto, "Admin");
 
             // Assert
             success.Should().BeTrue();
             familia.Should().NotBeNull();
-            familia!.FamiliaId.Should().Be(10);
+            familia!.Id.Should().Be(10);
             familia.Nombre.Should().Be("Familia Test");
             familia.Email.Should().Be("response@test.com");
         }
@@ -531,11 +531,11 @@ namespace KindoHub.Services.Tests.Services
         {
             // Arrange
             var dto = CreateTestRegisterDto("Familia Test");
-            _mockRepository.Setup(r => r.CreateAsync(It.IsAny<FamiliaEntity>(), "Admin"))
+            _mockRepository.Setup(r => r.Crear(It.IsAny<FamiliaEntity>(), "Admin"))
                 .ReturnsAsync(CreateTestFamiliaEntity(1, "Familia Test"));
 
             // Act
-            var (success, message, _) = await _sut.CreateAsync(dto, "Admin");
+            var (success, message, _) = await _sut.Crear(dto, "Admin");
 
             // Assert
             success.Should().BeTrue();
@@ -547,11 +547,11 @@ namespace KindoHub.Services.Tests.Services
         {
             // Arrange
             var dto = CreateTestRegisterDto("Familia Test");
-            _mockRepository.Setup(r => r.CreateAsync(It.IsAny<FamiliaEntity>(), "Admin"))
+            _mockRepository.Setup(r => r.Crear(It.IsAny<FamiliaEntity>(), "Admin"))
                 .ReturnsAsync((FamiliaEntity?)null);
 
             // Act
-            var (success, message, _) = await _sut.CreateAsync(dto, "Admin");
+            var (success, message, _) = await _sut.Crear(dto, "Admin");
 
             // Assert
             success.Should().BeFalse();
@@ -570,15 +570,15 @@ namespace KindoHub.Services.Tests.Services
             var existingEntity = CreateTestFamiliaEntity(1, "Familia Original");
             var updatedEntity = CreateTestFamiliaEntity(1, "Familia Actualizada");
             
-            _mockRepository.Setup(r => r.GetByFamiliaIdAsync(1))
+            _mockRepository.Setup(r => r.LeerPorId(1))
                 .ReturnsAsync(existingEntity);
-            _mockRepository.Setup(r => r.UpdateFamiliaAsync(It.IsAny<FamiliaEntity>(), "Admin"))
+            _mockRepository.Setup(r => r.Actualizar(It.IsAny<FamiliaEntity>(), "Admin"))
                 .ReturnsAsync(true);
-            _mockRepository.Setup(r => r.GetByFamiliaIdAsync(1))
+            _mockRepository.Setup(r => r.LeerPorId(1))
                 .ReturnsAsync(updatedEntity);
 
             // Act
-            var (success, message, familia) = await _sut.UpdateFamiliaAsync(dto, "Admin");
+            var (success, message, familia) = await _sut.Actualizar(dto, "Admin");
 
             // Assert
             success.Should().BeTrue();
@@ -592,11 +592,11 @@ namespace KindoHub.Services.Tests.Services
         {
             // Arrange
             var dto = CreateTestChangeFamiliaDto(999, "Familia Inexistente");
-            _mockRepository.Setup(r => r.GetByFamiliaIdAsync(999))
+            _mockRepository.Setup(r => r.LeerPorId(999))
                 .ReturnsAsync((FamiliaEntity?)null);
 
             // Act
-            var (success, message, familia) = await _sut.UpdateFamiliaAsync(dto, "Admin");
+            var (success, message, familia) = await _sut.Actualizar(dto, "Admin");
 
             // Assert
             success.Should().BeFalse();
@@ -612,15 +612,15 @@ namespace KindoHub.Services.Tests.Services
             // TODO en el código: No valida si IdEstadoApa es válido
             // Este test documenta que actualmente NO hay validación
             var existingEntity = CreateTestFamiliaEntity(1, "Familia Test");
-            _mockRepository.Setup(r => r.GetByFamiliaIdAsync(1))
+            _mockRepository.Setup(r => r.LeerPorId(1))
                 .ReturnsAsync(existingEntity);
-            _mockRepository.Setup(r => r.UpdateFamiliaAsync(It.IsAny<FamiliaEntity>(), "Admin"))
+            _mockRepository.Setup(r => r.Actualizar(It.IsAny<FamiliaEntity>(), "Admin"))
                 .ReturnsAsync(true);
-            _mockRepository.Setup(r => r.GetByFamiliaIdAsync(1))
+            _mockRepository.Setup(r => r.LeerPorId(1))
                 .ReturnsAsync(existingEntity);
 
             // Act
-            var (success, _, _) = await _sut.UpdateFamiliaAsync(dto, "Admin");
+            var (success, _, _) = await _sut.Actualizar(dto, "Admin");
 
             // Assert
             success.Should().BeTrue();
@@ -633,13 +633,13 @@ namespace KindoHub.Services.Tests.Services
             // Arrange
             var dto = CreateTestChangeFamiliaDto(1, "Familia Test");
             var existingEntity = CreateTestFamiliaEntity(1, "Familia Test");
-            _mockRepository.Setup(r => r.GetByFamiliaIdAsync(1))
+            _mockRepository.Setup(r => r.LeerPorId(1))
                 .ReturnsAsync(existingEntity);
-            _mockRepository.Setup(r => r.UpdateFamiliaAsync(It.IsAny<FamiliaEntity>(), "Admin"))
+            _mockRepository.Setup(r => r.Actualizar(It.IsAny<FamiliaEntity>(), "Admin"))
                 .ReturnsAsync(false);
 
             // Act
-            var (success, message, familia) = await _sut.UpdateFamiliaAsync(dto, "Admin");
+            var (success, message, familia) = await _sut.Actualizar(dto, "Admin");
 
             // Assert
             success.Should().BeFalse();
@@ -653,14 +653,14 @@ namespace KindoHub.Services.Tests.Services
             // Arrange
             var dto = CreateTestChangeFamiliaDto(1, "Familia Test");
             var existingEntity = CreateTestFamiliaEntity(1, "Familia Test");
-            _mockRepository.SetupSequence(r => r.GetByFamiliaIdAsync(1))
+            _mockRepository.SetupSequence(r => r.LeerPorId(1))
                 .ReturnsAsync(existingEntity)
                 .ReturnsAsync((FamiliaEntity?)null);
-            _mockRepository.Setup(r => r.UpdateFamiliaAsync(It.IsAny<FamiliaEntity>(), "Admin"))
+            _mockRepository.Setup(r => r.Actualizar(It.IsAny<FamiliaEntity>(), "Admin"))
                 .ReturnsAsync(true);
 
             // Act
-            var (success, message, familia) = await _sut.UpdateFamiliaAsync(dto, "Admin");
+            var (success, message, familia) = await _sut.Actualizar(dto, "Admin");
 
             // Assert
             success.Should().BeFalse();
@@ -677,17 +677,17 @@ namespace KindoHub.Services.Tests.Services
             var updatedEntity = CreateTestFamiliaEntity(1, "Familia Test");
             string? capturedUser = null;
             
-            _mockRepository.Setup(r => r.GetByFamiliaIdAsync(1))
+            _mockRepository.Setup(r => r.LeerPorId(1))
                 .ReturnsAsync(existingEntity);
-            _mockRepository.Setup(r => r.UpdateFamiliaAsync(It.IsAny<FamiliaEntity>(), It.IsAny<string>()))
+            _mockRepository.Setup(r => r.Actualizar(It.IsAny<FamiliaEntity>(), It.IsAny<string>()))
                 .Callback<FamiliaEntity, string>((entity, user) => capturedUser = user)
                 .ReturnsAsync(true);
-            _mockRepository.SetupSequence(r => r.GetByFamiliaIdAsync(1))
+            _mockRepository.SetupSequence(r => r.LeerPorId(1))
                 .ReturnsAsync(existingEntity)
                 .ReturnsAsync(updatedEntity);
 
             // Act
-            await _sut.UpdateFamiliaAsync(dto, "TestUser");
+            await _sut.Actualizar(dto, "TestUser");
 
             // Assert
             capturedUser.Should().Be("TestUser");
@@ -703,17 +703,17 @@ namespace KindoHub.Services.Tests.Services
             var existingEntity = CreateTestFamiliaEntity(1, "Familia Original");
             FamiliaEntity? capturedEntity = null;
             
-            _mockRepository.Setup(r => r.GetByFamiliaIdAsync(1))
+            _mockRepository.Setup(r => r.LeerPorId(1))
                 .ReturnsAsync(existingEntity);
-            _mockRepository.Setup(r => r.UpdateFamiliaAsync(It.IsAny<FamiliaEntity>(), "Admin"))
+            _mockRepository.Setup(r => r.Actualizar(It.IsAny<FamiliaEntity>(), "Admin"))
                 .Callback<FamiliaEntity, string>((entity, user) => capturedEntity = entity)
                 .ReturnsAsync(true);
-            _mockRepository.SetupSequence(r => r.GetByFamiliaIdAsync(1))
+            _mockRepository.SetupSequence(r => r.LeerPorId(1))
                 .ReturnsAsync(existingEntity)
                 .ReturnsAsync(CreateTestFamiliaEntity(1, "Familia Modificada"));
 
             // Act
-            await _sut.UpdateFamiliaAsync(dto, "Admin");
+            await _sut.Actualizar(dto, "Admin");
 
             // Assert
             capturedEntity.Should().NotBeNull();
@@ -731,19 +731,19 @@ namespace KindoHub.Services.Tests.Services
             var updatedEntity = CreateTestFamiliaEntity(5, "Familia Actualizada");
             updatedEntity.Email = "updated@test.com";
             
-            _mockRepository.SetupSequence(r => r.GetByFamiliaIdAsync(5))
+            _mockRepository.SetupSequence(r => r.LeerPorId(5))
                 .ReturnsAsync(existingEntity)
                 .ReturnsAsync(updatedEntity);
-            _mockRepository.Setup(r => r.UpdateFamiliaAsync(It.IsAny<FamiliaEntity>(), "Admin"))
+            _mockRepository.Setup(r => r.Actualizar(It.IsAny<FamiliaEntity>(), "Admin"))
                 .ReturnsAsync(true);
 
             // Act
-            var (success, _, familia) = await _sut.UpdateFamiliaAsync(dto, "Admin");
+            var (success, _, familia) = await _sut.Actualizar(dto, "Admin");
 
             // Assert
             success.Should().BeTrue();
             familia.Should().NotBeNull();
-            familia!.FamiliaId.Should().Be(5);
+            familia!.Id.Should().Be(5);
             familia.Nombre.Should().Be("Familia Actualizada");
             familia.Email.Should().Be("updated@test.com");
         }
@@ -755,13 +755,13 @@ namespace KindoHub.Services.Tests.Services
             var dto = CreateTestChangeFamiliaDto(1, "Familia Test");
             var existingEntity = CreateTestFamiliaEntity(1, "Familia Test");
             
-            _mockRepository.Setup(r => r.GetByFamiliaIdAsync(1))
+            _mockRepository.Setup(r => r.LeerPorId(1))
                 .ReturnsAsync(existingEntity);
-            _mockRepository.Setup(r => r.UpdateFamiliaAsync(It.IsAny<FamiliaEntity>(), "Admin"))
+            _mockRepository.Setup(r => r.Actualizar(It.IsAny<FamiliaEntity>(), "Admin"))
                 .ReturnsAsync(true);
 
             // Act
-            var (success, message, _) = await _sut.UpdateFamiliaAsync(dto, "Admin");
+            var (success, message, _) = await _sut.Actualizar(dto, "Admin");
 
             // Assert
             success.Should().BeTrue();
@@ -773,11 +773,11 @@ namespace KindoHub.Services.Tests.Services
         {
             // Arrange
             var dto = CreateTestChangeFamiliaDto(999, "Familia Test");
-            _mockRepository.Setup(r => r.GetByFamiliaIdAsync(999))
+            _mockRepository.Setup(r => r.LeerPorId(999))
                 .ReturnsAsync((FamiliaEntity?)null);
 
             // Act
-            var (success, message, _) = await _sut.UpdateFamiliaAsync(dto, "Admin");
+            var (success, message, _) = await _sut.Actualizar(dto, "Admin");
 
             // Assert
             success.Should().BeFalse();
@@ -790,13 +790,13 @@ namespace KindoHub.Services.Tests.Services
             // Arrange
             var dto = CreateTestChangeFamiliaDto(1, "Familia Test");
             var existingEntity = CreateTestFamiliaEntity(1, "Familia Test");
-            _mockRepository.Setup(r => r.GetByFamiliaIdAsync(1))
+            _mockRepository.Setup(r => r.LeerPorId(1))
                 .ReturnsAsync(existingEntity);
-            _mockRepository.Setup(r => r.UpdateFamiliaAsync(It.IsAny<FamiliaEntity>(), "Admin"))
+            _mockRepository.Setup(r => r.Actualizar(It.IsAny<FamiliaEntity>(), "Admin"))
                 .ReturnsAsync(false);
 
             // Act
-            var (success, message, _) = await _sut.UpdateFamiliaAsync(dto, "Admin");
+            var (success, message, _) = await _sut.Actualizar(dto, "Admin");
 
             // Assert
             success.Should().BeFalse();
@@ -812,13 +812,13 @@ namespace KindoHub.Services.Tests.Services
             var existingEntity = CreateTestFamiliaEntity(1, "Familia Test");
             existingEntity.VersionFila = new byte[] { 5, 6, 7, 8 }; // Versión diferente
             
-            _mockRepository.Setup(r => r.GetByFamiliaIdAsync(1))
+            _mockRepository.Setup(r => r.LeerPorId(1))
                 .ReturnsAsync(existingEntity);
-            _mockRepository.Setup(r => r.UpdateFamiliaAsync(It.IsAny<FamiliaEntity>(), "Admin"))
+            _mockRepository.Setup(r => r.Actualizar(It.IsAny<FamiliaEntity>(), "Admin"))
                 .ReturnsAsync(true);
 
             // Act
-            var (success, _, _) = await _sut.UpdateFamiliaAsync(dto, "Admin");
+            var (success, _, _) = await _sut.Actualizar(dto, "Admin");
 
             // Assert
             // MISSING: Actualmente no valida VersionFila para optimistic concurrency
@@ -835,7 +835,7 @@ namespace KindoHub.Services.Tests.Services
         {
             // Act & Assert
             await Assert.ThrowsAsync<NotImplementedException>(
-                () => _sut.DeleteAsync(1, new byte[] { 1, 2, 3, 4 }));
+                () => _sut.Eliminar(1, new byte[] { 1, 2, 3, 4 }));
         }
 
         #endregion
@@ -862,7 +862,7 @@ namespace KindoHub.Services.Tests.Services
         {
             return new FamiliaDto
             {
-                FamiliaId = id,
+                Id = id,
                 NumeroSocio = 100,
                 Nombre = nombre,
                 Email = "test@familia.com",
@@ -885,7 +885,7 @@ namespace KindoHub.Services.Tests.Services
         {
             return new ChangeFamiliaDto
             {
-                FamiliaId = id,
+                Id = id,
                 NumeroSocio = 100,
                 Nombre = nombre,
                 Email = "test@familia.com",
@@ -908,7 +908,7 @@ namespace KindoHub.Services.Tests.Services
         {
             return new FamiliaEntity
             {
-                FamiliaId = id,
+                Id = id,
                 NumeroSocio = 100,
                 Nombre = nombre,
                 Email = "test@familia.com",

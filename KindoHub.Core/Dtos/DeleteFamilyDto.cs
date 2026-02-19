@@ -9,9 +9,7 @@ namespace KindoHub.Core.Dtos
 {
     public class DeleteFamilyDto
     {
-        [Required]
-        public int FamiliaId { get; set; } =0;
-        [Required]
+        public int Id { get; set; } =0;
         public byte[] VersionFila { get; set; } = null!;
     }
 }
