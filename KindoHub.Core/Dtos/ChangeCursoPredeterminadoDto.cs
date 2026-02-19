@@ -7,9 +7,8 @@ using System.Threading.Tasks;
 
 namespace KindoHub.Core.Dtos
 {
-    public class SetPredeterminadoDto
+    public class ChangeCursoPredeterminadoDto
     {
-        [Required(ErrorMessage = "El CursoId es requerido")]
         public int CursoId { get; set; }
     }
 }

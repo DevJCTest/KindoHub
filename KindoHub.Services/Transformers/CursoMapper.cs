@@ -14,11 +14,29 @@ namespace KindoHub.Services.Transformers
         {
             return new CursoDto
             {
-                CursoId = entity.CursoId,
+                Id = entity.Id,
                 Nombre = entity.Nombre,
                 Descripcion = entity.Descripcion,
                 Predeterminado = entity.Predeterminado,
                 VersionFila = entity.VersionFila
+            };
+        }
+
+        public static CursoHistoriaDto MapToHistoriaDto(CursoHistoriaEntitiy entity)
+        {
+            return new CursoHistoriaDto
+            {
+                Id = entity.Id,
+                Nombre = entity.Nombre,
+                Descripcion = entity.Descripcion,
+                Predeterminado = entity.Predeterminado,
+                VersionFila = entity.VersionFila,
+                CreadoPor = entity.CreadoPor,
+                FechaCreacion = entity.FechaCreacion,
+                ModificadoPor = entity.ModificadoPor,
+                FechaModificacion = entity.FechaModificacion,
+                SysStartTime = entity.SysStartTime,
+                SysEndTime = entity.SysEndTime
             };
         }
 
@@ -36,7 +54,7 @@ namespace KindoHub.Services.Transformers
         {
             return new CursoEntity
             {
-                CursoId = dto.CursoId,
+                Id = dto.CursoId,
                 Nombre = dto.Nombre,
                 Descripcion = dto.Descripcion,
                 VersionFila = dto.VersionFila

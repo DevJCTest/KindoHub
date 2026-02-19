@@ -9,12 +9,14 @@ namespace KindoHub.Core.Interfaces
 {
     public interface ICursoService
     {
-        Task<CursoDto?> GetByIdAsync(int cursoId);
-        Task<IEnumerable<CursoDto>> GetAllAsync();
-        Task<CursoDto?> GetPredeterminadoAsync();
-        Task<(bool Success, string Message, CursoDto? Curso)> CreateAsync(RegisterCursoDto dto, string usuarioActual);
-        Task<(bool Success, string Message, CursoDto? Curso)> UpdateAsync(UpdateCursoDto dto, string usuarioActual);
-        Task<(bool Success, string Message)> DeleteAsync(int cursoId, byte[] versionFila);
-        Task<(bool Success, string Message, CursoDto? Curso)> SetPredeterminadoAsync(int cursoId);
+        Task<CursoDto?> LeerPorId(int id);
+        Task<bool> EsEliminable(int id);
+        Task<IEnumerable<CursoDto>> LeerTodos();
+        Task<IEnumerable<CursoHistoriaDto>> LeerHistoria(int id);
+        Task<CursoDto?> LeerPredeterminado();
+        Task<(bool Success, CursoDto? Curso)> Crear(RegisterCursoDto dto, string usuarioActual);
+        Task<(bool Success, CursoDto? Curso)> Actualizar(UpdateCursoDto dto, string usuarioActual);
+        Task<bool> Eliminar(int id, byte[] versionFila, string usuarioActual);
+        Task<(bool Success, CursoDto? Curso)> EstablecerPredeterminado(int id, string usuarioActual);
     }
 }

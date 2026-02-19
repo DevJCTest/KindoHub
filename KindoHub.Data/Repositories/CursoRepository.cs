@@ -1,5 +1,6 @@
 using KindoHub.Core.Entities;
 using KindoHub.Core.Interfaces;
+using KindoHub.Data.Transformers;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using System;
@@ -25,14 +26,10 @@ namespace KindoHub.Data.Repositories
             _logger = logger;
         }
 
-        public async Task<CursoEntity?> GetByIdAsync(int cursoId)
+        public async Task<CursoEntity?> LeerPorId(int cursoId)
         {
-            if (cursoId <= 0)
-                throw new ArgumentException("El identificador del curso debe ser mayor a 0", nameof(cursoId));
-
             const string query = @"
-            SELECT CursoId, Nombre, Descripcion, Predeterminado,
-                   CreadoPor, FechaCreacion, ModificadoPor, FechaModificacion, VersionFila
+            SELECT CursoId, Nombre, Descripcion, Predeterminado, VersionFila
             FROM Cursos
             WHERE CursoId = @CursoId";
 
@@ -46,38 +43,23 @@ namespace KindoHub.Data.Repositories
                 await using var reader = await command.ExecuteReaderAsync();
                 if (await reader.ReadAsync())
                 {
-                    return new CursoEntity
-                    {
-                        CursoId = reader.GetInt32(0),
-                        Nombre = reader.GetString(1),
-                        Descripcion = reader.IsDBNull(2) ? null : reader.GetString(2),
-                        Predeterminado = reader.GetBoolean(3),
-                        CreadoPor = reader.GetString(4),
-                        FechaCreacion = reader.GetDateTime(5),
-                        ModificadoPor = reader.IsDBNull(6) ? null : reader.GetString(6),
-                        FechaModificacion = reader.IsDBNull(7) ? null : reader.GetDateTime(7),
-                        VersionFila = (byte[])reader[8]
-                    };
+                    return CursoMapper.MapToCursoEntity(reader);
                 }
 
                 return null;
             }
             catch (SqlException ex)
             {
-                _logger.LogError(ex, "Error SQL al obtener curso: {CursoId}", cursoId);
+                _logger.LogError(ex, "Error SQL al leer curso: {CursoId}", cursoId);
                 throw;
             }
         }
 
-        public async Task<IEnumerable<CursoEntity>> GetAllAsync()
+        public async Task<IEnumerable<CursoEntity>> LeerTodos()
         {
             const string query = @"
-            SELECT CursoId, Nombre, Descripcion, Predeterminado,
-                   CreadoPor, FechaCreacion, ModificadoPor, FechaModificacion, VersionFila
-            FROM Cursos
-            ORDER BY 
-                CASE WHEN Predeterminado = 1 THEN 0 ELSE 1 END,
-                Nombre ASC";
+            SELECT CursoId, Nombre, Descripcion, Predeterminado, VersionFila
+            FROM Cursos";
 
             var cursos = new List<CursoEntity>();
 
@@ -90,33 +72,22 @@ namespace KindoHub.Data.Repositories
                 await using var reader = await command.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
                 {
-                    cursos.Add(new CursoEntity
-                    {
-                        CursoId = reader.GetInt32(0),
-                        Nombre = reader.GetString(1),
-                        Descripcion = reader.IsDBNull(2) ? null : reader.GetString(2),
-                        Predeterminado = reader.GetBoolean(3),
-                        CreadoPor = reader.GetString(4),
-                        FechaCreacion = reader.GetDateTime(5),
-                        ModificadoPor = reader.IsDBNull(6) ? null : reader.GetString(6),
-                        FechaModificacion = reader.IsDBNull(7) ? null : reader.GetDateTime(7),
-                        VersionFila = (byte[])reader[8]
-                    });
+                    cursos.Add(CursoMapper.MapToCursoEntity(reader));
                 }
 
                 return cursos;
             }
             catch (SqlException ex)
             {
-                _logger.LogError(ex, "Error SQL al obtener todos los cursos");
+                _logger.LogError(ex, "Error SQL al leer todos los cursos");
                 throw;
             }
         }
 
-        public async Task<CursoEntity?> GetPredeterminadoAsync()
+        public async Task<CursoEntity?> LeerPredeterminado()
         {
             const string query = @"
-            SELECT CursoId, Nombre, Descripcion, Predeterminado
+            SELECT CursoId, Nombre, Descripcion, Predeterminado, VersionFila
             FROM Cursos
             WHERE Predeterminado = 1";
 
@@ -128,43 +99,22 @@ namespace KindoHub.Data.Repositories
 
                 await using var reader = await command.ExecuteReaderAsync();
                 
-                CursoEntity? curso = null;
-                int count = 0;
-
                 while (await reader.ReadAsync())
                 {
-                    count++;
-                    if (count > 1)
-                    {
-                        _logger.LogError("Se encontraron múltiples cursos predeterminados. Esto indica un problema de integridad de datos.");
-                        throw new InvalidOperationException("Hay más de un curso marcado como predeterminado");
-                    }
-
-                    curso = new CursoEntity
-                    {
-                        CursoId = reader.GetInt32(0),
-                        Nombre = reader.GetString(1),
-                        Descripcion = reader.IsDBNull(2) ? null : reader.GetString(2),
-                        Predeterminado = reader.GetBoolean(3)
-                    };
+                    return CursoMapper.MapToCursoEntity(reader);
                 }
 
-                return curso;
+                return null;
             }
             catch (SqlException ex)
             {
-                _logger.LogError(ex, "Error SQL al obtener curso predeterminado");
+                _logger.LogError(ex, "Error SQL al leer el curso predeterminado");
                 throw;
             }
         }
 
-        public async Task<CursoEntity?> CreateAsync(CursoEntity curso, string usuarioActual)
+        public async Task<CursoEntity?> Crear(CursoEntity curso, string usuarioActual)
         {
-            if (curso == null)
-                throw new ArgumentNullException(nameof(curso));
-            if (string.IsNullOrWhiteSpace(usuarioActual))
-                throw new ArgumentException("El usuario es requerido", nameof(usuarioActual));
-
             const string query = @"
             INSERT INTO Cursos (Nombre, Descripcion, Predeterminado, CreadoPor, ModificadoPor)
             OUTPUT INSERTED.CursoId
@@ -184,8 +134,8 @@ namespace KindoHub.Data.Repositories
 
                 if (result != null && result != DBNull.Value)
                 {
-                    curso.CursoId = Convert.ToInt32(result);
-                    return await GetByIdAsync(curso.CursoId);
+                    curso.Id = Convert.ToInt32(result);
+                    return await LeerPorId(curso.Id);
                 }
 
                 return null;
@@ -197,20 +147,14 @@ namespace KindoHub.Data.Repositories
             }
         }
 
-        public async Task<bool> UpdateAsync(CursoEntity curso, string usuarioActual)
+        public async Task<bool> Actualizar(CursoEntity curso, string usuarioActual)
         {
-            if (curso == null)
-                throw new ArgumentNullException(nameof(curso));
-            if (string.IsNullOrWhiteSpace(usuarioActual))
-                throw new ArgumentException("El usuario es requerido", nameof(usuarioActual));
-            if (curso.VersionFila == null || curso.VersionFila.Length == 0)
-                throw new ArgumentException("VersionFila es requerida", nameof(curso));
-
             const string query = @"
             UPDATE Cursos
             SET Nombre = @Nombre,
                 Descripcion = @Descripcion,
-                ModificadoPor = @UsuarioActual
+                ModificadoPor = @UsuarioActual,
+                FechaModificacion = GETDATE()
             WHERE CursoId = @CursoId AND VersionFila = @VersionFila";
 
             try
@@ -218,7 +162,7 @@ namespace KindoHub.Data.Repositories
                 await using var connection = await _connectionFactory.CreateConnectionAsync();
                 await connection.OpenAsync();
                 await using var command = new SqlCommand(query, connection);
-                command.Parameters.AddWithValue("@CursoId", curso.CursoId);
+                command.Parameters.AddWithValue("@CursoId", curso.Id);
                 command.Parameters.AddWithValue("@Nombre", curso.Nombre);
                 command.Parameters.AddWithValue("@Descripcion", curso.Descripcion ?? (object)DBNull.Value);
                 command.Parameters.AddWithValue("@UsuarioActual", usuarioActual);
@@ -230,21 +174,52 @@ namespace KindoHub.Data.Repositories
             }
             catch (SqlException ex)
             {
-                _logger.LogError(ex, "Error SQL al actualizar curso: {CursoId}", curso.CursoId);
+                _logger.LogError(ex, "Error SQL al actualizar curso: {CursoId}", curso.Id);
                 throw;
             }
         }
 
-        public async Task<bool> DeleteAsync(int cursoId, byte[] versionFila)
+        public async Task<bool> Eliminar(int cursoId, byte[] versionFila, string usuarioActual)
         {
-            if (cursoId <= 0)
-                throw new ArgumentException("El identificador del curso debe ser mayor a 0", nameof(cursoId));
-            if (versionFila == null || versionFila.Length == 0)
-                throw new ArgumentException("VersionFila es requerida", nameof(versionFila));
-
             const string query = @"
-            DELETE FROM Cursos
-            WHERE CursoId = @CursoId AND VersionFila = @VersionFila";
+                        BEGIN TRANSACTION;
+                        BEGIN TRY
+
+                            UPDATE Cursos
+                            SET ModificadoPor = @UsuarioActual,
+                                FechaModificacion = GETDATE()
+                            WHERE CursoId = @CursoId 
+                              AND VersionFila = @VersionFila;
+
+
+                            IF @@ROWCOUNT = 0
+                            BEGIN
+                                ROLLBACK TRANSACTION;
+                                SELECT 0 AS Result;
+                                RETURN;
+                            END
+
+                            DELETE FROM Cursos
+                            WHERE CursoId = @CursoId;
+
+                            DECLARE @FilasBorradas INT = @@ROWCOUNT;
+
+                            IF @FilasBorradas = 0
+                            BEGIN
+                                ROLLBACK TRANSACTION;
+                                SELECT 0 AS Result;
+                                RETURN;
+                            END
+
+                            COMMIT TRANSACTION;
+                            SELECT 1 AS Result;
+
+                        END TRY
+                        BEGIN CATCH
+                            ROLLBACK TRANSACTION;
+                            THROW;
+                        END CATCH";
+
 
             try
             {
@@ -253,6 +228,7 @@ namespace KindoHub.Data.Repositories
                 await using var command = new SqlCommand(query, connection);
                 command.Parameters.AddWithValue("@CursoId", cursoId);
                 command.Parameters.AddWithValue("@VersionFila", versionFila);
+                command.Parameters.AddWithValue("@UsuarioActual", usuarioActual);
 
                 var result = await command.ExecuteNonQueryAsync();
 
@@ -270,20 +246,25 @@ namespace KindoHub.Data.Repositories
             }
         }
 
-        public async Task<bool> SetPredeterminadoAsync(int cursoId)
+        public async Task<bool> EstablecerPredeterminado(int cursoId, string usuarioActual)
         {
-            if (cursoId <= 0)
-                throw new ArgumentException("El identificador del curso debe ser mayor a 0", nameof(cursoId));
-
             const string query = @"
             BEGIN TRANSACTION;
 
             BEGIN TRY
                 UPDATE Cursos
-                SET Predeterminado = 0;
+                SET 
+                    ModificadoPor = @UsuarioActual,
+                    FechaModificacion = GETDATE(),
+                    Predeterminado = 0 
+                WHERE
+                    Predeterminado=1;
                 
                 UPDATE Cursos
-                SET Predeterminado = 1
+                SET 
+                    Predeterminado = 1,
+                    ModificadoPor = @UsuarioActual,
+                    FechaModificacion = GETDATE()
                 WHERE CursoId = @CursoId;
                 
                 IF @@ROWCOUNT = 0
@@ -307,6 +288,7 @@ namespace KindoHub.Data.Repositories
                 await connection.OpenAsync();
                 await using var command = new SqlCommand(query, connection);
                 command.Parameters.AddWithValue("@CursoId", cursoId);
+                command.Parameters.AddWithValue("@UsuarioActual", usuarioActual);
 
                 var result = await command.ExecuteScalarAsync();
 
@@ -315,6 +297,39 @@ namespace KindoHub.Data.Repositories
             catch (SqlException ex)
             {
                 _logger.LogError(ex, "Error SQL al establecer curso predeterminado: {CursoId}", cursoId);
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<CursoHistoriaEntitiy>> LeerHistoria(int id)
+        {
+            const string query = @"
+            SELECT CursoId, Nombre, Descripcion, Predeterminado, CreadoPor, FechaCreacion, ModificadoPor,
+                    FechaModificacion, VersionFila, SysStartTime, SysEndTime
+            FROM Cursos_History
+            WHERE
+            CursoId=@CursoId";
+
+            var cursos = new List<CursoHistoriaEntitiy>();
+
+            try
+            {
+                await using var connection = await _connectionFactory.CreateConnectionAsync();
+                await connection.OpenAsync();
+                await using var command = new SqlCommand(query, connection);
+                command.Parameters.AddWithValue("@CursoId", id);
+
+                await using var reader = await command.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    cursos.Add(CursoMapper.MapToCursoHistoryEntity(reader));
+                }
+
+                return cursos;
+            }
+            catch (SqlException ex)
+            {
+               _logger.LogError(ex, "Error SQL al leer el historial del curso: {CursoId}", id);
                 throw;
             }
         }

@@ -55,7 +55,7 @@ namespace KindoHub.Services.Services
 
             if (dto.IdCurso.HasValue && dto.IdCurso.Value > 0)
             {
-                var curso = await _cursoRepository.GetByIdAsync(dto.IdCurso.Value);
+                var curso = await _cursoRepository.LeerPorId(dto.IdCurso.Value);
                 if (curso == null)
                 {
                     _logger.LogWarning("Attempt to create alumno with non-existent curso: {CursoId}", dto.IdCurso.Value);
@@ -101,7 +101,7 @@ namespace KindoHub.Services.Services
 
             if (dto.IdCurso.HasValue && dto.IdCurso.Value > 0)
             {
-                var curso = await _cursoRepository.GetByIdAsync(dto.IdCurso.Value);
+                var curso = await _cursoRepository.LeerPorId(dto.IdCurso.Value);
                 if (curso == null)
                 {
                     _logger.LogWarning("Attempt to update alumno with non-existent curso: {CursoId}", dto.IdCurso.Value);

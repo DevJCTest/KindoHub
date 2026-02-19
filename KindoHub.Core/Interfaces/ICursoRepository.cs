@@ -9,12 +9,13 @@ namespace KindoHub.Core.Interfaces
 {
     public interface ICursoRepository
     {
-        Task<CursoEntity?> GetByIdAsync(int cursoId);
-        Task<IEnumerable<CursoEntity>> GetAllAsync();
-        Task<CursoEntity?> GetPredeterminadoAsync();
-        Task<CursoEntity?> CreateAsync(CursoEntity curso, string usuarioActual);
-        Task<bool> UpdateAsync(CursoEntity curso, string usuarioActual);
-        Task<bool> DeleteAsync(int cursoId, byte[] versionFila);
-        Task<bool> SetPredeterminadoAsync(int cursoId);
+        Task<CursoEntity?> LeerPorId(int id);
+        Task<IEnumerable<CursoEntity>> LeerTodos();
+        Task<CursoEntity?> LeerPredeterminado();
+        Task<CursoEntity?> Crear(CursoEntity curso, string usuarioActual);
+        Task<bool> Actualizar(CursoEntity curso, string usuarioActual);
+        Task<bool> Eliminar(int id, byte[] versionFila, string usuarioActual);
+        Task<bool> EstablecerPredeterminado(int id, string usuarioActual);
+        Task<IEnumerable<CursoHistoriaEntitiy>> LeerHistoria(int id);
     }
 }
