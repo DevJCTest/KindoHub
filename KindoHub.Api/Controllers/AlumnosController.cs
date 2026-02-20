@@ -1,5 +1,6 @@
 using KindoHub.Core.Dtos;
 using KindoHub.Core.Interfaces;
+using KindoHub.Services.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
@@ -21,91 +22,98 @@ namespace KindoHub.Api.Controllers
             _logger = logger;
         }
 
-        [HttpGet("{alumnoId}")]
-        public async Task<IActionResult> GetAlumno(int alumnoId)
+        [HttpGet("{id}")]
+        public async Task<IActionResult> LeerPorId(int id)
         {
-            if (alumnoId <= 0)
+            if (id <= 0)
             {
-                _logger.LogWarning("GetAlumno request with invalid alumnoId: {AlumnoId}", alumnoId);
-                return BadRequest(new { message = "El AlumnoId debe ser mayor a 0" });
+                return BadRequest();
             }
 
             try
             {
-                var dto = await _alumnoService.GetByIdAsync(alumnoId);
+                var dto = await _alumnoService.LeerPorId(id);
 
                 if (dto == null)
                 {
-                    _logger.LogWarning("Alumno not found: {AlumnoId}", alumnoId);
-                    return NotFound(new { message = $"Alumno con ID {alumnoId} no encontrado" });
+                    return NotFound();
                 }
 
-                _logger.LogInformation("Alumno retrieved: {AlumnoId}", alumnoId);
                 return Ok(dto);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving alumno: {AlumnoId}", alumnoId);
+                _logger.LogError(ex, "Error al leer el alumno con id {AlumnoId}", id);
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllAlumnos()
+        public async Task<IActionResult> LeerTodos()
         {
             try
             {
-                var alumnos = await _alumnoService.GetAllAsync();
+                var alumnos = await _alumnoService.LeerTodos();
 
-                _logger.LogInformation("All alumnos retrieved. Count: {Count}", alumnos.Count());
                 return Ok(alumnos);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving all alumnos");
+                _logger.LogError(ex, "Error al leer todos los alumnos");
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }
 
-        [HttpGet("familia/{familiaId}")]
-        public async Task<IActionResult> GetAlumnosByFamilia(int familiaId)
+        [HttpGet("historia")]
+        public async Task<IActionResult> LeerHistoria(int id)
         {
-            if (familiaId <= 0)
-            {
-                _logger.LogWarning("GetAlumnosByFamilia with invalid familiaId: {FamiliaId}", familiaId);
-                return BadRequest(new { message = "El FamiliaId debe ser mayor a 0" });
-            }
-
             try
             {
-                var alumnos = await _alumnoService.GetByFamiliaIdAsync(familiaId);
-
-                _logger.LogInformation("Alumnos by familia retrieved: FamiliaId={FamiliaId}, Count={Count}",
-                    familiaId, alumnos.Count());
+                var alumnos = await _alumnoService.LeerHistoria(id);
 
                 return Ok(alumnos);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving alumnos by familia: {FamiliaId}", familiaId);
+                // 500 - Error interno
+                _logger.LogError(ex, "Error al leer la historia del alumno con id {AlumnoId}", id);
+                return StatusCode(500, new { message = "Error interno del servidor" });
+            }
+        }
+
+
+        [HttpGet("familia/{familiaId}")]
+        public async Task<IActionResult> LeerPorFamiliaId(int familiaId)
+        {
+            if (familiaId <= 0)
+            {
+                return BadRequest();
+            }
+
+            try
+            {
+                var alumnos = await _alumnoService.LeerPorFamiliaId(familiaId);
+
+                return Ok(alumnos);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al leer los alumnos de la familia con id {FamiliaId}", familiaId);
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }
 
         [HttpGet("sin-familia")]
-        public async Task<IActionResult> GetAlumnosSinFamilia()
+        public async Task<IActionResult> LeerAlumnosSinFamilia()
         {
             try
             {
-                var alumnos = await _alumnoService.GetSinFamiliaAsync();
-
-                _logger.LogInformation("Alumnos sin familia retrieved. Count: {Count}", alumnos.Count());
-
+                var alumnos = await _alumnoService.LeerSinFamilia();
                 return Ok(alumnos);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving alumnos sin familia");
+                _logger.LogError(ex, "Error al leer los alumnos no asociados a una familia");
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }
@@ -115,112 +123,80 @@ namespace KindoHub.Api.Controllers
         {
             if (cursoId <= 0)
             {
-                _logger.LogWarning("GetAlumnosByCurso with invalid cursoId: {CursoId}", cursoId);
-                return BadRequest(new { message = "El CursoId debe ser mayor a 0" });
+                return BadRequest();
             }
 
             try
             {
-                var alumnos = await _alumnoService.GetByCursoIdAsync(cursoId);
-
-                _logger.LogInformation("Alumnos by curso retrieved: CursoId={CursoId}, Count={Count}",
-                    cursoId, alumnos.Count());
-
+                var alumnos = await _alumnoService.LeerPorCursoId(cursoId);
                 return Ok(alumnos);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving alumnos by curso: {CursoId}", cursoId);
+                _logger.LogError(ex, "Error al leer los alumnos del curso con id {CursoId}", cursoId);
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }
 
-        [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterAlumnoDto request)
+        [HttpPost("registrar")]
+        public async Task<IActionResult> Registrar([FromBody] RegisterAlumnoDto request)
         {
             if (!ModelState.IsValid)
             {
-                _logger.LogWarning("Register alumno with invalid model");
-                return BadRequest(new { message = "Datos de registro inválidos" });
+                return BadRequest();
             }
 
             try
             {
                 var currentUser = User.Identity?.Name ?? "SYSTEM";
 
-                var result = await _alumnoService.CreateAsync(request, currentUser);
+                var result = await _alumnoService.Crear(request, currentUser);
 
                 if (result.Success)
                 {
-                    _logger.LogInformation("Alumno registered successfully: {Nombre} with ID: {AlumnoId}",
-                        request.Nombre, result.Alumno?.AlumnoId);
-
-                    return Created($"/api/alumnos/{result.Alumno?.AlumnoId}", new
+                    return Ok(new
                     {
-                        message = result.Message,
-                        alumno = result.Alumno
+                        Alumno = result.Alumno
                     });
                 }
 
-                _logger.LogWarning("Alumno registration failed: {Message}", result.Message);
-                return BadRequest(new { message = result.Message });
+                return BadRequest();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error registering alumno: {Nombre}", request.Nombre);
+                _logger.LogError(ex, "Error al registrar alumno: {Nombre}", request.Nombre);
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }
 
-        [HttpPatch("update")]
-        public async Task<IActionResult> Update([FromBody] UpdateAlumnoDto request)
+        [HttpPatch("actualizar")]
+        public async Task<IActionResult> Actualizar([FromBody] UpdateAlumnoDto request)
         {
             if (!ModelState.IsValid)
             {
-                _logger.LogWarning("Update alumno request with invalid model");
-                return BadRequest(new { message = "Datos inválidos" });
+                return BadRequest();
             }
 
             var currentUser = User.Identity?.Name ?? "SYSTEM";
-            if (string.IsNullOrEmpty(currentUser))
-            {
-                _logger.LogWarning("Update alumno request without authenticated user");
-                return Unauthorized(new { message = "Usuario no autenticado" });
-            }
 
             try
             {
-                var result = await _alumnoService.UpdateAsync(request, currentUser);
+                var result = await _alumnoService.Actualizar(request, currentUser);
 
                 if (result.Success)
                 {
-                    _logger.LogInformation("Alumno {AlumnoId} updated successfully", request.AlumnoId);
 
                     return Ok(new
                     {
-                        message = result.Message,
-                        alumno = result.Alumno
+                        Alumno = result.Alumno
                     });
                 }
 
-                if (result.Message.Contains("no existe"))
-                {
-                    _logger.LogWarning("Update attempt for non-existent alumno: {AlumnoId}", request.AlumnoId);
-                    return NotFound(new { message = result.Message });
-                }
-
-                if (result.Message.Contains("versión") || result.Message.Contains("cambiado"))
-                {
-                    _logger.LogWarning("Concurrency conflict updating alumno: {AlumnoId}", request.AlumnoId);
-                    return Conflict(new { message = result.Message });
-                }
-
-                _logger.LogWarning("Update alumno validation failed: {Message}", result.Message);
-                return BadRequest(new { message = result.Message });
+                return BadRequest();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating alumno: {AlumnoId}", request.AlumnoId);
+                _logger.LogError(ex, "Error al actualizar el alumno con id {AlumnoId}", request.AlumnoId);
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }
@@ -230,52 +206,30 @@ namespace KindoHub.Api.Controllers
         {
             if (request.AlumnoId <= 0)
             {
-                _logger.LogWarning("DeleteAlumno request with invalid alumnoId");
-                return BadRequest(new { message = "El AlumnoId debe ser mayor a 0" });
+                return BadRequest();
             }
 
             if (request.VersionFila == null || request.VersionFila.Length == 0)
             {
-                _logger.LogWarning("DeleteAlumno request with empty VersionFila");
-                return BadRequest(new { message = "La versión de fila es requerida" });
+                return BadRequest();
             }
 
             var currentUser = User.Identity?.Name ?? "SYSTEM";
-            if (string.IsNullOrEmpty(currentUser))
-            {
-                _logger.LogWarning("Delete alumno request without authenticated user");
-                return Unauthorized(new { message = "Usuario no autenticado" });
-            }
 
             try
             {
-                var result = await _alumnoService.DeleteAsync(request.AlumnoId, request.VersionFila);
+                var result = await _alumnoService.Eliminar(request.AlumnoId, request.VersionFila, currentUser);
 
-                if (result.Success)
+                if (result)
                 {
-                    _logger.LogInformation("Alumno {AlumnoId} deleted by user {User}",
-                        request.AlumnoId, currentUser);
-                    return Ok(new { message = result.Message });
+                    return Ok();
                 }
 
-                if (result.Message.Contains("no existe"))
-                {
-                    _logger.LogWarning("Delete attempt for non-existent alumno: {AlumnoId}", request.AlumnoId);
-                    return NotFound(new { message = result.Message });
-                }
-
-                if (result.Message.Contains("versión") || result.Message.Contains("cambiado"))
-                {
-                    _logger.LogWarning("Concurrency conflict deleting alumno: {AlumnoId}", request.AlumnoId);
-                    return Conflict(new { message = result.Message });
-                }
-
-                _logger.LogWarning("Delete alumno failed: {Message}", result.Message);
-                return BadRequest(new { message = result.Message });
+                return BadRequest();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error deleting alumno: {AlumnoId}", request.AlumnoId);
+                _logger.LogError(ex, "Error al eliminar el alumno con id {AlumnoId}", request.AlumnoId);
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }

@@ -6,17 +6,18 @@ namespace KindoHub.Core.Interfaces
 {
     public interface IAlumnoRepository
     {
-        Task<AlumnoEntity?> GetByIdAsync(int alumnoId);
-        Task<IEnumerable<AlumnoEntity>> GetAllAsync();
-        Task<AlumnoEntity?> CreateAsync(AlumnoEntity alumno, string usuarioActual);
-        Task<bool> UpdateAsync(AlumnoEntity alumno, string usuarioActual);
-        Task<bool> DeleteAsync(int alumnoId, byte[] versionFila);
+        Task<AlumnoEntity?> LeerPorId(int id);
+        Task<IEnumerable<AlumnoEntity>> LeerTodos();
+        Task<AlumnoEntity?> Crear(AlumnoEntity alumno, string usuarioActual);
+        Task<bool> Actualizar(AlumnoEntity alumno, string usuarioActual);
+        Task<bool> Eliminar(int alumnoId, byte[] versionFila, string usuarioActual);
 
-        Task<IEnumerable<AlumnoEntity>> GetByFamiliaIdAsync(int familiaId);
-        Task<IEnumerable<AlumnoEntity>> GetSinFamiliaAsync();
-        Task<IEnumerable<AlumnoEntity>> GetByCursoIdAsync(int cursoId);
+        Task<IEnumerable<AlumnoEntity>> LeerPorFamiliaId(int familiaId);
+        Task<IEnumerable<AlumnoEntity>> LeerSinFamilia();
+        Task<IEnumerable<AlumnoEntity>> LeerPorCursoId(int cursoId);
 
-        Task<int> CountByFamiliaIdAsync(int familiaId);
-        Task<int> CountByCursoIdAsync(int cursoId);
+        Task<int> NumeroPorFamiliaId(int familiaId);
+        Task<int> NumeroPorCursoId(int cursoId);
+        Task<IEnumerable<AlumnoHistoriaEntity>> LeerHistoria(int id);
     }
 }

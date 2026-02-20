@@ -1,5 +1,6 @@
 using KindoHub.Core.Entities;
 using KindoHub.Core.Interfaces;
+using KindoHub.Data.Transformers;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using System;
@@ -20,14 +21,10 @@ namespace KindoHub.Data.Repositories
             _logger = logger;
         }
 
-        public async Task<AlumnoEntity?> GetByIdAsync(int alumnoId)
+        public async Task<AlumnoEntity?> LeerPorId(int id)
         {
-            if (alumnoId <= 0)
-                throw new ArgumentException("El AlumnoId debe ser mayor a 0", nameof(alumnoId));
-
             const string query = @"
-            SELECT AlumnoId, IdFamilia, Nombre, Observaciones, AutorizaRedes, IdCurso,
-                   CreadoPor, FechaCreacion, ModificadoPor, FechaModificacion, VersionFila
+            SELECT AlumnoId, IdFamilia, Nombre, Observaciones, AutorizaRedes, IdCurso, VersionFila
             FROM Alumnos
             WHERE AlumnoId = @AlumnoId";
 
@@ -36,24 +33,24 @@ namespace KindoHub.Data.Repositories
                 await using var connection = await _connectionFactory.CreateConnectionAsync();
                 await connection.OpenAsync();
                 await using var command = new SqlCommand(query, connection);
-                command.Parameters.AddWithValue("@AlumnoId", alumnoId);
+                command.Parameters.AddWithValue("@AlumnoId", id);
 
                 await using var reader = await command.ExecuteReaderAsync();
                 if (await reader.ReadAsync())
                 {
-                    return MapearAlumno(reader);
+                    return AlumnoMapper.MapToAlumnoEntity(reader);
                 }
 
                 return null;
             }
             catch (SqlException ex)
             {
-                _logger.LogError(ex, "Error SQL al obtener alumno: {AlumnoId}", alumnoId);
+                _logger.LogError(ex, "Error SQL al leer el alumno con id {AlumnoId}", id);
                 throw;
             }
         }
 
-        public async Task<IEnumerable<AlumnoEntity>> GetAllAsync()
+        public async Task<IEnumerable<AlumnoEntity>> LeerTodos()
         {
             const string query = @"
             SELECT AlumnoId, IdFamilia, Nombre, Observaciones, AutorizaRedes, IdCurso,
@@ -72,25 +69,20 @@ namespace KindoHub.Data.Repositories
                 await using var reader = await command.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
                 {
-                    alumnos.Add(MapearAlumno(reader));
+                    alumnos.Add(AlumnoMapper.MapToAlumnoEntity(reader));
                 }
 
                 return alumnos;
             }
             catch (SqlException ex)
             {
-                _logger.LogError(ex, "Error SQL al obtener todos los alumnos");
+                _logger.LogError(ex, "Error SQL al leer todos los alumnos");
                 throw;
             }
         }
 
-        public async Task<AlumnoEntity?> CreateAsync(AlumnoEntity alumno, string usuarioActual)
+        public async Task<AlumnoEntity?> Crear(AlumnoEntity alumno, string usuarioActual)
         {
-            if (alumno == null)
-                throw new ArgumentNullException(nameof(alumno));
-            if (string.IsNullOrWhiteSpace(usuarioActual))
-                throw new ArgumentException("El usuario es requerido", nameof(usuarioActual));
-
             const string query = @"
             INSERT INTO Alumnos (IdFamilia, Nombre, Observaciones, AutorizaRedes, IdCurso, CreadoPor, ModificadoPor)
             OUTPUT INSERTED.AlumnoId
@@ -114,33 +106,20 @@ namespace KindoHub.Data.Repositories
                 if (result != null && result != DBNull.Value)
                 {
                     alumno.AlumnoId = Convert.ToInt32(result);
-                    return await GetByIdAsync(alumno.AlumnoId);
+                    return await LeerPorId(alumno.AlumnoId);
                 }
 
                 return null;
             }
-            catch (SqlException ex) when (ex.Number == SqlForeignKeyViolation)
-            {
-                _logger.LogError(ex, "FK violation al crear alumno: IdFamilia={IdFamilia}, IdCurso={IdCurso}",
-                    alumno.IdFamilia, alumno.IdCurso);
-                throw;
-            }
             catch (SqlException ex)
             {
-                _logger.LogError(ex, "Error SQL al crear alumno: {Nombre}", alumno.Nombre);
+                _logger.LogError(ex, "Error SQL al crear el alumno: {Nombre}", alumno.Nombre);
                 throw;
             }
         }
 
-        public async Task<bool> UpdateAsync(AlumnoEntity alumno, string usuarioActual)
+        public async Task<bool> Actualizar(AlumnoEntity alumno, string usuarioActual)
         {
-            if (alumno == null)
-                throw new ArgumentNullException(nameof(alumno));
-            if (string.IsNullOrWhiteSpace(usuarioActual))
-                throw new ArgumentException("El usuario es requerido", nameof(usuarioActual));
-            if (alumno.VersionFila == null || alumno.VersionFila.Length == 0)
-                throw new ArgumentException("VersionFila es requerida", nameof(alumno));
-
             const string query = @"
             UPDATE Alumnos
             SET IdFamilia = @IdFamilia,
@@ -148,7 +127,8 @@ namespace KindoHub.Data.Repositories
                 Observaciones = @Observaciones,
                 AutorizaRedes = @AutorizaRedes,
                 IdCurso = @IdCurso,
-                ModificadoPor = @UsuarioActual
+                ModificadoPor = @UsuarioActual,
+                FechaModificacion = GETDATE()
             WHERE AlumnoId = @AlumnoId AND VersionFila = @VersionFila";
 
             try
@@ -170,28 +150,53 @@ namespace KindoHub.Data.Repositories
 
                 return result > 0;
             }
-            catch (SqlException ex) when (ex.Number == SqlForeignKeyViolation)
-            {
-                _logger.LogError(ex, "FK violation al actualizar alumno: {AlumnoId}", alumno.AlumnoId);
-                throw;
-            }
             catch (SqlException ex)
             {
-                _logger.LogError(ex, "Error SQL al actualizar alumno: {AlumnoId}", alumno.AlumnoId);
+                _logger.LogError(ex, "Error SQL al actualizar el alumno con id {AlumnoId}", alumno.AlumnoId);
                 throw;
             }
         }
 
-        public async Task<bool> DeleteAsync(int alumnoId, byte[] versionFila)
+        public async Task<bool> Eliminar(int alumnoId, byte[] versionFila, string usuarioActual)
         {
-            if (alumnoId <= 0)
-                throw new ArgumentException("El AlumnoId debe ser mayor a 0", nameof(alumnoId));
-            if (versionFila == null || versionFila.Length == 0)
-                throw new ArgumentException("VersionFila es requerida", nameof(versionFila));
-
             const string query = @"
-            DELETE FROM Alumnos
-            WHERE AlumnoId = @AlumnoId AND VersionFila = @VersionFila";
+            BEGIN TRANSACTION;
+                        BEGIN TRY
+
+                            UPDATE Alumnos
+                            SET ModificadoPor = @UsuarioActual,
+                                FechaModificacion = GETDATE()
+                            WHERE AlumnoId = @AlumnoId 
+                              AND VersionFila = @VersionFila;
+
+
+                            IF @@ROWCOUNT = 0
+                            BEGIN
+                                ROLLBACK TRANSACTION;
+                                SELECT 0 AS Result;
+                                RETURN;
+                            END
+
+                            DELETE FROM Alumnos
+                            WHERE AlumnoId= @AlumnoId;
+
+                            DECLARE @FilasBorradas INT = @@ROWCOUNT;
+
+                            IF @FilasBorradas = 0
+                            BEGIN
+                                ROLLBACK TRANSACTION;
+                                SELECT 0 AS Result;
+                                RETURN;
+                            END
+
+                            COMMIT TRANSACTION;
+                            SELECT 1 AS Result;
+
+                        END TRY
+                        BEGIN CATCH
+                            ROLLBACK TRANSACTION;
+                            THROW;
+                        END CATCH";
 
             try
             {
@@ -200,28 +205,21 @@ namespace KindoHub.Data.Repositories
                 await using var command = new SqlCommand(query, connection);
                 command.Parameters.AddWithValue("@AlumnoId", alumnoId);
                 command.Parameters.AddWithValue("@VersionFila", versionFila);
+                command.Parameters.AddWithValue("@UsuarioActual", usuarioActual);
 
                 var result = await command.ExecuteNonQueryAsync();
 
                 return result > 0;
             }
-            catch (SqlException ex) when (ex.Number == SqlForeignKeyViolation)
-            {
-                _logger.LogError(ex, "FK violation al eliminar alumno: {AlumnoId}", alumnoId);
-                throw;
-            }
             catch (SqlException ex)
             {
-                _logger.LogError(ex, "Error SQL al eliminar alumno: {AlumnoId}", alumnoId);
+                _logger.LogError(ex, "Error SQL al eliminar el alumno con id {AlumnoId}", alumnoId);
                 throw;
             }
         }
 
-        public async Task<IEnumerable<AlumnoEntity>> GetByFamiliaIdAsync(int familiaId)
+        public async Task<IEnumerable<AlumnoEntity>> LeerPorFamiliaId(int familiaId)
         {
-            if (familiaId <= 0)
-                throw new ArgumentException("El FamiliaId debe ser mayor a 0", nameof(familiaId));
-
             const string query = @"
             SELECT AlumnoId, IdFamilia, Nombre, Observaciones, AutorizaRedes, IdCurso,
                    CreadoPor, FechaCreacion, ModificadoPor, FechaModificacion, VersionFila
@@ -241,19 +239,19 @@ namespace KindoHub.Data.Repositories
                 await using var reader = await command.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
                 {
-                    alumnos.Add(MapearAlumno(reader));
+                    alumnos.Add(AlumnoMapper.MapToAlumnoEntity(reader));
                 }
 
                 return alumnos;
             }
             catch (SqlException ex)
             {
-                _logger.LogError(ex, "Error SQL al obtener alumnos de familia: {FamiliaId}", familiaId);
+                _logger.LogError(ex, "Error SQL al leer los alumnos de la familia con id {FamiliaId}", familiaId);
                 throw;
             }
         }
 
-        public async Task<IEnumerable<AlumnoEntity>> GetSinFamiliaAsync()
+        public async Task<IEnumerable<AlumnoEntity>> LeerSinFamilia()
         {
             const string query = @"
             SELECT AlumnoId, IdFamilia, Nombre, Observaciones, AutorizaRedes, IdCurso,
@@ -273,19 +271,19 @@ namespace KindoHub.Data.Repositories
                 await using var reader = await command.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
                 {
-                    alumnos.Add(MapearAlumno(reader));
+                    alumnos.Add(AlumnoMapper.MapToAlumnoEntity(reader));
                 }
 
                 return alumnos;
             }
             catch (SqlException ex)
             {
-                _logger.LogError(ex, "Error SQL al obtener alumnos sin familia");
+                _logger.LogError(ex, "Error SQL al leer los alumnos sin familia");
                 throw;
             }
         }
 
-        public async Task<IEnumerable<AlumnoEntity>> GetByCursoIdAsync(int cursoId)
+        public async Task<IEnumerable<AlumnoEntity>> LeerPorCursoId(int cursoId)
         {
             if (cursoId <= 0)
                 throw new ArgumentException("El CursoId debe ser mayor a 0", nameof(cursoId));
@@ -309,23 +307,20 @@ namespace KindoHub.Data.Repositories
                 await using var reader = await command.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
                 {
-                    alumnos.Add(MapearAlumno(reader));
+                    alumnos.Add(AlumnoMapper.MapToAlumnoEntity(reader));
                 }
 
                 return alumnos;
             }
             catch (SqlException ex)
             {
-                _logger.LogError(ex, "Error SQL al obtener alumnos de curso: {CursoId}", cursoId);
+                _logger.LogError(ex, "Error SQL al obtener alumnos del curso con id {CursoId}", cursoId);
                 throw;
             }
         }
 
-        public async Task<int> CountByFamiliaIdAsync(int familiaId)
+        public async Task<int> NumeroPorFamiliaId(int familiaId)
         {
-            if (familiaId <= 0)
-                throw new ArgumentException("El FamiliaId debe ser mayor a 0", nameof(familiaId));
-
             const string query = @"
             SELECT COUNT(*)
             FROM Alumnos
@@ -343,16 +338,13 @@ namespace KindoHub.Data.Repositories
             }
             catch (SqlException ex)
             {
-                _logger.LogError(ex, "Error SQL al contar alumnos de familia: {FamiliaId}", familiaId);
+                _logger.LogError(ex, "Error SQL al contar los alumnos de familia: {FamiliaId}", familiaId);
                 throw;
             }
         }
 
-        public async Task<int> CountByCursoIdAsync(int cursoId)
+        public async Task<int> NumeroPorCursoId(int cursoId)
         {
-            if (cursoId <= 0)
-                throw new ArgumentException("El CursoId debe ser mayor a 0", nameof(cursoId));
-
             const string query = @"
             SELECT COUNT(*)
             FROM Alumnos
@@ -370,27 +362,53 @@ namespace KindoHub.Data.Repositories
             }
             catch (SqlException ex)
             {
-                _logger.LogError(ex, "Error SQL al contar alumnos de curso: {CursoId}", cursoId);
+                _logger.LogError(ex, "Error SQL al contar los alumnos del curso con id {CursoId}", cursoId);
                 throw;
             }
         }
 
-        private AlumnoEntity MapearAlumno(SqlDataReader reader)
+        public async Task<IEnumerable<AlumnoHistoriaEntity>> LeerHistoria(int id)
         {
-            return new AlumnoEntity
+            const string query = @"
+            SELECT [AlumnoId]
+                      ,[IdFamilia]
+                      ,[Nombre]
+                      ,[Observaciones]
+                      ,[AutorizaRedes]
+                      ,[IdCurso]
+                      ,[CreadoPor]
+                      ,[FechaCreacion]
+                      ,[ModificadoPor]
+                      ,[FechaModificacion]
+                      ,[VersionFila]
+                      ,[SysStartTime]
+                      ,[SysEndTime]
+                  FROM [Alumnos_History] 
+                    WHERE
+                       AlumnoId=@AlumnoId";
+
+            var alumnos = new List<AlumnoHistoriaEntity>();
+
+            try
             {
-                AlumnoId = reader.GetInt32(0),
-                IdFamilia = reader.IsDBNull(1) ? null : reader.GetInt32(1),
-                Nombre = reader.GetString(2),
-                Observaciones = reader.IsDBNull(3) ? null : reader.GetString(3),
-                AutorizaRedes = reader.GetBoolean(4),
-                IdCurso = reader.IsDBNull(5) ? null : reader.GetInt32(5),
-                CreadoPor = reader.GetString(6),
-                FechaCreacion = reader.GetDateTime(7),
-                ModificadoPor = reader.IsDBNull(8) ? null : reader.GetString(8),
-                FechaModificacion = reader.IsDBNull(9) ? null : reader.GetDateTime(9),
-                VersionFila = (byte[])reader[10]
-            };
+                await using var connection = await _connectionFactory.CreateConnectionAsync();
+                await connection.OpenAsync();
+                await using var command = new SqlCommand(query, connection);
+                command.Parameters.AddWithValue("@AlumnoId", id);
+
+                await using var reader = await command.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    alumnos.Add(AlumnoMapper.MapToAlumnoHistoriaEntity(reader));
+                }
+
+                return alumnos;
+            }
+            catch (SqlException ex)
+            {
+                _logger.LogError(ex, "Error SQL al leer la historia del alumno con id {Id}", id);
+                throw;
+            }
         }
     }
 }

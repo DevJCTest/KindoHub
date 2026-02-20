@@ -19,6 +19,26 @@ namespace KindoHub.Services.Transformers
             };
         }
 
+        public static AlumnoHistoriaDto MapToAlumnoHistoriaDto(AlumnoHistoriaEntity entity)
+        {
+            return new AlumnoHistoriaDto
+            {
+                Id= entity.Id,
+                IdFamilia = entity.IdFamilia,
+                Nombre = entity.Nombre,
+                Observaciones = entity.Observaciones,
+                AutorizaRedes = entity.AutorizaRedes,
+                IdCurso = entity.IdCurso,
+                VersionFila = entity.VersionFila,
+                CreadoPor = entity.CreadoPor,
+                FechaCreacion = entity.FechaCreacion,
+                ModificadoPor = entity.ModificadoPor,
+                FechaModificacion = entity.FechaModificacion,
+                SysStartTime = entity.SysStartTime,
+                SysEndTime = entity.SysEndTime
+            };
+        }
+
         public static AlumnoEntity MapToEntity(RegisterAlumnoDto dto)
         {
             return new AlumnoEntity
