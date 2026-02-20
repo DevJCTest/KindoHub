@@ -142,7 +142,7 @@ namespace KindoHub.Services.Services
             }
 
 
-            var alumnos = await _alumnoService.GetByCursoIdAsync(id);
+            var alumnos = await _alumnoService.LeerPorCursoId(id);
             return !alumnos.Any();
         }
 

@@ -11,11 +11,6 @@ namespace KindoHub.Core.Entities
         public bool AutorizaRedes { get; set; }
         public int? IdCurso { get; set; }
 
-        // Auditoría
-        public string CreadoPor { get; set; }
-        public DateTime FechaCreacion { get; set; }
-        public string? ModificadoPor { get; set; }
-        public DateTime? FechaModificacion { get; set; }
         public byte[] VersionFila { get; set; }
     }
 }
