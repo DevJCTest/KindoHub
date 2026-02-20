@@ -7,15 +7,9 @@ using System.Threading.Tasks;
 
 namespace KindoHub.Core.Dtos
 {
-    public class AnotacionDto
+    public class Eliminar
     {
         public int Id { get; set; }
-
-        public int IdFamilia { get; set; }
-
-        public DateTime Fecha { get; set; }
-
-        public string Descripcion { get; set; }
 
         public byte[] VersionFila { get; set; }
     }

@@ -14,7 +14,7 @@ namespace KindoHub.Services.Transformers
         {
             return new AnotacionDto
             {
-                AnotacionId = entity.AnotacionId,
+                Id = entity.Id,
                 IdFamilia = entity.IdFamilia,
                 Fecha = entity.Fecha,
                 Descripcion = entity.Descripcion,
@@ -22,7 +22,25 @@ namespace KindoHub.Services.Transformers
             };
         }
 
-        public static AnotacionEntity MapToEntity(RegisterAnotacionDto dto)
+        public static AnotacionHistoriaDto MapToAnotacionHistoriaDto(AnotacionHistoriaEntity entity)
+        {
+            return new AnotacionHistoriaDto
+            {
+               Id= entity.Id,
+                IdFamilia = entity.IdFamilia,
+                Fecha = entity.Fecha,
+                Descripcion = entity.Descripcion,
+                CreadoPor = entity.CreadoPor,
+                FechaCreacion = entity.FechaCreacion,
+                ModificadoPor = entity.ModificadoPor,
+                FechaModificacion = entity.FechaModificacion,
+                VersionFila = entity.VersionFila,
+                SysStartTime = entity.SysStartTime,
+                SysEndTime = entity.SysEndTime
+            };
+        }
+
+        public static AnotacionEntity MapToEntity(Registrar dto)
         {
             return new AnotacionEntity
             {
@@ -32,12 +50,11 @@ namespace KindoHub.Services.Transformers
             };
         }
 
-        public static AnotacionEntity MapToEntity(UpdateAnotacionDto dto)
+        public static AnotacionEntity MapToEntity(Actualizar dto)
         {
             return new AnotacionEntity
             {
-                AnotacionId = dto.AnotacionId,
-                IdFamilia = dto.IdFamilia,
+                Id = dto.Id,
                 Fecha = dto.Fecha,
                 Descripcion = dto.Descripcion,
                 VersionFila = dto.VersionFila

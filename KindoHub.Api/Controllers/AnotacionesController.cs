@@ -1,5 +1,6 @@
 using KindoHub.Core.Dtos;
 using KindoHub.Core.Interfaces;
+using KindoHub.Services.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,159 +19,97 @@ namespace KindoHub.Api.Controllers
             _logger = logger;
         }
 
-        [HttpGet("{anotacionId}")]
-        public async Task<IActionResult> GetAnotacion(int anotacionId)
+        [HttpGet("{id}")]
+        public async Task<IActionResult> LeerPorId(int id)
         {
-            if (anotacionId <= 0)
-            {
-                _logger.LogWarning("GetAnotacion request with invalid anotacionId: {AnotacionId}", anotacionId);
-                return BadRequest(new { message = "El anotacionId debe ser mayor a 0" });
-            }
-
             try
             {
-                var dto = await _anotacionService.GetByIdAsync(anotacionId);
+                var dto = await _anotacionService.LeerPorId(id);
 
                 if (dto == null)
                 {
-                    _logger.LogWarning("Anotacion not found: {AnotacionId}", anotacionId);
-                    return NotFound(new { message = $"Anotación '{anotacionId}' no encontrada" });
+                    return NotFound();
                 }
 
-                _logger.LogInformation("Anotacion retrieved: {AnotacionId}", anotacionId);
                 return Ok(dto);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving anotacion: {AnotacionId}", anotacionId);
+                _logger.LogError(ex, "Error al leer la anotación con id {AnotacionId}", id);
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }
 
         [HttpGet("familia/{idFamilia}")]
-        public async Task<IActionResult> GetAnotacionesByFamilia(int idFamilia)
+        public async Task<IActionResult> LeerPorFamiliaId(int idFamilia)
         {
-            if (idFamilia <= 0)
-            {
-                _logger.LogWarning("GetAnotacionesByFamilia request with invalid idFamilia: {IdFamilia}", idFamilia);
-                return BadRequest(new { message = "El idFamilia debe ser mayor a 0" });
-            }
-
             try
             {
-                var anotaciones = await _anotacionService.GetByFamiliaIdAsync(idFamilia);
-
-                _logger.LogInformation("Anotaciones retrieved for familia: {IdFamilia}. Count: {Count}", 
-                    idFamilia, anotaciones.Count());
+                var anotaciones = await _anotacionService.LeerPorIdFamilia(idFamilia);
                 return Ok(anotaciones);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving anotaciones for familia: {IdFamilia}", idFamilia);
+                _logger.LogError(ex, "Error al leer las anotaciones de la familia con id {IdFamilia}", idFamilia);
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }
 
-        [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterAnotacionDto request)
+        [HttpPost("registrar")]
+        public async Task<IActionResult> Register([FromBody] Registrar request)
         {
-            if (!ModelState.IsValid)
-            {
-                _logger.LogWarning("Register anotacion with invalid model");
-                return BadRequest(new { message = "Datos de registro inválidos" });
-            }
-
             try
             {
                 var currentUser = User.Identity?.Name ?? "SYSTEM";
-                var result = await _anotacionService.CreateAsync(request, currentUser);
+                var result = await _anotacionService.Crear(request, currentUser);
 
                 if (result.Success)
                 {
-                    _logger.LogInformation("Anotacion registered successfully for familia {IdFamilia} with ID: {AnotacionId}",
-                        request.IdFamilia, result.Anotacion?.AnotacionId);
-
-                    return Created($"/api/anotaciones/{result.Anotacion?.AnotacionId}", new
+                    return Ok(new
                     {
-                        message = result.Message,
-                        anotacion = result.Anotacion
+                        Anotacion = result.Anotacion
                     });
                 }
 
-                if (result.Message.Contains("no existe"))
-                {
-                    _logger.LogWarning("Register attempt for non-existent familia: {IdFamilia}", request.IdFamilia);
-                    return BadRequest(new { message = result.Message });
-                }
-
-                _logger.LogWarning("Anotacion registration failed: {Message}", result.Message);
-                return BadRequest(new { message = result.Message });
+                return BadRequest();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error registering anotacion for familia: {IdFamilia}", request.IdFamilia);
+                _logger.LogError(ex, "Error al registrar una anotación a la familia con id {IdFamilia}", request.IdFamilia);
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }
 
-        [HttpPatch("update")]
-        public async Task<IActionResult> Update([FromBody] UpdateAnotacionDto request)
+        [HttpPatch("actualizar")]
+        public async Task<IActionResult> Actualizar([FromBody] Actualizar request)
         {
-            if (!ModelState.IsValid)
-            {
-                _logger.LogWarning("Update anotacion request with invalid model");
-                return BadRequest(new { message = "Datos inválidos" });
-            }
-
             var currentUser = User.Identity?.Name ?? "SYSTEM";
-            if (string.IsNullOrEmpty(currentUser))
-            {
-                _logger.LogWarning("Update anotacion request without authenticated user");
-                return Unauthorized(new { message = "Usuario no autenticado" });
-            }
 
             try
             {
-                var result = await _anotacionService.UpdateAsync(request, currentUser);
+                var result = await _anotacionService.Actualizar(request, currentUser);
 
                 if (result.Success)
                 {
-                    _logger.LogInformation("Anotacion {AnotacionId} updated by user {User}",
-                        request.AnotacionId, currentUser);
-
                     return Ok(new
                     {
-                        message = result.Message,
-                        anotacion = result.Anotacion
+                        Anotacion = result.Anotacion
                     });
                 }
 
-                if (result.Message.Contains("no existe"))
-                {
-                    _logger.LogWarning("Update attempt for non-existent anotacion: {AnotacionId}", request.AnotacionId);
-                    return NotFound(new { message = result.Message });
-                }
-
-                if (result.Message.Contains("modificada por otro usuario"))
-                {
-                    _logger.LogWarning("Concurrency conflict updating anotacion: {AnotacionId}", request.AnotacionId);
-                    return Conflict(new { message = result.Message });
-                }
-
-                _logger.LogWarning("Update anotacion validation failed: {Message}", result.Message);
-                return BadRequest(new { message = result.Message });
+                return BadRequest();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating anotacion: {AnotacionId}", request.AnotacionId);
+                _logger.LogError(ex, "Error al actualizar la anotación con id {AnotacionId}", request.Id);
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }
 
         [HttpDelete]
-        public async Task<IActionResult> Delete([FromBody] DeleteAnotacionDto request)
+        public async Task<IActionResult> Historia([FromBody] Eliminar request)
         {
-            if (request.AnotacionId <= 0)
+            if (request.Id <= 0)
             {
                 _logger.LogWarning("DeleteAnotacion request with invalid anotacionId");
                 return BadRequest(new { message = "El AnotacionId debe ser mayor a 0" });
@@ -183,44 +122,41 @@ namespace KindoHub.Api.Controllers
             }
 
             var currentUser = User.Identity?.Name ?? "SYSTEM";
-            if (string.IsNullOrEmpty(currentUser))
-            {
-                _logger.LogWarning("Delete anotacion request without authenticated user");
-                return Unauthorized(new { message = "Usuario no autenticado" });
-            }
 
             try
             {
-                var result = await _anotacionService.DeleteAsync(request.AnotacionId, request.VersionFila);
+                var result = await _anotacionService.Eliminar(request.Id, request.VersionFila, currentUser);
 
-                if (result.Success)
+                if (result)
                 {
-                    _logger.LogInformation("Anotacion {AnotacionId} deleted by user {User}",
-                        request.AnotacionId, currentUser);
-
-                    return Ok(new { message = result.Message });
+                    return Ok();
                 }
 
-                if (result.Message.Contains("no existe"))
-                {
-                    _logger.LogWarning("Delete attempt for non-existent anotacion: {AnotacionId}", request.AnotacionId);
-                    return NotFound(new { message = result.Message });
-                }
-
-                if (result.Message.Contains("modificada por otro usuario"))
-                {
-                    _logger.LogWarning("Concurrency conflict deleting anotacion: {AnotacionId}", request.AnotacionId);
-                    return Conflict(new { message = result.Message });
-                }
-
-                _logger.LogWarning("Delete anotacion failed: {Message}", result.Message);
-                return BadRequest(new { message = result.Message });
+                return BadRequest();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error deleting anotacion: {AnotacionId}", request.AnotacionId);
+                _logger.LogError(ex, "Error al eliminar la anotación con id {AnotacionId}", request.Id);
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }
+
+        [HttpGet("historia")]
+        public async Task<IActionResult> LeerHistoria(int id)
+        {
+            try
+            {
+                var anotaciones = await _anotacionService.LeerHistoria(id);
+
+                return Ok(anotaciones);
+            }
+            catch (Exception ex)
+            {
+                // 500 - Error interno
+                _logger.LogError(ex, "Error al leer la historia de la anotación con id {Id}", id);
+                return StatusCode(500, new { message = "Error interno del servidor" });
+            }
+        }
+
     }
 }

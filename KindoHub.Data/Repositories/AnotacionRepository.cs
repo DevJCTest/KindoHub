@@ -1,5 +1,6 @@
 using KindoHub.Core.Entities;
 using KindoHub.Core.Interfaces;
+using KindoHub.Data.Transformers;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using System;
@@ -25,11 +26,8 @@ namespace KindoHub.Data.Repositories
             _logger = logger;
         }
 
-        public async Task<AnotacionEntity?> GetByIdAsync(int anotacionId)
+        public async Task<AnotacionEntity?> LeerPorId(int anotacionId)
         {
-            if (anotacionId <= 0)
-                throw new ArgumentException("El identificador de la anotación debe ser mayor a 0", nameof(anotacionId));
-
             const string query = @"
             SELECT AnotacionId, IdFamilia, Fecha, Descripcion, 
                    CreadoPor, FechaCreacion, ModificadoPor, FechaModificacion, VersionFila
@@ -46,18 +44,7 @@ namespace KindoHub.Data.Repositories
                 await using var reader = await command.ExecuteReaderAsync();
                 if (await reader.ReadAsync())
                 {
-                    return new AnotacionEntity
-                    {
-                        AnotacionId = reader.GetInt32(0),
-                        IdFamilia = reader.GetInt32(1),
-                        Fecha = reader.GetDateTime(2),
-                        Descripcion = reader.GetString(3),
-                        CreadoPor = reader.GetString(4),
-                        FechaCreacion = reader.GetDateTime(5),
-                        ModificadoPor = reader.IsDBNull(6) ? null : reader.GetString(6),
-                        FechaModificacion = reader.IsDBNull(7) ? null : reader.GetDateTime(7),
-                        VersionFila = (byte[])reader[8]
-                    };
+                    return AnotacionMapper.MapToAnotacionEntity(reader);
                 }
 
                 return null;
@@ -69,11 +56,8 @@ namespace KindoHub.Data.Repositories
             }
         }
 
-        public async Task<IEnumerable<AnotacionEntity>> GetByFamiliaIdAsync(int idFamilia)
+        public async Task<IEnumerable<AnotacionEntity>> LeerPorFamilia(int idFamilia)
         {
-            if (idFamilia <= 0)
-                throw new ArgumentException("El identificador de la familia debe ser mayor a 0", nameof(idFamilia));
-
             const string query = @"
             SELECT AnotacionId, IdFamilia, Fecha, Descripcion, 
                    CreadoPor, FechaCreacion, ModificadoPor, FechaModificacion, VersionFila
@@ -93,36 +77,20 @@ namespace KindoHub.Data.Repositories
                 await using var reader = await command.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
                 {
-                    anotaciones.Add(new AnotacionEntity
-                    {
-                        AnotacionId = reader.GetInt32(0),
-                        IdFamilia = reader.GetInt32(1),
-                        Fecha = reader.GetDateTime(2),
-                        Descripcion = reader.GetString(3),
-                        CreadoPor = reader.GetString(4),
-                        FechaCreacion = reader.GetDateTime(5),
-                        ModificadoPor = reader.IsDBNull(6) ? null : reader.GetString(6),
-                        FechaModificacion = reader.IsDBNull(7) ? null : reader.GetDateTime(7),
-                        VersionFila = (byte[])reader[8]
-                    });
+                    anotaciones.Add(AnotacionMapper.MapToAnotacionEntity(reader));
                 }
 
                 return anotaciones;
             }
             catch (SqlException ex)
             {
-                _logger.LogError(ex, "Error SQL al obtener anotaciones de familia: {IdFamilia}", idFamilia);
+                _logger.LogError(ex, "Error SQL al obtener anotaciones de la familia: {IdFamilia}", idFamilia);
                 throw;
             }
         }
 
-        public async Task<AnotacionEntity?> CreateAsync(AnotacionEntity anotacion, string usuarioActual)
+        public async Task<AnotacionEntity?> Crear(AnotacionEntity anotacion, string usuarioActual)
         {
-            if (anotacion == null)
-                throw new ArgumentNullException(nameof(anotacion));
-            if (string.IsNullOrWhiteSpace(usuarioActual))
-                throw new ArgumentException("El usuario que realiza la acción no puede estar vacío.", nameof(usuarioActual));
-
             const string query = @"
             INSERT INTO Anotaciones (IdFamilia, Fecha, Descripcion, CreadoPor, ModificadoPor)
             OUTPUT INSERTED.AnotacionId
@@ -142,15 +110,10 @@ namespace KindoHub.Data.Repositories
 
                 if (result != null && result != DBNull.Value)
                 {
-                    anotacion.AnotacionId = Convert.ToInt32(result);
-                    return await GetByIdAsync(anotacion.AnotacionId);
+                    anotacion.Id = Convert.ToInt32(result);
+                    return await LeerPorId(anotacion.Id);
                 }
 
-                return null;
-            }
-            catch (SqlException ex) when (ex.Number == SqlForeignKeyViolation)
-            {
-                _logger.LogWarning("Intento de crear anotación con familia inexistente: {IdFamilia}", anotacion.IdFamilia);
                 return null;
             }
             catch (SqlException ex)
@@ -160,18 +123,11 @@ namespace KindoHub.Data.Repositories
             }
         }
 
-        public async Task<bool> UpdateAsync(AnotacionEntity anotacion, string usuarioActual)
+        public async Task<bool> Actualizar(AnotacionEntity anotacion, string usuarioActual)
         {
-            if (anotacion == null)
-                throw new ArgumentNullException(nameof(anotacion));
-            if (string.IsNullOrWhiteSpace(usuarioActual))
-                throw new ArgumentException("El usuario que realiza la acción no puede estar vacío.", nameof(usuarioActual));
-            if (anotacion.VersionFila == null || anotacion.VersionFila.Length == 0)
-                throw new ArgumentException("VersionFila es requerida para concurrencia optimista.", nameof(anotacion));
-
             const string query = @"
             UPDATE Anotaciones
-            SET IdFamilia = @IdFamilia,
+            SET 
                 Fecha = @Fecha,
                 Descripcion = @Descripcion,
                 ModificadoPor = @UsuarioActual
@@ -182,8 +138,7 @@ namespace KindoHub.Data.Repositories
                 await using var connection = await _connectionFactory.CreateConnectionAsync();
                 await connection.OpenAsync();
                 await using var command = new SqlCommand(query, connection);
-                command.Parameters.AddWithValue("@AnotacionId", anotacion.AnotacionId);
-                command.Parameters.AddWithValue("@IdFamilia", anotacion.IdFamilia);
+                command.Parameters.AddWithValue("@AnotacionId", anotacion.Id);
                 command.Parameters.AddWithValue("@Fecha", anotacion.Fecha);
                 command.Parameters.AddWithValue("@Descripcion", anotacion.Descripcion);
                 command.Parameters.AddWithValue("@UsuarioActual", usuarioActual);
@@ -193,28 +148,53 @@ namespace KindoHub.Data.Repositories
 
                 return result > 0;
             }
-            catch (SqlException ex) when (ex.Number == SqlForeignKeyViolation)
-            {
-                _logger.LogError(ex, "Error de clave foránea al actualizar anotación: {AnotacionId}", anotacion.AnotacionId);
-                throw;
-            }
             catch (SqlException ex)
             {
-                _logger.LogError(ex, "Error SQL al actualizar anotación: {AnotacionId}", anotacion.AnotacionId);
+                _logger.LogError(ex, "Error SQL al actualizar anotación: {AnotacionId}", anotacion.Id);
                 throw;
             }
         }
 
-        public async Task<bool> DeleteAsync(int anotacionId, byte[] versionFila)
+        public async Task<bool> Eliminar(int anotacionId, byte[] versionFila, string usuarioActual)
         {
-            if (anotacionId <= 0)
-                throw new ArgumentException("El identificador de la anotación debe ser mayor a 0", nameof(anotacionId));
-            if (versionFila == null || versionFila.Length == 0)
-                throw new ArgumentException("VersionFila es requerida para concurrencia optimista.", nameof(versionFila));
-
             const string query = @"
-            DELETE FROM Anotaciones
-            WHERE AnotacionId = @AnotacionId AND VersionFila = @VersionFila";
+                                BEGIN TRANSACTION;
+                    BEGIN TRY
+
+                        UPDATE Anotaciones
+                        SET ModificadoPor = @UsuarioActual,
+                            FechaModificacion = GETDATE()
+                        WHERE AnotacionId = @AnotacionId 
+                            AND VersionFila = @VersionFila;
+
+
+                        IF @@ROWCOUNT = 0
+                        BEGIN
+                            ROLLBACK TRANSACTION;
+                            SELECT 0 AS Result;
+                            RETURN;
+                        END
+
+                        DELETE FROM Anotaciones
+                        WHERE AnotacionId = @AnotacionId;
+
+                        DECLARE @FilasBorradas INT = @@ROWCOUNT;
+
+                        IF @FilasBorradas = 0
+                        BEGIN
+                            ROLLBACK TRANSACTION;
+                            SELECT 0 AS Result;
+                            RETURN;
+                        END
+
+                        COMMIT TRANSACTION;
+                        SELECT 1 AS Result;
+
+                    END TRY
+                    BEGIN CATCH
+                        ROLLBACK TRANSACTION;
+                        THROW;
+                    END CATCH";
 
             try
             {
@@ -223,19 +203,48 @@ namespace KindoHub.Data.Repositories
                 await using var command = new SqlCommand(query, connection);
                 command.Parameters.AddWithValue("@AnotacionId", anotacionId);
                 command.Parameters.AddWithValue("@VersionFila", versionFila);
+                command.Parameters.AddWithValue("@UsuarioActual", usuarioActual);
 
                 var result = await command.ExecuteNonQueryAsync();
 
                 return result > 0;
             }
-            catch (SqlException ex) when (ex.Number == SqlForeignKeyViolation)
-            {
-                _logger.LogError(ex, "Error de clave foránea al eliminar anotación: {AnotacionId}", anotacionId);
-                throw;
-            }
+
             catch (SqlException ex)
             {
                 _logger.LogError(ex, "Error SQL al eliminar anotación: {AnotacionId}", anotacionId);
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<AnotacionHistoriaEntity>> LeerHistoria(int id)
+        {
+            const string query = @"
+            SELECT AnotacionId, IdFamilia, Fecha, Descripcion, 
+                   CreadoPor, FechaCreacion, ModificadoPor, FechaModificacion, VersionFila, SysStartTime, SysEndTime
+            FROM Anotaciones_History
+            WHERE AnotacionId = @AnotacionId";
+
+            var anotaciones = new List<AnotacionHistoriaEntity>();
+
+            try
+            {
+                await using var connection = await _connectionFactory.CreateConnectionAsync();
+                await connection.OpenAsync();
+                await using var command = new SqlCommand(query, connection);
+                command.Parameters.AddWithValue("@AnotacionId", id);
+
+                await using var reader = await command.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    anotaciones.Add(AnotacionMapper.MapToAnotacionHistoriaEntity(reader));
+                }
+
+                return anotaciones;
+            }
+            catch (SqlException ex)
+            {
+                _logger.LogError(ex, "Error SQL al obtener anotación: {AnotacionId}", id);
                 throw;
             }
         }

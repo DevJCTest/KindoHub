@@ -7,12 +7,14 @@ using System.Threading.Tasks;
 
 namespace KindoHub.Core.Dtos
 {
-    public class DeleteAnotacionDto
+    public class Actualizar
     {
-        [Required]
-        public int AnotacionId { get; set; }
+        public int Id { get; set; }
 
-        [Required]
+        public DateTime Fecha { get; set; }
+
+        public string Descripcion { get; set; }
+
         public byte[] VersionFila { get; set; }
     }
 }
