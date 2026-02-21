@@ -99,6 +99,8 @@ try
     builder.Services.AddScoped<IAnotacionService, AnotacionService>();
     builder.Services.AddScoped<ICursoService, CursoService>();
     builder.Services.AddScoped<IAlumnoService, AlumnoService>();
+    builder.Services.AddScoped<ILogRepository, LogRepository>();
+    builder.Services.AddScoped<ILogService, LogService>();
 
     // Configuración JWT
     var jwtSettings = builder.Configuration.GetSection("Jwt");
