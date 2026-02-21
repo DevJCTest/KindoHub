@@ -20,8 +20,8 @@ namespace KindoHub.Api.Controllers
             _logger = logger;
         }
 
-        [Authorize]
         [HttpGet("by-name")]
+        [Authorize(Policy = "Consulta_Familias")]
         public async Task<IActionResult> LeerPorNombre(string name)
         {
             var validator = new NombreFormaPagoValidator(_formaspagoService);
@@ -55,8 +55,8 @@ namespace KindoHub.Api.Controllers
             }
         }
 
-        [Authorize]
         [HttpGet("by-id")]
+        [Authorize(Policy = "Consulta_Familias")]
         public async Task<IActionResult> LeerPorId(int  id)
         {
             var validator = new IdFormaPagoValidator(_formaspagoService);
@@ -90,8 +90,8 @@ namespace KindoHub.Api.Controllers
             }
         }
 
-        [Authorize]
         [HttpGet]
+        [Authorize(Policy = "Consulta_Familias")]
         public async Task<IActionResult> LeerTodas()
         {
             try

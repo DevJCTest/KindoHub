@@ -1,4 +1,5 @@
-﻿using KindoHub.Core.Dtos;
+﻿using KindoHub.Api.Extensions;
+using KindoHub.Core.Dtos;
 using KindoHub.Core.Interfaces;
 using KindoHub.Core.Validators;
 using Microsoft.AspNetCore.Authorization;
@@ -67,7 +68,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpPost("register")]
-        //[Authorize(Roles = "Administrator")]
+        [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> Registrar([FromBody] RegistrarUsuarioDto request)
         {
             var validator = new RegistrarUsuarioDtoValidator(_userService);
@@ -87,7 +88,7 @@ namespace KindoHub.Api.Controllers
 
             try
             {
-                var currentUser = User.Identity?.Name ?? "SYSTEM";
+                var currentUser = User.GetCurrentUsername();
                 var result = await _userService.Registrar(request, currentUser);
 
                 if (result.Success)
@@ -104,6 +105,11 @@ namespace KindoHub.Api.Controllers
 
                 return BadRequest();
             }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogError(ex, "Error de autenticación");
+                return StatusCode(401, new { message = "No se pudo determinar el usuario autenticado" });
+            }
             catch (Exception ex)
             {
                 // 500 - Error interno
@@ -113,7 +119,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpPatch("change-password")]
-        [Authorize]  // Cualquier usuario autenticado puede intentar cambiar contraseña
+        [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> CambiarContrasena([FromBody] CambiarContrasenaDto request)
         {
             var validator = new CambiarContrasenaDtoValidator(_userService);
@@ -131,9 +137,7 @@ namespace KindoHub.Api.Controllers
                 });
             }
 
-            // 401 - Usuario no autenticado
-            var currentUser = User.Identity?.Name;
-
+            var currentUser = User.GetCurrentUsername();
 
             try
             {
@@ -149,6 +153,11 @@ namespace KindoHub.Api.Controllers
 
                 
                 return BadRequest();
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogError(ex, "Error de autenticación");
+                return StatusCode(401, new { message = "No se pudo determinar el usuario autenticado" });
             }
             catch (Exception ex)
             {
@@ -177,8 +186,7 @@ namespace KindoHub.Api.Controllers
                 });
             }
 
-            var currentUser = User.Identity?.Name;
-
+            var currentUser = User.GetCurrentUsername();
             try
             {
                 var result = await _userService.Eliminar(request, currentUser);
@@ -190,6 +198,11 @@ namespace KindoHub.Api.Controllers
 
 
                 return BadRequest();
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogError(ex, "Error de autenticación");
+                return StatusCode(401, new { message = "No se pudo determinar el usuario autenticado" });
             }
             catch (Exception ex)
             {
@@ -217,9 +230,7 @@ namespace KindoHub.Api.Controllers
                 });
             }
 
-            // 401 - Usuario no autenticado
-            var currentUser = User.Identity?.Name;
-
+            var currentUser = User.GetCurrentUsername();
             try
             {
                 var result = await _userService.CambiarEstadoAdmin(request, currentUser);
@@ -234,6 +245,11 @@ namespace KindoHub.Api.Controllers
 
 
                 return BadRequest();
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogError(ex, "Error de autenticación");
+                return StatusCode(401, new { message = "No se pudo determinar el usuario autenticado" });
             }
             catch (Exception ex)
             {
@@ -261,8 +277,7 @@ namespace KindoHub.Api.Controllers
                 });
             }
 
-            var currentUser = User.Identity?.Name;
-
+            var currentUser = User.GetCurrentUsername();
             try
             {
                 var result = await _userService.CambiarEstadoActivo(request, currentUser);
@@ -276,6 +291,11 @@ namespace KindoHub.Api.Controllers
                 }
 
                 return BadRequest();
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogError(ex, "Error de autenticación");
+                return StatusCode(401, new { message = "No se pudo determinar el usuario autenticado" });
             }
             catch (Exception ex)
             {
@@ -303,9 +323,7 @@ namespace KindoHub.Api.Controllers
                 });
             }
 
-            // 401 - Usuario no autenticado
-            var currentUser = User.Identity?.Name;
-
+            var currentUser = User.GetCurrentUsername();
             try
             {
                 var result = await _userService.CambiarRol(request, currentUser);
@@ -320,6 +338,11 @@ namespace KindoHub.Api.Controllers
 
 
                 return BadRequest();
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogError(ex, "Error de autenticación");
+                return StatusCode(401, new { message = "No se pudo determinar el usuario autenticado" });
             }
             catch (Exception ex)
             {

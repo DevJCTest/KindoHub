@@ -1,3 +1,4 @@
+using KindoHub.Api.Extensions;
 using KindoHub.Core.Dtos;
 using KindoHub.Core.Interfaces;
 using KindoHub.Core.Validators;
@@ -24,6 +25,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize(Policy = "Consulta_Familias")]
         public async Task<IActionResult> LeerPorId(int id)
         {
             var validator = new IdAnotacionValidator(_anotacionService);
@@ -56,6 +58,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpGet("familia/{idFamilia}")]
+        [Authorize(Policy = "Consulta_Familias")]
         public async Task<IActionResult> LeerPorFamiliaId(int idFamilia)
         {
             var validator = new IdFamiliaValidator(_familiaService);
@@ -82,6 +85,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpPost("registrar")]
+        [Authorize(Policy = "Gestion_Familias")]
         public async Task<IActionResult> Registrar([FromBody] RegistrarAnotacionDto request)
         {
             var validator = new RegistrarAnotacionDtoValidator(_familiaService);
@@ -101,7 +105,7 @@ namespace KindoHub.Api.Controllers
 
             try
             {
-                var currentUser = User.Identity?.Name ?? "SYSTEM";
+                var currentUser = User.GetCurrentUsername();
                 var result = await _anotacionService.Crear(request, currentUser);
 
                 if (result.Success)
@@ -114,6 +118,11 @@ namespace KindoHub.Api.Controllers
 
                 return BadRequest();
             }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogError(ex, "Error de autenticación");
+                return StatusCode(401, new { message = "No se pudo determinar el usuario autenticado" });
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al registrar una anotación a la familia con id {IdFamilia}", request.IdFamilia);
@@ -122,6 +131,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpPatch("actualizar")]
+        [Authorize(Policy = "Gestion_Familias")]
         public async Task<IActionResult> Actualizar([FromBody] ActualizarAnotacionDto request)
         {
             var validator = new ActualizarAnotacionDtoValidator(_anotacionService);
@@ -135,7 +145,7 @@ namespace KindoHub.Api.Controllers
                 });
             }
 
-            var currentUser = User.Identity?.Name ?? "SYSTEM";
+            var currentUser = User.GetCurrentUsername();
 
             try
             {
@@ -151,6 +161,12 @@ namespace KindoHub.Api.Controllers
 
                 return BadRequest();
             }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogError(ex, "Error de autenticación");
+                return StatusCode(401, new { message = "No se pudo determinar el usuario autenticado" });
+            }
+
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al actualizar la anotación con id {AnotacionId}", request.Id);
@@ -159,6 +175,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpDelete]
+        [Authorize(Policy = "Gestion_Familias")]
         public async Task<IActionResult> Eliminar([FromBody] EliminarAnotacionDto request)
         {
             var validator = new EliminarAnotacionDtoValidator(_anotacionService);
@@ -172,8 +189,7 @@ namespace KindoHub.Api.Controllers
                 });
             }
 
-            var currentUser = User.Identity?.Name ?? "SYSTEM";
-
+            var currentUser = User.GetCurrentUsername();
             try
             {
                 var result = await _anotacionService.Eliminar(request.Id, request.VersionFila, currentUser);
@@ -185,6 +201,11 @@ namespace KindoHub.Api.Controllers
 
                 return BadRequest();
             }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogError(ex, "Error de autenticación");
+                return StatusCode(401, new { message = "No se pudo determinar el usuario autenticado" });
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al eliminar la anotación con id {AnotacionId}", request.Id);
@@ -193,6 +214,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpGet("historia")]
+        [Authorize(Policy = "Gestion_Familias")]
         public async Task<IActionResult> LeerHistoria(int id)
         {
             var validator = new IdAnotacionValidator(_anotacionService);

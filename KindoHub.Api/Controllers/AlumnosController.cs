@@ -1,8 +1,10 @@
+using KindoHub.Api.Extensions;
 using KindoHub.Core.Dtos;
 using KindoHub.Core.Entities;
 using KindoHub.Core.Interfaces;
 using KindoHub.Core.Validators;
 using KindoHub.Services.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
@@ -30,6 +32,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize(Policy = "Consulta_Familias")]
         public async Task<IActionResult> LeerPorId(int id)
         {
             var validator = new IdAlumnoValidator(_alumnoService);
@@ -62,6 +65,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = "Consulta_Familias")]
         public async Task<IActionResult> LeerTodos()
         {
             try
@@ -78,6 +82,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpPost("filtrado")]
+        [Authorize(Policy = "Consulta_Familias")]
         public async Task<IActionResult> LeerFiltrados([FromBody] FilterAlumnoRequest request)
         {
             FilterAlumnoRequestValidator validator = new FilterAlumnoRequestValidator();
@@ -103,8 +108,8 @@ namespace KindoHub.Api.Controllers
         }
 
 
-
         [HttpGet("historia")]
+        [Authorize(Policy = "Gestion_Familias")]
         public async Task<IActionResult> LeerHistoria(int id)
         {
             var validator = new IdAlumnoValidator(_alumnoService);
@@ -133,6 +138,7 @@ namespace KindoHub.Api.Controllers
 
 
         [HttpGet("familia/{familiaId}")]
+        [Authorize(Policy = "Consulta_Familias")]
         public async Task<IActionResult> LeerPorFamiliaId(int familiaId)
         {
             var validator = new IdFamiliaValidator(_familiaService);
@@ -160,6 +166,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpGet("sin-familia")]
+        [Authorize(Policy = "Consulta_Familias")]
         public async Task<IActionResult> LeerSinFamilia()
         {
             try
@@ -175,6 +182,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpGet("curso/{cursoId}")]
+        [Authorize(Policy = "Consulta_Familias")]
         public async Task<IActionResult> LeerPorCursoId(int cursoId)
         {
             var validator = new IdCursoValidator(_cursoService);
@@ -201,6 +209,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpPost("registrar")]
+        [Authorize(Policy = "Gestion_Familias")]
         public async Task<IActionResult> Registrar([FromBody] RegistrarAlumnoDto request)
         {
             var validator = new RegistrarAlumnoDtoValidator(_alumnoService, _familiaService, _cursoService);
@@ -220,7 +229,7 @@ namespace KindoHub.Api.Controllers
 
             try
             {
-                var currentUser = User.Identity?.Name ?? "SYSTEM";
+                var currentUser = User.GetCurrentUsername();
 
                 var result = await _alumnoService.Crear(request, currentUser);
 
@@ -234,6 +243,11 @@ namespace KindoHub.Api.Controllers
 
                 return BadRequest();
             }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogError(ex, "Error de autenticación");
+                return StatusCode(401, new { message = "No se pudo determinar el usuario autenticado" });
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al registrar alumno: {Nombre}", request.Nombre);
@@ -242,6 +256,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpPatch("actualizar")]
+        [Authorize(Policy = "Gestion_Familias")]
         public async Task<IActionResult> Actualizar([FromBody] ActualizarAlumnoDto request)
         {
             var validator = new ActualizarAlumnoDtoValidator(_alumnoService, _familiaService, _cursoService);
@@ -259,8 +274,7 @@ namespace KindoHub.Api.Controllers
                 });
             }
 
-            var currentUser = User.Identity?.Name ?? "SYSTEM";
-
+            var currentUser = User.GetCurrentUsername();
             try
             {
                 var result = await _alumnoService.Actualizar(request, currentUser);
@@ -276,6 +290,11 @@ namespace KindoHub.Api.Controllers
 
                 return BadRequest();
             }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogError(ex, "Error de autenticación");
+                return StatusCode(401, new { message = "No se pudo determinar el usuario autenticado" });
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al actualizar el alumno con id {AlumnoId}", request.AlumnoId);
@@ -284,6 +303,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpDelete]
+        [Authorize(Policy = "Gestion_Familias")]
         public async Task<IActionResult> Eliminar([FromBody] EliminarAlumnoDto request)
         {
             var validator = new EliminarAlumnoDtoValidator(_alumnoService);
@@ -301,8 +321,7 @@ namespace KindoHub.Api.Controllers
                 });
             }
 
-            var currentUser = User.Identity?.Name ?? "SYSTEM";
-
+            var currentUser = User.GetCurrentUsername();
             try
             {
                 var result = await _alumnoService.Eliminar(request.AlumnoId, request.VersionFila, currentUser);
@@ -314,6 +333,11 @@ namespace KindoHub.Api.Controllers
 
                 return BadRequest();
             }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogError(ex, "Error de autenticación");
+                return StatusCode(401, new { message = "No se pudo determinar el usuario autenticado" });
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al eliminar el alumno con id {AlumnoId}", request.AlumnoId);
@@ -322,6 +346,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpGet("campos")]
+        [Authorize(Policy = "Consulta_Familias")]
         public IActionResult LeerCamposParaFiltro()
         {
             var fields = _alumnoService.ObtenerCamposDisponibles();

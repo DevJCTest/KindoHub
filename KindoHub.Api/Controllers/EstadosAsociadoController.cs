@@ -22,6 +22,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpGet("por-nombre")]
+        [Authorize(Policy = "Consulta_Familias")]
         public async Task<IActionResult> LeerPorNombre(string nombre)
         {
             var validator = new NombreEstadoAsociadoValidator(_estadoAsociadoService);
@@ -55,6 +56,7 @@ namespace KindoHub.Api.Controllers
 
        
         [HttpGet]
+        [Authorize(Policy = "Consulta_Familias")]
         public async Task<IActionResult> LeerTodos()
         {
             try
@@ -71,6 +73,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpGet("predeterminado")]
+        [Authorize(Policy = "Consulta_Familias")]
         public async Task<IActionResult> LeerPredeterminado()
         {
 
@@ -96,6 +99,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpGet("asignar-predeterminado")]
+        [Authorize(Policy = "Gestion_Familias")]
         public async Task<IActionResult> EstablecerPredeterminado(int id)
         {
             var validator = new IdEstadoAsociadoValidator();

@@ -1,4 +1,5 @@
-﻿using KindoHub.Core.Dtos;
+﻿using KindoHub.Api.Extensions;
+using KindoHub.Core.Dtos;
 using KindoHub.Core.Entities;
 using KindoHub.Core.Interfaces;
 using KindoHub.Core.Validators;
@@ -28,6 +29,7 @@ namespace KindoHub.Api.Controllers
 
 
         [HttpGet("{id}")]
+        [Authorize(Policy = "Consulta_Familias")]
         public async Task<IActionResult> LeerPorId(int id)
         {
             var validator = new IdFamiliaValidator(_familiaService);
@@ -61,6 +63,7 @@ namespace KindoHub.Api.Controllers
 
 
         [HttpGet]
+        [Authorize(Policy = "Consulta_Familias")]
         public async Task<IActionResult> LeerTodas()
         {
             try
@@ -78,6 +81,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpPost("filtrado")]
+        [Authorize(Policy = "Consulta_Familias")]
         public async Task<IActionResult> LeerFiltrados([FromBody] FilterFamiliaRequest request)
         {
             FilterFamiliaRequestValidator validator = new FilterFamiliaRequestValidator();
@@ -103,6 +107,7 @@ namespace KindoHub.Api.Controllers
 
 
         [HttpGet("historia")]
+        [Authorize(Policy = "Gestion_Familias")]
         public async Task<IActionResult> LeerHistoria(int id)
         {
             var validator = new IdFamiliaValidator(_familiaService);
@@ -130,7 +135,9 @@ namespace KindoHub.Api.Controllers
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }
+
         [HttpPost("registrar")]
+        [Authorize(Policy = "Gestion_Familias")]
         public async Task<IActionResult> Registrar([FromBody] RegistrarFamiliaDto request)
         {
             var validator = new RegistrarFamiliaDtoValidator(_formaPagoService);
@@ -147,7 +154,7 @@ namespace KindoHub.Api.Controllers
 
             try
             {
-                var currentUser = User.Identity?.Name ?? "SYSTEM";
+                var currentUser = User.GetCurrentUsername(); 
                 var result = await _familiaService.Crear(request, currentUser);
 
                 if (result.Success)
@@ -160,6 +167,11 @@ namespace KindoHub.Api.Controllers
 
                 return BadRequest();
             }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogError(ex, "Error de autenticación");
+                return StatusCode(401, new { message = "No se pudo determinar el usuario autenticado" });
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al registrar la familia: {Nombre}", request.Nombre);
@@ -168,6 +180,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpPatch("actualizar")]
+        [Authorize(Policy = "Gestion_Familias")]
         public async Task<IActionResult> Actualizar([FromBody] CambiarFamiliaDto request)
         {
             var validator = new CambiarFamiliaDtoValidator(_familiaService, _estadoAsociadoService, _formaPagoService);
@@ -182,8 +195,7 @@ namespace KindoHub.Api.Controllers
             }
 
 
-            var currentUser = User.Identity?.Name ?? "SYSTEM";
-
+            var currentUser = User.GetCurrentUsername();
 
 
             try
@@ -200,6 +212,11 @@ namespace KindoHub.Api.Controllers
 
                 return BadRequest();
             }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogError(ex, "Error de autenticación");
+                return StatusCode(401, new { message = "No se pudo determinar el usuario autenticado" });
+            }
             catch (Exception ex)
             {
                 // 500 - Error interno
@@ -209,6 +226,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpDelete]
+        [Authorize(Policy = "Gestion_Familias")]
         public async Task<IActionResult> Eliminar([FromBody] EliminarFamiliaDto request)
         {
             var validator = new EliminarFamiliaDtoValidator(_familiaService);
@@ -223,9 +241,7 @@ namespace KindoHub.Api.Controllers
             }
 
 
-            // 401 - Usuario no autenticado
-            var currentUser = User.Identity?.Name ?? "SYSTEM";
-
+            var currentUser = User.GetCurrentUsername();
 
             try
             {
@@ -238,6 +254,11 @@ namespace KindoHub.Api.Controllers
 
                 return BadRequest();
             }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogError(ex, "Error de autenticación");
+                return StatusCode(401, new { message = "No se pudo determinar el usuario autenticado" });
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al eliminar la familia {FamiliaId}", request.Id);
@@ -246,6 +267,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpGet("campos")]
+        [Authorize(Policy = "Consulta_Familias")]
         public IActionResult LeerCamposParaFiltro()
         {
             var fields = _familiaService.ObtenerCamposDisponibles();

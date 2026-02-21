@@ -1,6 +1,7 @@
 ﻿using KindoHub.Core.Entities;
 using KindoHub.Core.Interfaces;
 using KindoHub.Core.Validators;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace KindoHub.Api.Controllers
@@ -17,6 +18,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> GetAllLogs()
         {
             var logs = await _logService.LeerTodos();
@@ -24,6 +26,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpPost("filtrado")]
+        [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> GetFilteredLogs([FromBody] FilterLogRequest request)
         {
             FilterRequestValidator validator = new FilterRequestValidator();
@@ -39,6 +42,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpGet("campos")]
+        [Authorize(Roles = "Administrator")]
         public IActionResult LeerCamposParaFiltro()
         {
             var fields = _logService.ObtenerCamposDisponibles();

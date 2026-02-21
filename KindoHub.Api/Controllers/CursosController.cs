@@ -1,4 +1,5 @@
 using FluentValidation;
+using KindoHub.Api.Extensions;
 using KindoHub.Core.Dtos;
 using KindoHub.Core.Interfaces;
 using KindoHub.Core.Validators;
@@ -22,6 +23,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize(Policy = "Consulta_Familias")]
         public async Task<IActionResult> LeerPorId(int id)
         {
             var validator = new IdCursoValidator(_cursoService);
@@ -54,6 +56,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = "Consulta_Familias")]
         public async Task<IActionResult> LeerTodos()
         {
             try
@@ -70,6 +73,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpGet("predeterminado")]
+        [Authorize(Policy = "Consulta_Familias")]
         public async Task<IActionResult> LeerPredeterminado()
         {
             try
@@ -96,6 +100,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpPost("registrar")]
+        [Authorize(Policy = "Gestion_Familias")]
         public async Task<IActionResult> Registrar([FromBody] RegistrarCursoDto request)
         {
             var validator = new RegistrarCursoDtoValidator(_cursoService);
@@ -111,8 +116,7 @@ namespace KindoHub.Api.Controllers
 
             try
             {
-                var currentUser = User.Identity?.Name ?? "SYSTEM";
-
+                var currentUser = User.GetCurrentUsername();
                 var result = await _cursoService.Crear(request, currentUser);
 
                 if (result.Success)
@@ -125,6 +129,11 @@ namespace KindoHub.Api.Controllers
 
                 return BadRequest();
             }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogError(ex, "Error de autenticación");
+                return StatusCode(401, new { message = "No se pudo determinar el usuario autenticado" });
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error registrando curso curso: {Nombre}", request.Nombre);
@@ -133,6 +142,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpPatch("actualizar")]
+        [Authorize(Policy = "Gestion_Familias")]
         public async Task<IActionResult> Actualizar([FromBody] ActualizarCursoDto request)
         {
             var validator = new ActualizarCursoDtoValidator(_cursoService);
@@ -150,8 +160,7 @@ namespace KindoHub.Api.Controllers
                 });
             }
 
-            var currentUser = User.Identity?.Name ?? "SYSTEM";
-
+            var currentUser = User.GetCurrentUsername();
             try
             {
                 var result = await _cursoService.Actualizar(request, currentUser);
@@ -166,6 +175,11 @@ namespace KindoHub.Api.Controllers
 
                 return BadRequest();
             }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogError(ex, "Error de autenticación");
+                return StatusCode(401, new { message = "No se pudo determinar el usuario autenticado" });
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al actualizar información del curso: {CursoId}", request.CursoId);
@@ -174,6 +188,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpDelete]
+        [Authorize(Policy = "Gestion_Familias")]
         public async Task<IActionResult> Eliminar([FromBody] EliminarCursoDto request)
         {
             var validator = new EliminarCursoDtoValidator(_cursoService);
@@ -191,8 +206,7 @@ namespace KindoHub.Api.Controllers
                 });
             }
 
-            var currentUser = User.Identity?.Name ?? "SYSTEM";
-
+            var currentUser = User.GetCurrentUsername();
             try
             {
                 var result = await _cursoService.Eliminar(request.CursoId, request.VersionFila, currentUser);
@@ -204,6 +218,11 @@ namespace KindoHub.Api.Controllers
                 
                 return BadRequest();
             }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogError(ex, "Error de autenticación");
+                return StatusCode(401, new { message = "No se pudo determinar el usuario autenticado" });
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al eliminar el curso: {CursoId}", request.CursoId);
@@ -212,6 +231,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpPatch("set-predeterminado")]
+        [Authorize(Policy = "Gestion_Familias")]
         public async Task<IActionResult> EstablecerPredeterminado([FromBody] CambiarCursoPredeterminadoDto request)
         {
             var validator = new CambiarCursoPredeterminadoDtoValidator(_cursoService);
@@ -231,8 +251,7 @@ namespace KindoHub.Api.Controllers
 
             try
             {
-                var currentUser = User.Identity?.Name ?? "SYSTEM";
-
+                var currentUser = User.GetCurrentUsername();
                 var result = await _cursoService.EstablecerPredeterminado(request.CursoId,currentUser);
 
                 if (result.Success)
@@ -244,6 +263,11 @@ namespace KindoHub.Api.Controllers
                 }
 
                 return BadRequest();
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogError(ex, "Error de autenticación");
+                return StatusCode(401, new { message = "No se pudo determinar el usuario autenticado" });
             }
             catch (Exception ex)
             {
