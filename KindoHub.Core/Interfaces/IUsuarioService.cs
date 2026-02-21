@@ -10,13 +10,13 @@ namespace KindoHub.Core.Interfaces
 {
     public interface IUsuarioService
     {
-        Task<UsuarioDto?> GetUserAsync(string username);
-        Task<IEnumerable<UsuarioDto>> GetAllUsersAsync();
-        Task<(bool Success, string Message, UsuarioDto? User)> RegisterAsync(RegistrarUsuarioDto registerDto, string currentUser);
-        Task<(bool Success, string Message, UsuarioDto? User)> ChangePasswordAsync(CambiarContrasenaDto dto, string currentUser);
-        Task<(bool Success, string Message)> DeleteUserAsync(EliminarUsuarioDto dto, string currentUser);
-        Task<(bool Success, string Message, UsuarioDto? User)> ChangeAdminStatusAsync(CambiarEstadoAdminDto dto, string currentUser);
-        Task<(bool Success, string Message, UsuarioDto? User)> ChangeActivStatusAsync(CambiarEstadoActivoDto dto, string currentUser);
-        Task<(bool Success, string Message, UsuarioDto? User)> ChangeRolStatusAsync(CambiarRolUsuarioDto dto, string currentUser);
+        Task<UsuarioDto?> LeerPorNombre(string username);
+        Task<IEnumerable<UsuarioDto>> LeerTodos();
+        Task<(bool Success,  UsuarioDto? User)> Registrar(RegistrarUsuarioDto registerDto, string currentUser);
+        Task<(bool Success, UsuarioDto? User)> CambiarContraseña(CambiarContrasenaDto dto, string currentUser);
+        Task<bool>  Eliminar(EliminarUsuarioDto dto, string currentUser);
+        Task<(bool Success, UsuarioDto? User)> CambiarEstadoAdmin(CambiarEstadoAdminDto dto, string currentUser);
+        Task<(bool Success, UsuarioDto? User)> CambiarEstadoActivo(CambiarEstadoActivoDto dto, string currentUser);
+        Task<(bool Success, UsuarioDto? User)> CambiarRol(CambiarRolUsuarioDto dto, string currentUser);
     }
 }

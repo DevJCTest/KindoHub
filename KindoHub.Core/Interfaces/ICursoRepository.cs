@@ -10,6 +10,7 @@ namespace KindoHub.Core.Interfaces
     public interface ICursoRepository
     {
         Task<CursoEntity?> LeerPorId(int id);
+        Task<CursoEntity?> LeerPorNombre(string nombre);
         Task<IEnumerable<CursoEntity>> LeerTodos();
         Task<CursoEntity?> LeerPredeterminado();
         Task<CursoEntity?> Crear(CursoEntity curso, string usuarioActual);

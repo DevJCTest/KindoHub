@@ -1,4 +1,5 @@
 using KindoHub.Core.Dtos;
+using KindoHub.Core.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +11,7 @@ namespace KindoHub.Core.Interfaces
     public interface ICursoService
     {
         Task<CursoDto?> LeerPorId(int id);
+        Task<CursoDto?> LeerPorNombre(string nombre);
         Task<bool> EsEliminable(int id);
         Task<IEnumerable<CursoDto>> LeerTodos();
         Task<IEnumerable<CursoHistoriaDto>> LeerHistoria(int id);

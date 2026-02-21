@@ -1,5 +1,6 @@
 using KindoHub.Core.Dtos;
 using KindoHub.Core.Interfaces;
+using KindoHub.Core.Validators;
 using KindoHub.Services.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -14,20 +15,31 @@ namespace KindoHub.Api.Controllers
     public class AlumnosController : Controller
     {
         private readonly IAlumnoService _alumnoService;
+        private readonly IFamiliaService _familiaService;
+        private readonly ICursoService _cursoService;
         private readonly ILogger<AlumnosController> _logger;
 
-        public AlumnosController(IAlumnoService alumnoService, ILogger<AlumnosController> logger)
+
+        public AlumnosController(IAlumnoService alumnoService, IFamiliaService familiaService, ICursoService cursoService, ILogger<AlumnosController> logger)
         {
             _alumnoService = alumnoService;
+            _familiaService = familiaService;
+            _cursoService = cursoService;
             _logger = logger;
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> LeerPorId(int id)
         {
-            if (id <= 0)
+            var validator = new IdAlumnoValidator(_alumnoService);
+            var validationResult = await validator.ValidateAsync(id);
+
+            if (!validationResult.IsValid)
             {
-                return BadRequest();
+                return BadRequest(new
+                {
+                    errors = validationResult.Errors.Select(e => e.ErrorMessage)
+                });
             }
 
             try
@@ -67,6 +79,17 @@ namespace KindoHub.Api.Controllers
         [HttpGet("historia")]
         public async Task<IActionResult> LeerHistoria(int id)
         {
+            var validator = new IdAlumnoValidator(_alumnoService);
+            var validationResult = await validator.ValidateAsync(id);
+
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(new
+                {
+                    errors = validationResult.Errors.Select(e => e.ErrorMessage)
+                });
+            }
+
             try
             {
                 var alumnos = await _alumnoService.LeerHistoria(id);
@@ -75,7 +98,6 @@ namespace KindoHub.Api.Controllers
             }
             catch (Exception ex)
             {
-                // 500 - Error interno
                 _logger.LogError(ex, "Error al leer la historia del alumno con id {AlumnoId}", id);
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
@@ -85,9 +107,15 @@ namespace KindoHub.Api.Controllers
         [HttpGet("familia/{familiaId}")]
         public async Task<IActionResult> LeerPorFamiliaId(int familiaId)
         {
-            if (familiaId <= 0)
+            var validator = new IdFamiliaValidator(_familiaService);
+            var validationResult = await validator.ValidateAsync(familiaId);
+
+            if (!validationResult.IsValid)
             {
-                return BadRequest();
+                return BadRequest(new
+                {
+                    errors = validationResult.Errors.Select(e => e.ErrorMessage)
+                });
             }
 
             try
@@ -121,9 +149,15 @@ namespace KindoHub.Api.Controllers
         [HttpGet("curso/{cursoId}")]
         public async Task<IActionResult> LeerPorCursoId(int cursoId)
         {
-            if (cursoId <= 0)
+            var validator = new IdCursoValidator(_cursoService);
+            var validationResult = await validator.ValidateAsync(cursoId);
+
+            if (!validationResult.IsValid)  
             {
-                return BadRequest();
+                return BadRequest(new   
+                {
+                    errors = validationResult.Errors.Select(e => e.ErrorMessage)
+                });
             }
 
             try
@@ -141,9 +175,19 @@ namespace KindoHub.Api.Controllers
         [HttpPost("registrar")]
         public async Task<IActionResult> Registrar([FromBody] RegistrarAlumnoDto request)
         {
-            if (!ModelState.IsValid)
+            var validator = new RegistrarAlumnoDtoValidator(_alumnoService, _familiaService, _cursoService);
+            var validationResult = await validator.ValidateAsync(request);
+
+            if (!validationResult.IsValid)
             {
-                return BadRequest();
+                return BadRequest(new
+                {
+                    errors = validationResult.Errors.Select(e => new
+                    {
+                        property = e.PropertyName,
+                        message = e.ErrorMessage
+                    })
+                });
             }
 
             try
@@ -172,9 +216,19 @@ namespace KindoHub.Api.Controllers
         [HttpPatch("actualizar")]
         public async Task<IActionResult> Actualizar([FromBody] ActualizarAlumnoDto request)
         {
-            if (!ModelState.IsValid)
+            var validator = new ActualizarAlumnoDtoValidator(_alumnoService, _familiaService, _cursoService);
+            var validationResult = await validator.ValidateAsync(request);
+
+            if (!validationResult.IsValid)
             {
-                return BadRequest();
+                return BadRequest(new
+                {
+                    errors = validationResult.Errors.Select(e => new
+                    {
+                        property = e.PropertyName,
+                        message = e.ErrorMessage
+                    })
+                });
             }
 
             var currentUser = User.Identity?.Name ?? "SYSTEM";
@@ -204,14 +258,19 @@ namespace KindoHub.Api.Controllers
         [HttpDelete]
         public async Task<IActionResult> Eliminar([FromBody] EliminarAlumnoDto request)
         {
-            if (request.AlumnoId <= 0)
-            {
-                return BadRequest();
-            }
+            var validator = new EliminarAlumnoDtoValidator(_alumnoService);
+            var validationResult = await validator.ValidateAsync(request);
 
-            if (request.VersionFila == null || request.VersionFila.Length == 0)
+            if (!validationResult.IsValid)
             {
-                return BadRequest();
+                return BadRequest(new
+                {
+                    errors = validationResult.Errors.Select(e => new
+                    {
+                        property = e.PropertyName,
+                        message = e.ErrorMessage
+                    })
+                });
             }
 
             var currentUser = User.Identity?.Name ?? "SYSTEM";

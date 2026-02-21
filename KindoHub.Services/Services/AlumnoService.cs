@@ -85,18 +85,18 @@ namespace KindoHub.Services.Services
                 return (false, null);
             }
 
-            if (dto.IdFamilia.HasValue && dto.IdFamilia.Value > 0)
+            if (dto.IdFamilia > 0)
             {
-                var familia = await _familiaRepository.LeerPorId(dto.IdFamilia.Value);
+                var familia = await _familiaRepository.LeerPorId(dto.IdFamilia);
                 if (familia == null)
                 {
                     return (false,  null);
                 }
             }
 
-            if (dto.IdCurso.HasValue && dto.IdCurso.Value > 0)
+            if (dto.IdCurso > 0)
             {
-                var curso = await _cursoRepository.LeerPorId(dto.IdCurso.Value);
+                var curso = await _cursoRepository.LeerPorId(dto.IdCurso);
                 if (curso == null)
                 {
                     return (false,  null);

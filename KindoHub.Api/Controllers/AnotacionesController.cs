@@ -1,8 +1,10 @@
 using KindoHub.Core.Dtos;
 using KindoHub.Core.Interfaces;
+using KindoHub.Core.Validators;
 using KindoHub.Services.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq;
 
 namespace KindoHub.Api.Controllers
 {
@@ -11,17 +13,30 @@ namespace KindoHub.Api.Controllers
     public class AnotacionesController : Controller
     {
         private readonly IAnotacionService _anotacionService;
+        private readonly IFamiliaService _familiaService;
         private readonly ILogger<AnotacionesController> _logger;
 
-        public AnotacionesController(IAnotacionService anotacionService, ILogger<AnotacionesController> logger)
+        public AnotacionesController(IAnotacionService anotacionService, IFamiliaService familiaService, ILogger<AnotacionesController> logger)
         {
             _anotacionService = anotacionService;
+            _familiaService = familiaService;
             _logger = logger;
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> LeerPorId(int id)
         {
+            var validator = new IdAnotacionValidator(_anotacionService);
+            var validationResult = await validator.ValidateAsync(id);
+
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(new
+                {
+                    errors = validationResult.Errors.Select(e => e.ErrorMessage)
+                });
+            }
+
             try
             {
                 var dto = await _anotacionService.LeerPorId(id);
@@ -43,6 +58,17 @@ namespace KindoHub.Api.Controllers
         [HttpGet("familia/{idFamilia}")]
         public async Task<IActionResult> LeerPorFamiliaId(int idFamilia)
         {
+            var validator = new IdFamiliaValidator(_familiaService);
+            var validationResult = await validator.ValidateAsync(idFamilia);
+
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(new
+                {
+                    errors = validationResult.Errors.Select(e => e.ErrorMessage)
+                });
+            }
+
             try
             {
                 var anotaciones = await _anotacionService.LeerPorIdFamilia(idFamilia);
@@ -58,6 +84,21 @@ namespace KindoHub.Api.Controllers
         [HttpPost("registrar")]
         public async Task<IActionResult> Registrar([FromBody] RegistrarAnotacionDto request)
         {
+            var validator = new RegistrarAnotacionDtoValidator(_familiaService);
+            var validationResult = await validator.ValidateAsync(request);
+
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(new
+                {
+                    errors = validationResult.Errors.Select(e => new
+                    {
+                        property = e.PropertyName,
+                        message = e.ErrorMessage
+                    })
+                });
+            }
+
             try
             {
                 var currentUser = User.Identity?.Name ?? "SYSTEM";
@@ -81,8 +122,19 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpPatch("actualizar")]
-        public async Task<IActionResult> Actualizar([FromBody] Actualizar request)
+        public async Task<IActionResult> Actualizar([FromBody] ActualizarAnotacionDto request)
         {
+            var validator = new ActualizarAnotacionDtoValidator(_anotacionService);
+            var validationResult = await validator.ValidateAsync(request);
+
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(new
+                {
+                    errors = validationResult.Errors.Select(e => e.ErrorMessage)
+                });
+            }
+
             var currentUser = User.Identity?.Name ?? "SYSTEM";
 
             try
@@ -107,18 +159,17 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpDelete]
-        public async Task<IActionResult> Eliminar([FromBody] Eliminar request)
+        public async Task<IActionResult> Eliminar([FromBody] EliminarAnotacionDto request)
         {
-            if (request.Id <= 0)
-            {
-                _logger.LogWarning("DeleteAnotacion request with invalid anotacionId");
-                return BadRequest(new { message = "El AnotacionId debe ser mayor a 0" });
-            }
+            var validator = new EliminarAnotacionDtoValidator(_anotacionService);
+            var validationResult = await validator.ValidateAsync(request);
 
-            if (request.VersionFila == null || request.VersionFila.Length == 0)
+            if (!validationResult.IsValid)
             {
-                _logger.LogWarning("DeleteAnotacion request with empty VersionFila");
-                return BadRequest(new { message = "La versión de fila es requerida" });
+                return BadRequest(new
+                {
+                    errors = validationResult.Errors.Select(e => e.ErrorMessage)
+                });
             }
 
             var currentUser = User.Identity?.Name ?? "SYSTEM";
@@ -144,6 +195,17 @@ namespace KindoHub.Api.Controllers
         [HttpGet("historia")]
         public async Task<IActionResult> LeerHistoria(int id)
         {
+            var validator = new IdAnotacionValidator(_anotacionService);
+            var validationResult = await validator.ValidateAsync(id);
+
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(new
+                {
+                    errors = validationResult.Errors.Select(e => e.ErrorMessage)
+                });
+            }
+
             try
             {
                 var anotaciones = await _anotacionService.LeerHistoria(id);

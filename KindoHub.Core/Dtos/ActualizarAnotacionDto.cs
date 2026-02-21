@@ -7,9 +7,13 @@ using System.Threading.Tasks;
 
 namespace KindoHub.Core.Dtos
 {
-    public class Eliminar
+    public class ActualizarAnotacionDto
     {
         public int Id { get; set; }
+
+        public DateTime Fecha { get; set; }
+
+        public string Descripcion { get; set; }
 
         public byte[] VersionFila { get; set; }
     }

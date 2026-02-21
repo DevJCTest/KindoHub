@@ -1,7 +1,10 @@
+using FluentValidation;
 using KindoHub.Core.Dtos;
 using KindoHub.Core.Interfaces;
+using KindoHub.Core.Validators;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq;
 
 namespace KindoHub.Api.Controllers
 {
@@ -21,9 +24,15 @@ namespace KindoHub.Api.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> LeerPorId(int id)
         {
-            if (id <= 0)
+            var validator = new IdCursoValidator(_cursoService);
+            var validationResult = await validator.ValidateAsync(id);
+
+            if (!validationResult.IsValid)
             {
-                return BadRequest(new { message = "El id debe ser mayor a 0" });
+                return BadRequest(new
+                {
+                    errors = validationResult.Errors.Select(e => e.ErrorMessage)
+                });
             }
 
             try
@@ -89,9 +98,15 @@ namespace KindoHub.Api.Controllers
         [HttpPost("registrar")]
         public async Task<IActionResult> Registrar([FromBody] RegistrarCursoDto request)
         {
-            if (!ModelState.IsValid)
+            var validator = new RegistrarCursoDtoValidator(_cursoService);
+            var validationResult = await validator.ValidateAsync(request);
+
+            if (!validationResult.IsValid)
             {
-                return BadRequest(new { message = "Datos de registro inválidos" });
+                return BadRequest(new
+                {
+                    errors = validationResult.Errors.Select(e => e.ErrorMessage)
+                });
             }
 
             try
@@ -120,13 +135,22 @@ namespace KindoHub.Api.Controllers
         [HttpPatch("actualizar")]
         public async Task<IActionResult> Actualizar([FromBody] ActualizarCursoDto request)
         {
-            if (!ModelState.IsValid)
+            var validator = new ActualizarCursoDtoValidator(_cursoService);
+            var validationResult = await validator.ValidateAsync(request);
+
+            if (!validationResult.IsValid)
             {
-                return BadRequest(new { message = "Datos inválidos" });
+                return BadRequest(new
+                {
+                    errors = validationResult.Errors.Select(e => new
+                    {
+                        property = e.PropertyName,
+                        message = e.ErrorMessage
+                    })
+                });
             }
 
             var currentUser = User.Identity?.Name ?? "SYSTEM";
-
 
             try
             {
@@ -152,14 +176,19 @@ namespace KindoHub.Api.Controllers
         [HttpDelete]
         public async Task<IActionResult> Eliminar([FromBody] EliminarCursoDto request)
         {
-            if (request.CursoId <= 0)
-            {
-                return BadRequest(new { message = "El id debe ser mayor a 0" });
-            }
+            var validator = new EliminarCursoDtoValidator(_cursoService);
+            var validationResult = await validator.ValidateAsync(request);
 
-            if (request.VersionFila == null || request.VersionFila.Length == 0)
+            if (!validationResult.IsValid)
             {
-                return BadRequest(new { message = "La versión de fila es requerida" });
+                return BadRequest(new
+                {
+                    errors = validationResult.Errors.Select(e => new
+                    {
+                        property = e.PropertyName,
+                        message = e.ErrorMessage
+                    })
+                });
             }
 
             var currentUser = User.Identity?.Name ?? "SYSTEM";
@@ -185,9 +214,19 @@ namespace KindoHub.Api.Controllers
         [HttpPatch("set-predeterminado")]
         public async Task<IActionResult> EstablecerPredeterminado([FromBody] CambiarCursoPredeterminadoDto request)
         {
-            if (!ModelState.IsValid)
+            var validator = new CambiarCursoPredeterminadoDtoValidator(_cursoService);
+            var validationResult = await validator.ValidateAsync(request);
+
+            if (!validationResult.IsValid)
             {
-                return BadRequest(new { message = "Datos incorrectos" });
+                return BadRequest(new
+                {
+                    errors = validationResult.Errors.Select(e => new
+                    {
+                        property = e.PropertyName,
+                        message = e.ErrorMessage
+                    })
+                });
             }
 
             try

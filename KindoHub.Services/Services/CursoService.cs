@@ -152,6 +152,16 @@ namespace KindoHub.Services.Services
             return cursos.Select(c => CursoMapper.MapToHistoriaDto(c));
         }
 
+        public async Task<CursoDto?> LeerPorNombre(string nombre)
+        {
+            if (string.IsNullOrEmpty(nombre))
+                return null;
 
+            var curso = await _cursoRepository.LeerPorNombre(nombre);
+            if (curso == null)
+                return null;
+
+            return CursoMapper.MapToDto(curso);
+        }
     }
 }

@@ -1,8 +1,10 @@
 ﻿using KindoHub.Core.Dtos;
 using KindoHub.Core.Interfaces;
+using KindoHub.Core.Validators;
 using KindoHub.Services.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq;
 
 namespace KindoHub.Api.Controllers
 {
@@ -11,11 +13,15 @@ namespace KindoHub.Api.Controllers
     public class FamiliasController : Controller
     {
         private readonly IFamiliaService _familiaService;
+        private readonly IEstadoAsociadoService _estadoAsociadoService;
+        private readonly IFormaPagoService _formaPagoService;
         private readonly ILogger<FamiliasController> _logger;
-        
-        public FamiliasController(IFamiliaService familiaService, ILogger<FamiliasController> logger)
+
+        public FamiliasController(IFamiliaService familiaService, IEstadoAsociadoService estadoAsociadoService, IFormaPagoService formaPagoService, ILogger<FamiliasController> logger)
         {
             _familiaService = familiaService;
+            _estadoAsociadoService = estadoAsociadoService;
+            _formaPagoService = formaPagoService;
             _logger = logger;
         }
 
@@ -23,18 +29,21 @@ namespace KindoHub.Api.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> LeerPorId(int id)
         {
-            // 400 - Validación de username
-            if (id<=0)
+            var validator = new IdFamiliaValidator(_familiaService);
+            var validationResult = await validator.ValidateAsync(id);
+
+            if (!validationResult.IsValid)
             {
-                _logger.LogWarning("GetFamilia request with empty familiaId");
-                return BadRequest(new { message = "El familiaId es requerido" });
+                return BadRequest(new
+                {
+                    errors = validationResult.Errors.Select(e => e.ErrorMessage)
+                });
             }
 
             try
             {
                 var dto = await _familiaService.LeerPorId(id);
 
-                // 404 - Usuario no encontrado
                 if (dto == null)
                 {
                     return NotFound();
@@ -44,7 +53,6 @@ namespace KindoHub.Api.Controllers
             }
             catch (Exception ex)
             {
-                // 500 - Error interno
                 _logger.LogError(ex, "Error al leer la familia {FamiliaId}", id);
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
@@ -72,6 +80,18 @@ namespace KindoHub.Api.Controllers
         [HttpGet("historia")]
         public async Task<IActionResult> LeerHistoria(int id)
         {
+            var validator = new IdFamiliaValidator(_familiaService);
+            var validationResult = await validator.ValidateAsync(id);
+
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(new
+                {
+                    errors = validationResult.Errors.Select(e => e.ErrorMessage)
+                });
+            }
+
+
             try
             {
                 var familias = await _familiaService.LeerHistoria(id);
@@ -88,11 +108,17 @@ namespace KindoHub.Api.Controllers
         [HttpPost("registrar")]
         public async Task<IActionResult> Registrar([FromBody] RegistrarFamiliaDto request)
         {
-            // 400 - Validación de modelo
-            if (!ModelState.IsValid)
+            var validator = new RegistrarFamiliaDtoValidator(_formaPagoService);
+            var validationResult = await validator.ValidateAsync(request);
+
+            if (!validationResult.IsValid)
             {
-                return BadRequest(new { message = "Datos de registro inválidos" });
+                return BadRequest(new
+                {
+                    errors = validationResult.Errors.Select(e => e.ErrorMessage)
+                });
             }
+
 
             try
             {
@@ -120,11 +146,17 @@ namespace KindoHub.Api.Controllers
         [HttpPatch("actualizar")]
         public async Task<IActionResult> Actualizar([FromBody] CambiarFamiliaDto request)
         {
-            // 400 - Validación de modelo
-            if (!ModelState.IsValid)
+            var validator = new CambiarFamiliaDtoValidator(_familiaService, _estadoAsociadoService, _formaPagoService);
+            var validationResult = await validator.ValidateAsync(request);
+
+            if (!validationResult.IsValid)
             {
-                return BadRequest();
+                return BadRequest(new
+                {
+                    errors = validationResult.Errors.Select(e => e.ErrorMessage)
+                });
             }
+
 
             // 401 - Usuario no autenticado
             var currentUser = User.Identity?.Name ?? "SYSTEM";
@@ -156,17 +188,17 @@ namespace KindoHub.Api.Controllers
         [HttpDelete]
         public async Task<IActionResult> Eliminar([FromBody] EliminarFamiliaDto request)
         {
-            // 400 - Validación de username
-            if (request.Id<=0)
+            var validator = new EliminarFamiliaDtoValidator(_familiaService);
+            var validationResult = await validator.ValidateAsync(request);
+
+            if (!validationResult.IsValid)
             {
-                return BadRequest(new { message = "El id es requerido" });
+                return BadRequest(new
+                {
+                    errors = validationResult.Errors.Select(e => e.ErrorMessage)
+                });
             }
 
-            // 400 - Validación de VersionFila
-            if (request.VersionFila == null || request.VersionFila.Length == 0)
-            {
-                return BadRequest(new { message = "La versión de fila es requerida" });
-            }
 
             // 401 - Usuario no autenticado
             var currentUser = User.Identity?.Name ?? "SYSTEM";

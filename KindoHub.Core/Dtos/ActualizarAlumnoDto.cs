@@ -6,7 +6,7 @@ namespace KindoHub.Core.Dtos
     {
         public int AlumnoId { get; set; }
 
-        public int? IdFamilia { get; set; }
+        public int IdFamilia { get; set; }
 
         public string Nombre { get; set; }
 
@@ -14,7 +14,7 @@ namespace KindoHub.Core.Dtos
 
         public bool AutorizaRedes { get; set; }
 
-        public int? IdCurso { get; set; }
+        public int IdCurso { get; set; }
 
         public byte[] VersionFila { get; set; }
     }

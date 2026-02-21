@@ -71,7 +71,7 @@ namespace KindoHub.Services.Services
         }
 
         public async Task<(bool Success, AnotacionDto? Anotacion)> Actualizar(
-            Actualizar dto, string usuarioActual)
+            ActualizarAnotacionDto dto, string usuarioActual)
         {
             var targetAnotacion = await _anotacionRepository.LeerPorId(dto.Id);
             if (targetAnotacion == null)

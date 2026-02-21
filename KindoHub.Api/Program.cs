@@ -1,5 +1,4 @@
-using FluentValidation;
-using FluentValidation.AspNetCore;
+
 using KindoHub.Api.Middleware;
 using KindoHub.Core;
 using KindoHub.Core.Interfaces;
@@ -45,9 +44,8 @@ try
 
     builder.Services.AddControllers();
 
-    // Registrar FluentValidation
-    builder.Services.AddFluentValidationAutoValidation();
-    builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+
+
 
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     builder.Services.AddEndpointsApiExplorer();
@@ -94,7 +92,7 @@ try
     builder.Services.AddScoped<IAlumnoRepository, AlumnoRepository>();
     builder.Services.AddScoped<IAuthService, AuthService>();
     builder.Services.AddScoped<ITokenService, JwtTokenService>();
-    builder.Services.AddScoped<IUsuarioService, UserService>();
+    builder.Services.AddScoped<IUsuarioService, UsuarioService>();
     builder.Services.AddScoped<IFormaPagoService, FormaPagoService>();
     builder.Services.AddScoped<IEstadoAsociadoService, EstadoAsociadoService>();
     builder.Services.AddScoped<IFamiliaService, FamiliaService>();
@@ -165,7 +163,10 @@ try
     if (app.Environment.IsDevelopment())
     {
         app.UseSwagger();
-        app.UseSwaggerUI();
+        app.UseSwaggerUI(options =>
+        {
+            options.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.None);
+        });
     }
 
     app.UseHttpsRedirection();

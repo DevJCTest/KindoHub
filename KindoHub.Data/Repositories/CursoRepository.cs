@@ -333,5 +333,34 @@ namespace KindoHub.Data.Repositories
                 throw;
             }
         }
+
+        public async Task<CursoEntity?> LeerPorNombre(string nombre)
+        {
+            const string query = @"
+            SELECT CursoId, Nombre, Descripcion, Predeterminado, VersionFila
+            FROM Cursos
+            WHERE Nombre = @Nombre";
+
+            try
+            {
+                await using var connection = await _connectionFactory.CrearConexion();
+                await connection.OpenAsync();
+                await using var command = new SqlCommand(query, connection);
+                command.Parameters.AddWithValue("@Nombre", nombre);
+
+                await using var reader = await command.ExecuteReaderAsync();
+                if (await reader.ReadAsync())
+                {
+                    return CursoMapper.MapToCursoEntity(reader);
+                }
+
+                return null;
+            }
+            catch (SqlException ex)
+            {
+                _logger.LogError(ex, "Error SQL al leer el curso {Nombre}", nombre);
+                throw;
+            }
+        }
     }
 }
