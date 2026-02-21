@@ -22,7 +22,7 @@ namespace KindoHub.Data.Repositories
             _logger = logger;
         }
 
-        public async Task<IEnumerable<LogEntity>> LeerFiltrado(FilterOptions[] filters)
+        public async Task<IEnumerable<LogEntity>> LeerFiltrado(FilterLogOptions[] filters)
         {
             var queryBuilder = new StringBuilder(@"
             SELECT 

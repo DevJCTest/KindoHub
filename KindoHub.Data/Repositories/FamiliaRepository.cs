@@ -366,5 +366,105 @@ namespace KindoHub.Data.Repositories
                 throw;
             }
         }
+
+        public async Task<IEnumerable<FamiliaEntity>> LeerFiltrado(FilterFamiliaOptions[] filters)
+        {
+            var queryBuilder = new StringBuilder(@"
+                SELECT [FamiliaId]
+                ,[NumeroSocio]
+                ,f.[Nombre]
+                ,[Email]
+                ,[Telefono]
+                ,[Direccion]
+                ,[Observaciones]
+                ,[Apa]
+                ,[IdEstadoApa]
+                ,estApa.Nombre EstadoApa
+                ,[Mutual]
+                ,[IdEstadoMutual]
+                ,estMutual.Nombre EstadoMutual
+                ,[BeneficiarioMutual]
+                ,[IdFormaPago]
+                ,forPago.Descripcion FormaPago
+                ,[IBAN]
+                ,[IBAN_Enmascarado]
+                ,[CreadoPor]
+                ,[FechaCreacion]
+                ,[ModificadoPor]
+                ,[FechaModificacion]
+                ,[VersionFila]
+                ,[SysStartTime]
+                ,[SysEndTime]
+            FROM [KindoHub].[dbo].[Familias] f
+            left join EstadosAsociado estApa on estApa.EstadoId=f.IdEstadoApa
+            left join EstadosAsociado estMutual on estMutual.EstadoId=f.IdEstadoMutual
+            left join FormasPago forPago on forPago.FormaPagoId=f.IdFormaPago ");
+
+            var parameters = new List<SqlParameter>();
+            var conditions = new List<string>();
+
+            // Agregar condiciones para cada filtro en el array
+            for (int i = 0; i < filters.Length; i++)
+            {
+                var filter = filters[i];
+                string paramName = $"@Value{i}";
+                conditions.Add(GetCondition(filter.Field, paramName));
+                parameters.Add(new SqlParameter(paramName, GetParameterValue(filter.Field, filter.Value)));
+            }
+
+            if (conditions.Any())
+            {
+                queryBuilder.Append(" WHERE ");
+                queryBuilder.Append(string.Join(" AND ", conditions));
+            }
+
+            queryBuilder.Append(" ORDER BY FamiliaId");
+
+            var logs = new List<FamiliaEntity>();
+
+            await using var connection = await _connectionFactory.CrearConexion();
+            await connection.OpenAsync();
+            await using var command = new SqlCommand(queryBuilder.ToString(), connection);
+            command.Parameters.AddRange(parameters.ToArray());
+
+            await using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                logs.Add(FamiliaMapper.MapToFamiliaEntity(reader));
+            }
+
+            return logs;
+        }
+
+        private string GetCondition(FamiliaField field, string paramName)
+        {
+            return field switch
+            {
+                FamiliaField.Id => $"FamiliaId = {paramName}",
+                FamiliaField.NumeroSocio => $"NumeroSocio = {paramName}",
+                FamiliaField.Nombre => $"f.Nombre LIKE {paramName}",
+                FamiliaField.Email => $"Email LIKE {paramName}",
+                FamiliaField.Observaciones => $"Observaciones LIKE {paramName}",
+                FamiliaField.Apa => $"Apa = {paramName}",
+                FamiliaField.Mutual => $"Mutual = {paramName}",
+                FamiliaField.BeneficiarioMutual => $"BeneficiarioMutual = {paramName}",
+            _ => throw new ArgumentException("Campo no válido")
+            };
+        }
+
+        private object GetParameterValue(FamiliaField field, string value)
+        {
+            return field switch
+            {
+                FamiliaField.Id => int.Parse(value),
+                FamiliaField.NumeroSocio => value,
+                FamiliaField.Nombre => $"%{value}%",
+                FamiliaField.Observaciones => $"%{value}%",
+                FamiliaField.Apa => bool.Parse(value),
+                FamiliaField.Mutual => bool.Parse(value),
+                FamiliaField.BeneficiarioMutual => bool.Parse(value),
+                _ => throw new ArgumentException("Campo no válido")
+            };
+        }
     }
 }

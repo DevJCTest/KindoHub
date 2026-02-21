@@ -8,16 +8,16 @@ using System.Threading.Tasks;
 
 namespace KindoHub.Core.Validators
 {
-    public class FilterRequestValidator : AbstractValidator<FilterLogRequest>
+    public class FilterAlumnoRequestValidator : AbstractValidator<FilterAlumnoRequest>
     {
-        public FilterRequestValidator()
+        public FilterAlumnoRequestValidator()
         {
             RuleFor(x => x.Filters)
                 .NotEmpty()
                 .WithMessage("Debe proporcionar al menos un filtro.");
 
             RuleForEach(x => x.Filters)
-                .SetValidator(new FilterOptionsValidator());
+                .SetValidator(new FilterAlumnoOptionsValidator());
         }
     }
 }

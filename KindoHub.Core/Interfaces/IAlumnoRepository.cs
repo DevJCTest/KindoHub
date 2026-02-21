@@ -8,6 +8,8 @@ namespace KindoHub.Core.Interfaces
     {
         Task<AlumnoEntity?> LeerPorId(int id);
         Task<IEnumerable<AlumnoEntity>> LeerTodos();
+        Task<IEnumerable<AlumnoEntity>> LeerFiltrado(FilterAlumnoOptions[] filters);
+
         Task<AlumnoEntity?> Crear(AlumnoEntity alumno, string usuarioActual);
         Task<bool> Actualizar(AlumnoEntity alumno, string usuarioActual);
         Task<bool> Eliminar(int alumnoId, byte[] versionFila, string usuarioActual);

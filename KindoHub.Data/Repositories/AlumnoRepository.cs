@@ -5,6 +5,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace KindoHub.Data.Repositories
@@ -410,5 +411,77 @@ namespace KindoHub.Data.Repositories
                 throw;
             }
         }
+
+        public async Task<IEnumerable<AlumnoEntity>> LeerFiltrado(FilterAlumnoOptions[] filters)
+        {
+            var queryBuilder = new StringBuilder(@"
+            SELECT AlumnoId, IdFamilia, Nombre, Observaciones, AutorizaRedes, IdCurso,
+                   CreadoPor, FechaCreacion, ModificadoPor, FechaModificacion, VersionFila
+            FROM Alumnos ");
+
+            var parameters = new List<SqlParameter>();
+            var conditions = new List<string>();
+
+            // Agregar condiciones para cada filtro en el array
+            for (int i = 0; i < filters.Length; i++)
+            {
+                var filter = filters[i];
+                string paramName = $"@Value{i}";
+                conditions.Add(GetCondition(filter.Field, paramName));
+                parameters.Add(new SqlParameter(paramName, GetParameterValue(filter.Field, filter.Value)));
+            }
+
+            if (conditions.Any())
+            {
+                queryBuilder.Append(" WHERE ");
+                queryBuilder.Append(string.Join(" AND ", conditions));
+            }
+
+            queryBuilder.Append(" ORDER BY Nombre asc");
+
+            var logs = new List<AlumnoEntity>();
+
+            await using var connection = await _connectionFactory.CrearConexion();
+            await connection.OpenAsync();
+            await using var command = new SqlCommand(queryBuilder.ToString(), connection);
+            command.Parameters.AddRange(parameters.ToArray());
+
+            await using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                logs.Add(AlumnoMapper.MapToAlumnoEntity(reader));
+            }
+
+            return logs;
+        }
+
+        private string GetCondition(AlumnoField field, string paramName)
+        {
+            return field switch
+            {
+                AlumnoField.Id => $"AlumnoId = {paramName}",
+                AlumnoField.IdFamilia => $"IdFamilia = {paramName}",
+                AlumnoField.Nombre => $"Nombre LIKE {paramName}",
+                AlumnoField.Observaciones => $"Observaciones LIKE {paramName}",
+                AlumnoField.AutorizaRedes => $"AutorizaRedes = {paramName}",
+                AlumnoField.IdCurso => $"IdCurso = {paramName}",
+                _ => throw new ArgumentException("Campo no válido")
+            };
+        }
+
+        private object GetParameterValue(AlumnoField field, string value)
+        {
+            return field switch
+            {
+                AlumnoField.Id => int.Parse(value),
+                AlumnoField.IdFamilia => int.Parse(value),
+                AlumnoField.Nombre => $"%{value}%",
+                AlumnoField.Observaciones => $"%{value}%",
+                AlumnoField.AutorizaRedes => bool.Parse(value),
+                AlumnoField.IdCurso => int.Parse(value),
+                _ => throw new ArgumentException("Campo no válido")
+            };
+        }
+
     }
 }

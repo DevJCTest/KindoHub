@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace KindoHub.Core.Entities
 {
-    public class FilterRequest
+    public class FilterFamiliaRequest
     {
-        public List<FilterOptions> Filters { get; set; } = new();
+        public List<FilterFamiliaOptions> Filters { get; set; } = new();
     }
 }

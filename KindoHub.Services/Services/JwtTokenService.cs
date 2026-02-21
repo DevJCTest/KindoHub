@@ -1,5 +1,4 @@
-﻿using KindoHub.Core.Dtos;
-using KindoHub.Core.Interfaces;
+﻿using KindoHub.Core.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Extensions.Options;
@@ -11,6 +10,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using KindoHub.Core;
+using KindoHub.Core.Dtos;
 
 namespace KindoHub.Services.Services
 {

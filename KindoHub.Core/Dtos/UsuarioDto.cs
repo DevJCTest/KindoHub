@@ -1,4 +1,4 @@
-namespace KindoHub.Core.DTOs;
+namespace KindoHub.Core.Dtos;
 
 public class UsuarioDto
 {

@@ -20,6 +20,8 @@ namespace KindoHub.Core.Interfaces
 
         Task<IEnumerable<AlumnoDto>> GetPorFamiliaId(int id);
 
+        Task<IEnumerable<AlumnoDto>> LeerFiltrado(FilterAlumnoOptions[] filters);
+        IEnumerable<AlumnoFieldDto> ObtenerCamposDisponibles();
 
     }
 }

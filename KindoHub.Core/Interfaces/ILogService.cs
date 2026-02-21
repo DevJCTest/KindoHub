@@ -11,7 +11,7 @@ namespace KindoHub.Core.Interfaces
     public interface ILogService
     {
         Task<IEnumerable<LogDto>> LeerTodos();
-        Task<IEnumerable<LogDto>> LeerFiltrado(FilterOptions[] filters);
+        Task<IEnumerable<LogDto>> LeerFiltrado(FilterLogOptions[] filters);
         IEnumerable<LogFieldDto> ObtenerCamposDisponibles();
     }
 }

@@ -11,6 +11,8 @@ namespace KindoHub.Core.Interfaces
     public interface IFamiliaRepository
     {
         Task<FamiliaEntity?> LeerPorId(int id);
+        Task<IEnumerable<FamiliaEntity>> LeerFiltrado(FilterFamiliaOptions[] filters);
+
         Task<FamiliaEntity?> Crear(FamiliaEntity familia, string usuarioActual);
         Task<bool> Actualizar(FamiliaEntity familia, string usuarioActual);
         Task<bool> Eliminar(int familiaId, byte[] versionFila, string usuarioActual);

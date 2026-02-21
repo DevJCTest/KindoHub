@@ -1,4 +1,5 @@
 using KindoHub.Core.Dtos;
+using KindoHub.Core.Entities;
 using KindoHub.Core.Interfaces;
 using KindoHub.Core.Validators;
 using KindoHub.Services.Services;
@@ -75,6 +76,33 @@ namespace KindoHub.Api.Controllers
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }
+
+        [HttpPost("filtrado")]
+        public async Task<IActionResult> LeerFiltrados([FromBody] FilterAlumnoRequest request)
+        {
+            FilterAlumnoRequestValidator validator = new FilterAlumnoRequestValidator();
+            var validationResult = validator.Validate(request);
+
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.Errors);
+            }
+
+            try
+            {
+                var alumnos = await _alumnoService.LeerFiltrado(request.Filters.ToArray());
+                return Ok(alumnos);
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al hacer la consulta filtrada de alumnos");
+                return StatusCode(500, new { message = "Error interno del servidor" });
+            }
+
+        }
+
+
 
         [HttpGet("historia")]
         public async Task<IActionResult> LeerHistoria(int id)
@@ -292,5 +320,13 @@ namespace KindoHub.Api.Controllers
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }
+
+        [HttpGet("campos")]
+        public IActionResult LeerCamposParaFiltro()
+        {
+            var fields = _alumnoService.ObtenerCamposDisponibles();
+            return Ok(fields);
+        }
+
     }
 }

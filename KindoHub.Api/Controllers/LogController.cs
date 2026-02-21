@@ -24,7 +24,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpPost("filtrado")]
-        public async Task<IActionResult> GetFilteredLogs([FromBody] FilterRequest request)
+        public async Task<IActionResult> GetFilteredLogs([FromBody] FilterLogRequest request)
         {
             FilterRequestValidator validator = new FilterRequestValidator();
             var validationResult = validator.Validate(request);
@@ -38,8 +38,8 @@ namespace KindoHub.Api.Controllers
             return Ok(logs);
         }
 
-        [HttpGet("fields")]
-        public IActionResult GetAvailableFields()
+        [HttpGet("campos")]
+        public IActionResult LeerCamposParaFiltro()
         {
             var fields = _logService.ObtenerCamposDisponibles();
             return Ok(fields);

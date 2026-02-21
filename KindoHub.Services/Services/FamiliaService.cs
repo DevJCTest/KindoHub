@@ -1,6 +1,7 @@
 ﻿using KindoHub.Core.Dtos;
 using KindoHub.Core.Entities;
 using KindoHub.Core.Interfaces;
+using KindoHub.Core.Validators;
 using KindoHub.Services.Transformers;
 using Microsoft.Extensions.Logging;
 using System;
@@ -173,6 +174,33 @@ namespace KindoHub.Services.Services
         {
             var alumnos = await _alumnoService.GetPorFamiliaId(id);
             return !alumnos.Any();
+        }
+
+        public async Task<IEnumerable<FamiliaDto>> LeerFiltrado(FilterFamiliaOptions[] filters)
+        {
+            FilterFamiliaOptionsValidator validator = new FilterFamiliaOptionsValidator();
+
+            foreach (var filter in filters)
+            {
+                var validationResult = validator.Validate(filter);
+                if (!validationResult.IsValid)
+                {
+                    throw new ArgumentException($"Filtro inválido: {string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage))}");
+                }
+            }
+
+            var logs = await _familiaRepository.LeerFiltrado(filters);
+            return logs.Select(l => FamiliaMapper.MapToFamiliaDto(l));
+        }
+
+        public IEnumerable<FamiliaFieldDto> ObtenerCamposDisponibles()
+        {
+            return Enum.GetValues<FamiliaField>()
+                .Select(field => new FamiliaFieldDto
+                {
+                    Name = field.ToString(),
+                    Value = (int)field
+                });
         }
     }
 }

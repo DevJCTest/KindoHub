@@ -1,5 +1,4 @@
 ﻿using KindoHub.Core.Dtos;
-using KindoHub.Core.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;

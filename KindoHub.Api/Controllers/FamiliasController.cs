@@ -1,4 +1,5 @@
 ﻿using KindoHub.Core.Dtos;
+using KindoHub.Core.Entities;
 using KindoHub.Core.Interfaces;
 using KindoHub.Core.Validators;
 using KindoHub.Services.Services;
@@ -76,6 +77,30 @@ namespace KindoHub.Api.Controllers
             }
         }
 
+        [HttpPost("filtrado")]
+        public async Task<IActionResult> LeerFiltrados([FromBody] FilterFamiliaRequest request)
+        {
+            FilterFamiliaRequestValidator validator = new FilterFamiliaRequestValidator();
+            var validationResult = validator.Validate(request);
+
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.Errors);
+            }
+
+            try
+            {
+                var familias = await _familiaService.LeerFiltrado(request.Filters.ToArray());
+                return Ok(familias);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al hacer la lectura filtrada de familias}");
+                return StatusCode(500, new { message = "Error interno del servidor" });
+            }
+
+        }
+
 
         [HttpGet("historia")]
         public async Task<IActionResult> LeerHistoria(int id)
@@ -137,7 +162,6 @@ namespace KindoHub.Api.Controllers
             }
             catch (Exception ex)
             {
-                // 500 - Error interno
                 _logger.LogError(ex, "Error al registrar la familia: {Nombre}", request.Nombre);
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
@@ -158,7 +182,6 @@ namespace KindoHub.Api.Controllers
             }
 
 
-            // 401 - Usuario no autenticado
             var currentUser = User.Identity?.Name ?? "SYSTEM";
 
 
@@ -217,11 +240,16 @@ namespace KindoHub.Api.Controllers
             }
             catch (Exception ex)
             {
-                // 500 - Error interno
                 _logger.LogError(ex, "Error al eliminar la familia {FamiliaId}", request.Id);
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }
 
+        [HttpGet("campos")]
+        public IActionResult LeerCamposParaFiltro()
+        {
+            var fields = _familiaService.ObtenerCamposDisponibles();
+            return Ok(fields);
+        }
     }
 }

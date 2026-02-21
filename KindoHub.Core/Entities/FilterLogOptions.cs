@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace KindoHub.Core.Entities
 {
-    public class FilterOptions
+    public class FilterLogOptions
     {
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public LogField Field { get; set; }

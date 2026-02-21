@@ -10,6 +10,6 @@ namespace KindoHub.Core.Interfaces
     public interface ILogRepository
     {
         Task<IEnumerable<LogEntity>> LeerTodos();
-        Task<IEnumerable<LogEntity>> LeerFiltrado(FilterOptions[] filters);
+        Task<IEnumerable<LogEntity>> LeerFiltrado(FilterLogOptions[] filters);
     }
 }

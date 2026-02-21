@@ -8,13 +8,13 @@ using System.Threading.Tasks;
 
 namespace KindoHub.Core.Validators
 {
-    public class FilterOptionsValidator : AbstractValidator<FilterLogOptions>
+    public class FilterFamiliaOptionsValidator : AbstractValidator<FilterFamiliaOptions>
     {
-        public FilterOptionsValidator()
+        public FilterFamiliaOptionsValidator()
         {
             RuleFor(x => x.Field)
                 .IsInEnum()
-                .WithMessage("El campo Field debe ser un valor válido de LogField.");
+                .WithMessage("El campo Field debe ser un valor válido de FamiliaField.");
 
             RuleFor(x => x.Value)
                 .NotEmpty()

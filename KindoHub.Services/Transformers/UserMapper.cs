@@ -1,4 +1,4 @@
-﻿using KindoHub.Core.DTOs;
+﻿using KindoHub.Core.Dtos;
 using KindoHub.Core.Entities;
 using System;
 using System.Collections.Generic;

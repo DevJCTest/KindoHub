@@ -1,6 +1,7 @@
 using KindoHub.Core.Dtos;
 using KindoHub.Core.Entities;
 using KindoHub.Core.Interfaces;
+using KindoHub.Core.Validators;
 using KindoHub.Services.Transformers;
 using Microsoft.Extensions.Logging;
 using System;
@@ -170,6 +171,33 @@ namespace KindoHub.Services.Services
         {
             var alumnos = await _alumnoRepository.LeerHistoria(id);
             return alumnos.Select(a => AlumnoMapper.MapToAlumnoHistoriaDto(a));
+        }
+
+        public async Task<IEnumerable<AlumnoDto>> LeerFiltrado(FilterAlumnoOptions[] filters)
+        {
+            FilterAlumnoOptionsValidator validator = new FilterAlumnoOptionsValidator();
+
+            foreach (var filter in filters)
+            {
+                var validationResult = validator.Validate(filter);
+                if (!validationResult.IsValid)
+                {
+                    throw new ArgumentException($"Filtro inválido: {string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage))}");
+                }
+            }
+
+            var logs = await _alumnoRepository.LeerFiltrado(filters);
+            return logs.Select(l => AlumnoMapper.MapToDto(l));
+        }
+
+        public IEnumerable<AlumnoFieldDto> ObtenerCamposDisponibles()
+        {
+            return Enum.GetValues<AlumnoField>()
+                .Select(field => new AlumnoFieldDto
+                {
+                    Name = field.ToString(),
+                    Value = (int)field
+                });
         }
     }
 }

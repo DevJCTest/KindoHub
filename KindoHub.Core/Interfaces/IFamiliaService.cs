@@ -1,5 +1,4 @@
 ﻿using KindoHub.Core.Dtos;
-using KindoHub.Core.DTOs;
 using KindoHub.Core.Entities;
 using System;
 using System.Collections.Generic;
@@ -18,5 +17,7 @@ namespace KindoHub.Core.Interfaces
         Task<(bool Success,FamiliaDto? Familia)> Actualizar(CambiarFamiliaDto dto, string usuarioActual);
         Task<bool> Eliminar(int familiaId, byte[] versionFila, string usuarioActual);
         Task<IEnumerable<FamiliaHistoriaDto>> LeerHistoria(int id);
+        Task<IEnumerable<FamiliaDto>> LeerFiltrado(FilterFamiliaOptions[] filters);
+        IEnumerable<FamiliaFieldDto> ObtenerCamposDisponibles();
     }
 }

@@ -20,7 +20,7 @@ namespace KindoHub.Services.Services
             _logRepository = logRepository;
         }
 
-        public async Task<IEnumerable<LogDto>> LeerFiltrado(FilterOptions[] filters)
+        public async Task<IEnumerable<LogDto>> LeerFiltrado(FilterLogOptions[] filters)
         {
             FilterOptionsValidator validator = new FilterOptionsValidator();
 
@@ -29,7 +29,7 @@ namespace KindoHub.Services.Services
                 var validationResult = validator.Validate(filter);
                 if (!validationResult.IsValid)
                 {
-                    throw new ArgumentException($"Invalid filter: {string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage))}");
+                    throw new ArgumentException($"Filtro inválido: {string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage))}");
                 }
             }
 
