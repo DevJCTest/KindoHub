@@ -14,8 +14,8 @@ namespace KindoHub.Core.Interfaces
         Task<IEnumerable<CursoDto>> LeerTodos();
         Task<IEnumerable<CursoHistoriaDto>> LeerHistoria(int id);
         Task<CursoDto?> LeerPredeterminado();
-        Task<(bool Success, CursoDto? Curso)> Crear(RegisterCursoDto dto, string usuarioActual);
-        Task<(bool Success, CursoDto? Curso)> Actualizar(UpdateCursoDto dto, string usuarioActual);
+        Task<(bool Success, CursoDto? Curso)> Crear(RegistrarCursoDto dto, string usuarioActual);
+        Task<(bool Success, CursoDto? Curso)> Actualizar(ActualizarCursoDto dto, string usuarioActual);
         Task<bool> Eliminar(int id, byte[] versionFila, string usuarioActual);
         Task<(bool Success, CursoDto? Curso)> EstablecerPredeterminado(int id, string usuarioActual);
     }

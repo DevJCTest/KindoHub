@@ -49,7 +49,7 @@ namespace KindoHub.Services.Services
         }
 
         public async Task<(bool Success, AnotacionDto? Anotacion)> Crear(
-            Registrar dto, string usuarioActual)
+            RegistrarAnotacionDto dto, string usuarioActual)
         {
             var familia = await _familiaRepository.LeerPorId(dto.IdFamilia);
             if (familia == null)

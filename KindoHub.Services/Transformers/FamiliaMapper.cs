@@ -97,7 +97,7 @@ namespace KindoHub.Services.Transformers
             };
         }
 
-        public static FamiliaEntity MapToFamiliaEntity(ChangeFamiliaDto dto)
+        public static FamiliaEntity MapToFamiliaEntity(CambiarFamiliaDto dto)
         {
             return new FamiliaEntity
             {
@@ -120,7 +120,7 @@ namespace KindoHub.Services.Transformers
         }
 
 
-        public static FamiliaEntity MapToFamiliaEntity(RegisterFamiliaDto dto)
+        public static FamiliaEntity MapToFamiliaEntity(RegistrarFamiliaDto dto)
         {
             return new FamiliaEntity
             {

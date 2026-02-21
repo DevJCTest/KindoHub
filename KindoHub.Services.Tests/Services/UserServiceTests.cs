@@ -30,7 +30,7 @@ namespace KindoHub.Services.Tests.Services
             // Arrange
             var username = "testuser";
             var usuarioEntity = CreateTestUsuarioEntity(username);
-            _mockRepository.Setup(r => r.GetByNombreAsync(username))
+            _mockRepository.Setup(r => r.LeerPorNombre(username))
                 .ReturnsAsync(usuarioEntity);
 
             // Act
@@ -48,7 +48,7 @@ namespace KindoHub.Services.Tests.Services
         {
             // Arrange
             var username = "nonexistent";
-            _mockRepository.Setup(r => r.GetByNombreAsync(username))
+            _mockRepository.Setup(r => r.LeerPorNombre(username))
                 .ReturnsAsync((UsuarioEntity?)null);
 
             // Act
@@ -66,7 +66,7 @@ namespace KindoHub.Services.Tests.Services
 
             // Assert
             result.Should().BeNull();
-            _mockRepository.Verify(r => r.GetByNombreAsync(It.IsAny<string>()), Times.Never);
+            _mockRepository.Verify(r => r.LeerPorNombre(It.IsAny<string>()), Times.Never);
         }
 
         [Fact]
@@ -77,7 +77,7 @@ namespace KindoHub.Services.Tests.Services
 
             // Assert
             result.Should().BeNull();
-            _mockRepository.Verify(r => r.GetByNombreAsync(It.IsAny<string>()), Times.Never);
+            _mockRepository.Verify(r => r.LeerPorNombre(It.IsAny<string>()), Times.Never);
         }
 
         [Fact]
@@ -88,7 +88,7 @@ namespace KindoHub.Services.Tests.Services
 
             // Assert
             result.Should().BeNull();
-            _mockRepository.Verify(r => r.GetByNombreAsync(It.IsAny<string>()), Times.Never);
+            _mockRepository.Verify(r => r.LeerPorNombre(It.IsAny<string>()), Times.Never);
         }
 
         [Fact]
@@ -96,14 +96,14 @@ namespace KindoHub.Services.Tests.Services
         {
             // Arrange
             var username = "testuser";
-            _mockRepository.Setup(r => r.GetByNombreAsync(username))
+            _mockRepository.Setup(r => r.LeerPorNombre(username))
                 .ReturnsAsync((UsuarioEntity?)null);
 
             // Act
             await _sut.GetUserAsync(username);
 
             // Assert
-            _mockRepository.Verify(r => r.GetByNombreAsync(username), Times.Once);
+            _mockRepository.Verify(r => r.LeerPorNombre(username), Times.Once);
         }
 
         #endregion
@@ -120,7 +120,7 @@ namespace KindoHub.Services.Tests.Services
                 CreateTestUsuarioEntity("user2"),
                 CreateTestUsuarioEntity("user3")
             };
-            _mockRepository.Setup(r => r.GetAllAsync())
+            _mockRepository.Setup(r => r.LeerTodos())
                 .ReturnsAsync(usuarios);
 
             // Act
@@ -135,7 +135,7 @@ namespace KindoHub.Services.Tests.Services
         public async Task GetAllUsersAsync_WhenNoUsers_ShouldReturnEmptyCollection()
         {
             // Arrange
-            _mockRepository.Setup(r => r.GetAllAsync())
+            _mockRepository.Setup(r => r.LeerTodos())
                 .ReturnsAsync(new List<UsuarioEntity>());
 
             // Act
@@ -154,7 +154,7 @@ namespace KindoHub.Services.Tests.Services
                 CreateTestUsuarioEntity("user1", isAdmin: 1),
                 CreateTestUsuarioEntity("user2", isAdmin: 0)
             };
-            _mockRepository.Setup(r => r.GetAllAsync())
+            _mockRepository.Setup(r => r.LeerTodos())
                 .ReturnsAsync(usuarios);
 
             // Act
@@ -172,14 +172,14 @@ namespace KindoHub.Services.Tests.Services
         public async Task GetAllUsersAsync_ShouldCallRepositoryGetAllAsync()
         {
             // Arrange
-            _mockRepository.Setup(r => r.GetAllAsync())
+            _mockRepository.Setup(r => r.LeerTodos())
                 .ReturnsAsync(new List<UsuarioEntity>());
 
             // Act
             await _sut.GetAllUsersAsync();
 
             // Assert
-            _mockRepository.Verify(r => r.GetAllAsync(), Times.Once);
+            _mockRepository.Verify(r => r.LeerTodos(), Times.Once);
         }
 
         #endregion
@@ -190,14 +190,14 @@ namespace KindoHub.Services.Tests.Services
         public async Task RegisterAsync_WithValidData_ShouldRegisterSuccessfully()
         {
             // Arrange
-            var registerDto = new RegisterUserDto
+            var registerDto = new RegistrarUsuarioDto
             {
                 Username = "newuser",
                 Password = "password123"
             };
             var currentUser = "admin";
 
-            _mockRepository.Setup(r => r.GetByNombreAsync(registerDto.Username))
+            _mockRepository.Setup(r => r.LeerPorNombre(registerDto.Username))
                 .ReturnsAsync((UsuarioEntity?)null);
 
             var createdUser = CreateTestUsuarioEntity(registerDto.Username);
@@ -218,7 +218,7 @@ namespace KindoHub.Services.Tests.Services
         public async Task RegisterAsync_WhenUserAlreadyExists_ShouldReturnFailure()
         {
             // Arrange
-            var registerDto = new RegisterUserDto
+            var registerDto = new RegistrarUsuarioDto
             {
                 Username = "existinguser",
                 Password = "password123"
@@ -226,7 +226,7 @@ namespace KindoHub.Services.Tests.Services
             var currentUser = "admin";
 
             var existingUser = CreateTestUsuarioEntity(registerDto.Username);
-            _mockRepository.Setup(r => r.GetByNombreAsync(registerDto.Username))
+            _mockRepository.Setup(r => r.LeerPorNombre(registerDto.Username))
                 .ReturnsAsync(existingUser);
 
             // Act
@@ -243,14 +243,14 @@ namespace KindoHub.Services.Tests.Services
         public async Task RegisterAsync_ShouldHashPasswordWithBCrypt()
         {
             // Arrange
-            var registerDto = new RegisterUserDto
+            var registerDto = new RegistrarUsuarioDto
             {
                 Username = "newuser",
                 Password = "password123"
             };
             var currentUser = "admin";
 
-            _mockRepository.Setup(r => r.GetByNombreAsync(registerDto.Username))
+            _mockRepository.Setup(r => r.LeerPorNombre(registerDto.Username))
                 .ReturnsAsync((UsuarioEntity?)null);
 
             UsuarioEntity? capturedEntity = null;
@@ -271,14 +271,14 @@ namespace KindoHub.Services.Tests.Services
         public async Task RegisterAsync_ShouldSetEsAdministradorToZero()
         {
             // Arrange
-            var registerDto = new RegisterUserDto
+            var registerDto = new RegistrarUsuarioDto
             {
                 Username = "newuser",
                 Password = "password123"
             };
             var currentUser = "admin";
 
-            _mockRepository.Setup(r => r.GetByNombreAsync(registerDto.Username))
+            _mockRepository.Setup(r => r.LeerPorNombre(registerDto.Username))
                 .ReturnsAsync((UsuarioEntity?)null);
 
             UsuarioEntity? capturedEntity = null;
@@ -298,14 +298,14 @@ namespace KindoHub.Services.Tests.Services
         public async Task RegisterAsync_WhenRepositoryFails_ShouldReturnError()
         {
             // Arrange
-            var registerDto = new RegisterUserDto
+            var registerDto = new RegistrarUsuarioDto
             {
                 Username = "newuser",
                 Password = "password123"
             };
             var currentUser = "admin";
 
-            _mockRepository.Setup(r => r.GetByNombreAsync(registerDto.Username))
+            _mockRepository.Setup(r => r.LeerPorNombre(registerDto.Username))
                 .ReturnsAsync((UsuarioEntity?)null);
 
             _mockRepository.Setup(r => r.CreateAsync(It.IsAny<UsuarioEntity>(), currentUser))
@@ -324,14 +324,14 @@ namespace KindoHub.Services.Tests.Services
         public async Task RegisterAsync_ShouldLogInformationOnStart()
         {
             // Arrange
-            var registerDto = new RegisterUserDto
+            var registerDto = new RegistrarUsuarioDto
             {
                 Username = "newuser",
                 Password = "password123"
             };
             var currentUser = "admin";
 
-            _mockRepository.Setup(r => r.GetByNombreAsync(registerDto.Username))
+            _mockRepository.Setup(r => r.LeerPorNombre(registerDto.Username))
                 .ReturnsAsync((UsuarioEntity?)null);
             _mockRepository.Setup(r => r.CreateAsync(It.IsAny<UsuarioEntity>(), currentUser))
                 .ReturnsAsync(CreateTestUsuarioEntity(registerDto.Username));
@@ -354,7 +354,7 @@ namespace KindoHub.Services.Tests.Services
         public async Task RegisterAsync_WhenUserExists_ShouldLogWarning()
         {
             // Arrange
-            var registerDto = new RegisterUserDto
+            var registerDto = new RegistrarUsuarioDto
             {
                 Username = "existinguser",
                 Password = "password123"
@@ -362,7 +362,7 @@ namespace KindoHub.Services.Tests.Services
             var currentUser = "admin";
 
             var existingUser = CreateTestUsuarioEntity(registerDto.Username);
-            _mockRepository.Setup(r => r.GetByNombreAsync(registerDto.Username))
+            _mockRepository.Setup(r => r.LeerPorNombre(registerDto.Username))
                 .ReturnsAsync(existingUser);
 
             // Act
@@ -383,14 +383,14 @@ namespace KindoHub.Services.Tests.Services
         public async Task RegisterAsync_OnSuccess_ShouldLogInformation()
         {
             // Arrange
-            var registerDto = new RegisterUserDto
+            var registerDto = new RegistrarUsuarioDto
             {
                 Username = "newuser",
                 Password = "password123"
             };
             var currentUser = "admin";
 
-            _mockRepository.Setup(r => r.GetByNombreAsync(registerDto.Username))
+            _mockRepository.Setup(r => r.LeerPorNombre(registerDto.Username))
                 .ReturnsAsync((UsuarioEntity?)null);
 
             var createdUser = CreateTestUsuarioEntity(registerDto.Username);
@@ -415,14 +415,14 @@ namespace KindoHub.Services.Tests.Services
         public async Task RegisterAsync_OnFailure_ShouldLogError()
         {
             // Arrange
-            var registerDto = new RegisterUserDto
+            var registerDto = new RegistrarUsuarioDto
             {
                 Username = "newuser",
                 Password = "password123"
             };
             var currentUser = "admin";
 
-            _mockRepository.Setup(r => r.GetByNombreAsync(registerDto.Username))
+            _mockRepository.Setup(r => r.LeerPorNombre(registerDto.Username))
                 .ReturnsAsync((UsuarioEntity?)null);
             _mockRepository.Setup(r => r.CreateAsync(It.IsAny<UsuarioEntity>(), currentUser))
                 .ReturnsAsync((UsuarioEntity?)null);
@@ -449,7 +449,7 @@ namespace KindoHub.Services.Tests.Services
         public async Task ChangePasswordAsync_WhenAdminAndValidData_ShouldChangePasswordSuccessfully()
         {
             // Arrange
-            var dto = new ChangePasswordDto
+            var dto = new CambiarContrasenaDto
             {
                 Username = "targetuser",
                 NewPassword = "newpass123",
@@ -461,9 +461,9 @@ namespace KindoHub.Services.Tests.Services
             var adminEntity = CreateTestUsuarioEntity(currentUser, isAdmin: 1);
             var targetEntity = CreateTestUsuarioEntity(dto.Username);
 
-            _mockRepository.Setup(r => r.GetByNombreAsync(currentUser))
+            _mockRepository.Setup(r => r.LeerPorNombre(currentUser))
                 .ReturnsAsync(adminEntity);
-            _mockRepository.Setup(r => r.GetByNombreAsync(dto.Username))
+            _mockRepository.Setup(r => r.LeerPorNombre(dto.Username))
                 .ReturnsAsync(targetEntity);
             _mockRepository.Setup(r => r.UpdatePasswordAsync(dto.Username, It.IsAny<string>(), dto.VersionFila, currentUser))
                 .ReturnsAsync(true);
@@ -481,7 +481,7 @@ namespace KindoHub.Services.Tests.Services
         public async Task ChangePasswordAsync_WhenCurrentUserIsNotAdmin_ShouldReturnFailure()
         {
             // Arrange
-            var dto = new ChangePasswordDto
+            var dto = new CambiarContrasenaDto
             {
                 Username = "targetuser",
                 NewPassword = "newpass123",
@@ -491,7 +491,7 @@ namespace KindoHub.Services.Tests.Services
             var currentUser = "normaluser";
 
             var normalUserEntity = CreateTestUsuarioEntity(currentUser, isAdmin: 0);
-            _mockRepository.Setup(r => r.GetByNombreAsync(currentUser))
+            _mockRepository.Setup(r => r.LeerPorNombre(currentUser))
                 .ReturnsAsync(normalUserEntity);
 
             // Act
@@ -507,7 +507,7 @@ namespace KindoHub.Services.Tests.Services
         public async Task ChangePasswordAsync_WhenCurrentUserDoesNotExist_ShouldReturnFailure()
         {
             // Arrange
-            var dto = new ChangePasswordDto
+            var dto = new CambiarContrasenaDto
             {
                 Username = "targetuser",
                 NewPassword = "newpass123",
@@ -516,7 +516,7 @@ namespace KindoHub.Services.Tests.Services
             };
             var currentUser = "nonexistent";
 
-            _mockRepository.Setup(r => r.GetByNombreAsync(currentUser))
+            _mockRepository.Setup(r => r.LeerPorNombre(currentUser))
                 .ReturnsAsync((UsuarioEntity?)null);
 
             // Act
@@ -532,7 +532,7 @@ namespace KindoHub.Services.Tests.Services
         public async Task ChangePasswordAsync_WhenTargetUserDoesNotExist_ShouldReturnFailure()
         {
             // Arrange
-            var dto = new ChangePasswordDto
+            var dto = new CambiarContrasenaDto
             {
                 Username = "nonexistent",
                 NewPassword = "newpass123",
@@ -542,9 +542,9 @@ namespace KindoHub.Services.Tests.Services
             var currentUser = "admin";
 
             var adminEntity = CreateTestUsuarioEntity(currentUser, isAdmin: 1);
-            _mockRepository.Setup(r => r.GetByNombreAsync(currentUser))
+            _mockRepository.Setup(r => r.LeerPorNombre(currentUser))
                 .ReturnsAsync(adminEntity);
-            _mockRepository.Setup(r => r.GetByNombreAsync(dto.Username))
+            _mockRepository.Setup(r => r.LeerPorNombre(dto.Username))
                 .ReturnsAsync((UsuarioEntity?)null);
 
             // Act
@@ -560,7 +560,7 @@ namespace KindoHub.Services.Tests.Services
         public async Task ChangePasswordAsync_WhenPasswordsDoNotMatch_ShouldReturnFailure()
         {
             // Arrange
-            var dto = new ChangePasswordDto
+            var dto = new CambiarContrasenaDto
             {
                 Username = "targetuser",
                 NewPassword = "newpass123",
@@ -572,9 +572,9 @@ namespace KindoHub.Services.Tests.Services
             var adminEntity = CreateTestUsuarioEntity(currentUser, isAdmin: 1);
             var targetEntity = CreateTestUsuarioEntity(dto.Username);
 
-            _mockRepository.Setup(r => r.GetByNombreAsync(currentUser))
+            _mockRepository.Setup(r => r.LeerPorNombre(currentUser))
                 .ReturnsAsync(adminEntity);
-            _mockRepository.Setup(r => r.GetByNombreAsync(dto.Username))
+            _mockRepository.Setup(r => r.LeerPorNombre(dto.Username))
                 .ReturnsAsync(targetEntity);
 
             // Act
@@ -590,7 +590,7 @@ namespace KindoHub.Services.Tests.Services
         public async Task ChangePasswordAsync_ShouldHashNewPasswordWithBCrypt()
         {
             // Arrange
-            var dto = new ChangePasswordDto
+            var dto = new CambiarContrasenaDto
             {
                 Username = "targetuser",
                 NewPassword = "newpass123",
@@ -602,9 +602,9 @@ namespace KindoHub.Services.Tests.Services
             var adminEntity = CreateTestUsuarioEntity(currentUser, isAdmin: 1);
             var targetEntity = CreateTestUsuarioEntity(dto.Username);
 
-            _mockRepository.Setup(r => r.GetByNombreAsync(currentUser))
+            _mockRepository.Setup(r => r.LeerPorNombre(currentUser))
                 .ReturnsAsync(adminEntity);
-            _mockRepository.Setup(r => r.GetByNombreAsync(dto.Username))
+            _mockRepository.Setup(r => r.LeerPorNombre(dto.Username))
                 .ReturnsAsync(targetEntity);
 
             string? capturedHash = null;
@@ -625,7 +625,7 @@ namespace KindoHub.Services.Tests.Services
         public async Task ChangePasswordAsync_WhenUpdateFails_ShouldReturnError()
         {
             // Arrange
-            var dto = new ChangePasswordDto
+            var dto = new CambiarContrasenaDto
             {
                 Username = "targetuser",
                 NewPassword = "newpass123",
@@ -637,9 +637,9 @@ namespace KindoHub.Services.Tests.Services
             var adminEntity = CreateTestUsuarioEntity(currentUser, isAdmin: 1);
             var targetEntity = CreateTestUsuarioEntity(dto.Username);
 
-            _mockRepository.Setup(r => r.GetByNombreAsync(currentUser))
+            _mockRepository.Setup(r => r.LeerPorNombre(currentUser))
                 .ReturnsAsync(adminEntity);
-            _mockRepository.Setup(r => r.GetByNombreAsync(dto.Username))
+            _mockRepository.Setup(r => r.LeerPorNombre(dto.Username))
                 .ReturnsAsync(targetEntity);
             _mockRepository.Setup(r => r.UpdatePasswordAsync(dto.Username, It.IsAny<string>(), dto.VersionFila, currentUser))
                 .ReturnsAsync(false);
@@ -661,7 +661,7 @@ namespace KindoHub.Services.Tests.Services
         public async Task DeleteUserAsync_WhenAdminAndValidData_ShouldDeleteSuccessfully()
         {
             // Arrange
-            var dto = new DeleteUserDto
+            var dto = new EliminarUsuarioDto
             {
                 Username = "userToDelete",
                 VersionFila = new byte[8]
@@ -671,11 +671,11 @@ namespace KindoHub.Services.Tests.Services
             var adminEntity = CreateTestUsuarioEntity(currentUser, isAdmin: 1);
             var targetEntity = CreateTestUsuarioEntity(dto.Username);
 
-            _mockRepository.Setup(r => r.GetByNombreAsync(currentUser))
+            _mockRepository.Setup(r => r.LeerPorNombre(currentUser))
                 .ReturnsAsync(adminEntity);
-            _mockRepository.Setup(r => r.GetByNombreAsync(dto.Username))
+            _mockRepository.Setup(r => r.LeerPorNombre(dto.Username))
                 .ReturnsAsync(targetEntity);
-            _mockRepository.Setup(r => r.UpdateAdminStatusAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<byte[]>(), It.IsAny<string>()))
+            _mockRepository.Setup(r => r.ActualizarEstadoAdmin(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<byte[]>(), It.IsAny<string>()))
                 .ReturnsAsync(true);
             _mockRepository.Setup(r => r.DeleteAsync(dto.Username, dto.VersionFila))
                 .ReturnsAsync(true);
@@ -692,7 +692,7 @@ namespace KindoHub.Services.Tests.Services
         public async Task DeleteUserAsync_WhenCurrentUserIsNotAdmin_ShouldReturnFailure()
         {
             // Arrange
-            var dto = new DeleteUserDto
+            var dto = new EliminarUsuarioDto
             {
                 Username = "userToDelete",
                 VersionFila = new byte[8]
@@ -700,7 +700,7 @@ namespace KindoHub.Services.Tests.Services
             var currentUser = "normaluser";
 
             var normalUserEntity = CreateTestUsuarioEntity(currentUser, isAdmin: 0);
-            _mockRepository.Setup(r => r.GetByNombreAsync(currentUser))
+            _mockRepository.Setup(r => r.LeerPorNombre(currentUser))
                 .ReturnsAsync(normalUserEntity);
 
             // Act
@@ -715,14 +715,14 @@ namespace KindoHub.Services.Tests.Services
         public async Task DeleteUserAsync_WhenCurrentUserDoesNotExist_ShouldReturnFailure()
         {
             // Arrange
-            var dto = new DeleteUserDto
+            var dto = new EliminarUsuarioDto
             {
                 Username = "userToDelete",
                 VersionFila = new byte[8]
             };
             var currentUser = "nonexistent";
 
-            _mockRepository.Setup(r => r.GetByNombreAsync(currentUser))
+            _mockRepository.Setup(r => r.LeerPorNombre(currentUser))
                 .ReturnsAsync((UsuarioEntity?)null);
 
             // Act
@@ -737,7 +737,7 @@ namespace KindoHub.Services.Tests.Services
         public async Task DeleteUserAsync_WhenTargetUserDoesNotExist_ShouldReturnFailure()
         {
             // Arrange
-            var dto = new DeleteUserDto
+            var dto = new EliminarUsuarioDto
             {
                 Username = "nonexistent",
                 VersionFila = new byte[8]
@@ -745,9 +745,9 @@ namespace KindoHub.Services.Tests.Services
             var currentUser = "admin";
 
             var adminEntity = CreateTestUsuarioEntity(currentUser, isAdmin: 1);
-            _mockRepository.Setup(r => r.GetByNombreAsync(currentUser))
+            _mockRepository.Setup(r => r.LeerPorNombre(currentUser))
                 .ReturnsAsync(adminEntity);
-            _mockRepository.Setup(r => r.GetByNombreAsync(dto.Username))
+            _mockRepository.Setup(r => r.LeerPorNombre(dto.Username))
                 .ReturnsAsync((UsuarioEntity?)null);
 
             // Act
@@ -762,7 +762,7 @@ namespace KindoHub.Services.Tests.Services
         public async Task DeleteUserAsync_WhenUserTriesToDeleteHimself_ShouldReturnFailure()
         {
             // Arrange
-            var dto = new DeleteUserDto
+            var dto = new EliminarUsuarioDto
             {
                 Username = "admin",
                 VersionFila = new byte[8]
@@ -770,7 +770,7 @@ namespace KindoHub.Services.Tests.Services
             var currentUser = "admin";
 
             var adminEntity = CreateTestUsuarioEntity(currentUser, isAdmin: 1);
-            _mockRepository.Setup(r => r.GetByNombreAsync(currentUser))
+            _mockRepository.Setup(r => r.LeerPorNombre(currentUser))
                 .ReturnsAsync(adminEntity);
 
             // Act
@@ -785,7 +785,7 @@ namespace KindoHub.Services.Tests.Services
         public async Task DeleteUserAsync_WhenDeleteFails_ShouldReturnError()
         {
             // Arrange
-            var dto = new DeleteUserDto
+            var dto = new EliminarUsuarioDto
             {
                 Username = "userToDelete",
                 VersionFila = new byte[8]
@@ -795,11 +795,11 @@ namespace KindoHub.Services.Tests.Services
             var adminEntity = CreateTestUsuarioEntity(currentUser, isAdmin: 1);
             var targetEntity = CreateTestUsuarioEntity(dto.Username);
 
-            _mockRepository.Setup(r => r.GetByNombreAsync(currentUser))
+            _mockRepository.Setup(r => r.LeerPorNombre(currentUser))
                 .ReturnsAsync(adminEntity);
-            _mockRepository.Setup(r => r.GetByNombreAsync(dto.Username))
+            _mockRepository.Setup(r => r.LeerPorNombre(dto.Username))
                 .ReturnsAsync(targetEntity);
-            _mockRepository.Setup(r => r.UpdateAdminStatusAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<byte[]>(), It.IsAny<string>()))
+            _mockRepository.Setup(r => r.ActualizarEstadoAdmin(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<byte[]>(), It.IsAny<string>()))
                 .ReturnsAsync(true);
             _mockRepository.Setup(r => r.DeleteAsync(dto.Username, dto.VersionFila))
                 .ReturnsAsync(false);
@@ -816,7 +816,7 @@ namespace KindoHub.Services.Tests.Services
         public async Task DeleteUserAsync_ShouldCallUpdateAdminStatusAsync()
         {
             // Arrange
-            var dto = new DeleteUserDto
+            var dto = new EliminarUsuarioDto
             {
                 Username = "userToDelete",
                 VersionFila = new byte[8]
@@ -826,11 +826,11 @@ namespace KindoHub.Services.Tests.Services
             var adminEntity = CreateTestUsuarioEntity(currentUser, isAdmin: 1);
             var targetEntity = CreateTestUsuarioEntity(dto.Username);
 
-            _mockRepository.Setup(r => r.GetByNombreAsync(currentUser))
+            _mockRepository.Setup(r => r.LeerPorNombre(currentUser))
                 .ReturnsAsync(adminEntity);
-            _mockRepository.Setup(r => r.GetByNombreAsync(dto.Username))
+            _mockRepository.Setup(r => r.LeerPorNombre(dto.Username))
                 .ReturnsAsync(targetEntity);
-            _mockRepository.Setup(r => r.UpdateAdminStatusAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<byte[]>(), It.IsAny<string>()))
+            _mockRepository.Setup(r => r.ActualizarEstadoAdmin(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<byte[]>(), It.IsAny<string>()))
                 .ReturnsAsync(true);
             _mockRepository.Setup(r => r.DeleteAsync(dto.Username, dto.VersionFila))
                 .ReturnsAsync(true);
@@ -840,7 +840,7 @@ namespace KindoHub.Services.Tests.Services
 
             // Assert - Verificar el BUG documentado
             _mockRepository.Verify(
-                r => r.UpdateAdminStatusAsync(
+                r => r.ActualizarEstadoAdmin(
                     adminEntity.Nombre,
                     adminEntity.EsAdministrador,
                     adminEntity.VersionFila,
@@ -856,7 +856,7 @@ namespace KindoHub.Services.Tests.Services
         public async Task ChangeAdminStatusAsync_WhenPromotingToAdmin_ShouldSucceed()
         {
             // Arrange
-            var dto = new ChangeAdminStatusDto
+            var dto = new CambiarEstadoAdminDto
             {
                 Username = "targetuser",
                 IsAdmin = 1,
@@ -868,12 +868,12 @@ namespace KindoHub.Services.Tests.Services
             var targetEntity = CreateTestUsuarioEntity(dto.Username, isAdmin: 0);
             var updatedTarget = CreateTestUsuarioEntity(dto.Username, isAdmin: 1);
 
-            _mockRepository.Setup(r => r.GetByNombreAsync(currentUser))
+            _mockRepository.Setup(r => r.LeerPorNombre(currentUser))
                 .ReturnsAsync(adminEntity);
-            _mockRepository.SetupSequence(r => r.GetByNombreAsync(dto.Username))
+            _mockRepository.SetupSequence(r => r.LeerPorNombre(dto.Username))
                 .ReturnsAsync(targetEntity)
                 .ReturnsAsync(updatedTarget);
-            _mockRepository.Setup(r => r.UpdateAdminStatusAsync(dto.Username, dto.IsAdmin, dto.VersionFila, currentUser))
+            _mockRepository.Setup(r => r.ActualizarEstadoAdmin(dto.Username, dto.IsAdmin, dto.VersionFila, currentUser))
                 .ReturnsAsync(true);
 
             // Act
@@ -890,7 +890,7 @@ namespace KindoHub.Services.Tests.Services
         public async Task ChangeAdminStatusAsync_WhenDemotingFromAdmin_ShouldSucceed()
         {
             // Arrange
-            var dto = new ChangeAdminStatusDto
+            var dto = new CambiarEstadoAdminDto
             {
                 Username = "targetuser",
                 IsAdmin = 0,
@@ -902,12 +902,12 @@ namespace KindoHub.Services.Tests.Services
             var targetEntity = CreateTestUsuarioEntity(dto.Username, isAdmin: 1);
             var updatedTarget = CreateTestUsuarioEntity(dto.Username, isAdmin: 0);
 
-            _mockRepository.Setup(r => r.GetByNombreAsync(currentUser))
+            _mockRepository.Setup(r => r.LeerPorNombre(currentUser))
                 .ReturnsAsync(adminEntity);
-            _mockRepository.SetupSequence(r => r.GetByNombreAsync(dto.Username))
+            _mockRepository.SetupSequence(r => r.LeerPorNombre(dto.Username))
                 .ReturnsAsync(targetEntity)
                 .ReturnsAsync(updatedTarget);
-            _mockRepository.Setup(r => r.UpdateAdminStatusAsync(dto.Username, dto.IsAdmin, dto.VersionFila, currentUser))
+            _mockRepository.Setup(r => r.ActualizarEstadoAdmin(dto.Username, dto.IsAdmin, dto.VersionFila, currentUser))
                 .ReturnsAsync(true);
 
             // Act
@@ -922,7 +922,7 @@ namespace KindoHub.Services.Tests.Services
         public async Task ChangeAdminStatusAsync_WhenCurrentUserIsNotAdmin_ShouldReturnFailure()
         {
             // Arrange
-            var dto = new ChangeAdminStatusDto
+            var dto = new CambiarEstadoAdminDto
             {
                 Username = "targetuser",
                 IsAdmin = 1,
@@ -931,7 +931,7 @@ namespace KindoHub.Services.Tests.Services
             var currentUser = "normaluser";
 
             var normalUserEntity = CreateTestUsuarioEntity(currentUser, isAdmin: 0);
-            _mockRepository.Setup(r => r.GetByNombreAsync(currentUser))
+            _mockRepository.Setup(r => r.LeerPorNombre(currentUser))
                 .ReturnsAsync(normalUserEntity);
 
             // Act
@@ -947,7 +947,7 @@ namespace KindoHub.Services.Tests.Services
         public async Task ChangeAdminStatusAsync_WhenCurrentUserDoesNotExist_ShouldReturnFailure()
         {
             // Arrange
-            var dto = new ChangeAdminStatusDto
+            var dto = new CambiarEstadoAdminDto
             {
                 Username = "targetuser",
                 IsAdmin = 1,
@@ -955,7 +955,7 @@ namespace KindoHub.Services.Tests.Services
             };
             var currentUser = "nonexistent";
 
-            _mockRepository.Setup(r => r.GetByNombreAsync(currentUser))
+            _mockRepository.Setup(r => r.LeerPorNombre(currentUser))
                 .ReturnsAsync((UsuarioEntity?)null);
 
             // Act
@@ -971,7 +971,7 @@ namespace KindoHub.Services.Tests.Services
         public async Task ChangeAdminStatusAsync_WhenTargetUserDoesNotExist_ShouldReturnFailure()
         {
             // Arrange
-            var dto = new ChangeAdminStatusDto
+            var dto = new CambiarEstadoAdminDto
             {
                 Username = "nonexistent",
                 IsAdmin = 1,
@@ -980,9 +980,9 @@ namespace KindoHub.Services.Tests.Services
             var currentUser = "admin";
 
             var adminEntity = CreateTestUsuarioEntity(currentUser, isAdmin: 1);
-            _mockRepository.Setup(r => r.GetByNombreAsync(currentUser))
+            _mockRepository.Setup(r => r.LeerPorNombre(currentUser))
                 .ReturnsAsync(adminEntity);
-            _mockRepository.Setup(r => r.GetByNombreAsync(dto.Username))
+            _mockRepository.Setup(r => r.LeerPorNombre(dto.Username))
                 .ReturnsAsync((UsuarioEntity?)null);
 
             // Act
@@ -998,7 +998,7 @@ namespace KindoHub.Services.Tests.Services
         public async Task ChangeAdminStatusAsync_WhenUserTriesToDemoteHimself_ShouldReturnFailure()
         {
             // Arrange
-            var dto = new ChangeAdminStatusDto
+            var dto = new CambiarEstadoAdminDto
             {
                 Username = "admin",
                 IsAdmin = 0,
@@ -1007,9 +1007,9 @@ namespace KindoHub.Services.Tests.Services
             var currentUser = "admin";
 
             var adminEntity = CreateTestUsuarioEntity(currentUser, isAdmin: 1);
-            _mockRepository.Setup(r => r.GetByNombreAsync(currentUser))
+            _mockRepository.Setup(r => r.LeerPorNombre(currentUser))
                 .ReturnsAsync(adminEntity);
-            _mockRepository.Setup(r => r.GetByNombreAsync(dto.Username))
+            _mockRepository.Setup(r => r.LeerPorNombre(dto.Username))
                 .ReturnsAsync(adminEntity);
 
             // Act
@@ -1025,7 +1025,7 @@ namespace KindoHub.Services.Tests.Services
         public async Task ChangeAdminStatusAsync_WhenUserPromotesHimself_ShouldSucceed()
         {
             // Arrange
-            var dto = new ChangeAdminStatusDto
+            var dto = new CambiarEstadoAdminDto
             {
                 Username = "admin",
                 IsAdmin = 1,
@@ -1034,11 +1034,11 @@ namespace KindoHub.Services.Tests.Services
             var currentUser = "admin";
 
             var adminEntity = CreateTestUsuarioEntity(currentUser, isAdmin: 1);
-            _mockRepository.Setup(r => r.GetByNombreAsync(currentUser))
+            _mockRepository.Setup(r => r.LeerPorNombre(currentUser))
                 .ReturnsAsync(adminEntity);
-            _mockRepository.Setup(r => r.GetByNombreAsync(dto.Username))
+            _mockRepository.Setup(r => r.LeerPorNombre(dto.Username))
                 .ReturnsAsync(adminEntity);
-            _mockRepository.Setup(r => r.UpdateAdminStatusAsync(dto.Username, dto.IsAdmin, dto.VersionFila, currentUser))
+            _mockRepository.Setup(r => r.ActualizarEstadoAdmin(dto.Username, dto.IsAdmin, dto.VersionFila, currentUser))
                 .ReturnsAsync(true);
 
             // Act
@@ -1052,7 +1052,7 @@ namespace KindoHub.Services.Tests.Services
         public async Task ChangeAdminStatusAsync_WhenUpdateFails_ShouldReturnError()
         {
             // Arrange
-            var dto = new ChangeAdminStatusDto
+            var dto = new CambiarEstadoAdminDto
             {
                 Username = "targetuser",
                 IsAdmin = 1,
@@ -1063,11 +1063,11 @@ namespace KindoHub.Services.Tests.Services
             var adminEntity = CreateTestUsuarioEntity(currentUser, isAdmin: 1);
             var targetEntity = CreateTestUsuarioEntity(dto.Username);
 
-            _mockRepository.Setup(r => r.GetByNombreAsync(currentUser))
+            _mockRepository.Setup(r => r.LeerPorNombre(currentUser))
                 .ReturnsAsync(adminEntity);
-            _mockRepository.Setup(r => r.GetByNombreAsync(dto.Username))
+            _mockRepository.Setup(r => r.LeerPorNombre(dto.Username))
                 .ReturnsAsync(targetEntity);
-            _mockRepository.Setup(r => r.UpdateAdminStatusAsync(dto.Username, dto.IsAdmin, dto.VersionFila, currentUser))
+            _mockRepository.Setup(r => r.ActualizarEstadoAdmin(dto.Username, dto.IsAdmin, dto.VersionFila, currentUser))
                 .ReturnsAsync(false);
 
             // Act
@@ -1083,7 +1083,7 @@ namespace KindoHub.Services.Tests.Services
         public async Task ChangeAdminStatusAsync_WhenGetUpdatedUserFails_ShouldReturnError()
         {
             // Arrange
-            var dto = new ChangeAdminStatusDto
+            var dto = new CambiarEstadoAdminDto
             {
                 Username = "targetuser",
                 IsAdmin = 1,
@@ -1094,12 +1094,12 @@ namespace KindoHub.Services.Tests.Services
             var adminEntity = CreateTestUsuarioEntity(currentUser, isAdmin: 1);
             var targetEntity = CreateTestUsuarioEntity(dto.Username);
 
-            _mockRepository.Setup(r => r.GetByNombreAsync(currentUser))
+            _mockRepository.Setup(r => r.LeerPorNombre(currentUser))
                 .ReturnsAsync(adminEntity);
-            _mockRepository.SetupSequence(r => r.GetByNombreAsync(dto.Username))
+            _mockRepository.SetupSequence(r => r.LeerPorNombre(dto.Username))
                 .ReturnsAsync(targetEntity)
                 .ReturnsAsync((UsuarioEntity?)null);
-            _mockRepository.Setup(r => r.UpdateAdminStatusAsync(dto.Username, dto.IsAdmin, dto.VersionFila, currentUser))
+            _mockRepository.Setup(r => r.ActualizarEstadoAdmin(dto.Username, dto.IsAdmin, dto.VersionFila, currentUser))
                 .ReturnsAsync(true);
 
             // Act
@@ -1119,7 +1119,7 @@ namespace KindoHub.Services.Tests.Services
         public async Task ChangeActivStatusAsync_WhenActivatingUser_ShouldSucceed()
         {
             // Arrange
-            var dto = new ChangeActivStatusDto
+            var dto = new CambiarEstadoActivoDto
             {
                 Username = "targetuser",
                 IsActive = 1,
@@ -1131,12 +1131,12 @@ namespace KindoHub.Services.Tests.Services
             var targetEntity = CreateTestUsuarioEntity(dto.Username, isActive: 0);
             var updatedTarget = CreateTestUsuarioEntity(dto.Username, isActive: 1);
 
-            _mockRepository.Setup(r => r.GetByNombreAsync(currentUser))
+            _mockRepository.Setup(r => r.LeerPorNombre(currentUser))
                 .ReturnsAsync(adminEntity);
-            _mockRepository.SetupSequence(r => r.GetByNombreAsync(dto.Username))
+            _mockRepository.SetupSequence(r => r.LeerPorNombre(dto.Username))
                 .ReturnsAsync(targetEntity)
                 .ReturnsAsync(updatedTarget);
-            _mockRepository.Setup(r => r.UpdateActivStatusAsync(dto.Username, dto.IsActive, dto.VersionFila, currentUser))
+            _mockRepository.Setup(r => r.ActualizarEstadoActivo(dto.Username, dto.IsActive, dto.VersionFila, currentUser))
                 .ReturnsAsync(true);
 
             // Act
@@ -1153,7 +1153,7 @@ namespace KindoHub.Services.Tests.Services
         public async Task ChangeActivStatusAsync_WhenDeactivatingUser_ShouldSucceed()
         {
             // Arrange
-            var dto = new ChangeActivStatusDto
+            var dto = new CambiarEstadoActivoDto
             {
                 Username = "targetuser",
                 IsActive = 0,
@@ -1165,12 +1165,12 @@ namespace KindoHub.Services.Tests.Services
             var targetEntity = CreateTestUsuarioEntity(dto.Username, isActive: 1);
             var updatedTarget = CreateTestUsuarioEntity(dto.Username, isActive: 0);
 
-            _mockRepository.Setup(r => r.GetByNombreAsync(currentUser))
+            _mockRepository.Setup(r => r.LeerPorNombre(currentUser))
                 .ReturnsAsync(adminEntity);
-            _mockRepository.SetupSequence(r => r.GetByNombreAsync(dto.Username))
+            _mockRepository.SetupSequence(r => r.LeerPorNombre(dto.Username))
                 .ReturnsAsync(targetEntity)
                 .ReturnsAsync(updatedTarget);
-            _mockRepository.Setup(r => r.UpdateActivStatusAsync(dto.Username, dto.IsActive, dto.VersionFila, currentUser))
+            _mockRepository.Setup(r => r.ActualizarEstadoActivo(dto.Username, dto.IsActive, dto.VersionFila, currentUser))
                 .ReturnsAsync(true);
 
             // Act
@@ -1185,7 +1185,7 @@ namespace KindoHub.Services.Tests.Services
         public async Task ChangeActivStatusAsync_WhenCurrentUserIsNotAdmin_ShouldReturnFailure()
         {
             // Arrange
-            var dto = new ChangeActivStatusDto
+            var dto = new CambiarEstadoActivoDto
             {
                 Username = "targetuser",
                 IsActive = 1,
@@ -1194,7 +1194,7 @@ namespace KindoHub.Services.Tests.Services
             var currentUser = "normaluser";
 
             var normalUserEntity = CreateTestUsuarioEntity(currentUser, isAdmin: 0);
-            _mockRepository.Setup(r => r.GetByNombreAsync(currentUser))
+            _mockRepository.Setup(r => r.LeerPorNombre(currentUser))
                 .ReturnsAsync(normalUserEntity);
 
             // Act
@@ -1210,7 +1210,7 @@ namespace KindoHub.Services.Tests.Services
         public async Task ChangeActivStatusAsync_WhenCurrentUserDoesNotExist_ShouldReturnFailure()
         {
             // Arrange
-            var dto = new ChangeActivStatusDto
+            var dto = new CambiarEstadoActivoDto
             {
                 Username = "targetuser",
                 IsActive = 1,
@@ -1218,7 +1218,7 @@ namespace KindoHub.Services.Tests.Services
             };
             var currentUser = "nonexistent";
 
-            _mockRepository.Setup(r => r.GetByNombreAsync(currentUser))
+            _mockRepository.Setup(r => r.LeerPorNombre(currentUser))
                 .ReturnsAsync((UsuarioEntity?)null);
 
             // Act
@@ -1234,7 +1234,7 @@ namespace KindoHub.Services.Tests.Services
         public async Task ChangeActivStatusAsync_WhenTargetUserDoesNotExist_ShouldReturnFailure()
         {
             // Arrange
-            var dto = new ChangeActivStatusDto
+            var dto = new CambiarEstadoActivoDto
             {
                 Username = "nonexistent",
                 IsActive = 1,
@@ -1243,9 +1243,9 @@ namespace KindoHub.Services.Tests.Services
             var currentUser = "admin";
 
             var adminEntity = CreateTestUsuarioEntity(currentUser, isAdmin: 1);
-            _mockRepository.Setup(r => r.GetByNombreAsync(currentUser))
+            _mockRepository.Setup(r => r.LeerPorNombre(currentUser))
                 .ReturnsAsync(adminEntity);
-            _mockRepository.Setup(r => r.GetByNombreAsync(dto.Username))
+            _mockRepository.Setup(r => r.LeerPorNombre(dto.Username))
                 .ReturnsAsync((UsuarioEntity?)null);
 
             // Act
@@ -1261,7 +1261,7 @@ namespace KindoHub.Services.Tests.Services
         public async Task ChangeActivStatusAsync_WhenUpdateFails_ShouldReturnError()
         {
             // Arrange
-            var dto = new ChangeActivStatusDto
+            var dto = new CambiarEstadoActivoDto
             {
                 Username = "targetuser",
                 IsActive = 1,
@@ -1272,11 +1272,11 @@ namespace KindoHub.Services.Tests.Services
             var adminEntity = CreateTestUsuarioEntity(currentUser, isAdmin: 1);
             var targetEntity = CreateTestUsuarioEntity(dto.Username);
 
-            _mockRepository.Setup(r => r.GetByNombreAsync(currentUser))
+            _mockRepository.Setup(r => r.LeerPorNombre(currentUser))
                 .ReturnsAsync(adminEntity);
-            _mockRepository.Setup(r => r.GetByNombreAsync(dto.Username))
+            _mockRepository.Setup(r => r.LeerPorNombre(dto.Username))
                 .ReturnsAsync(targetEntity);
-            _mockRepository.Setup(r => r.UpdateActivStatusAsync(dto.Username, dto.IsActive, dto.VersionFila, currentUser))
+            _mockRepository.Setup(r => r.ActualizarEstadoActivo(dto.Username, dto.IsActive, dto.VersionFila, currentUser))
                 .ReturnsAsync(false);
 
             // Act
@@ -1292,7 +1292,7 @@ namespace KindoHub.Services.Tests.Services
         public async Task ChangeActivStatusAsync_WhenGetUpdatedUserFails_ShouldReturnError()
         {
             // Arrange
-            var dto = new ChangeActivStatusDto
+            var dto = new CambiarEstadoActivoDto
             {
                 Username = "targetuser",
                 IsActive = 1,
@@ -1303,12 +1303,12 @@ namespace KindoHub.Services.Tests.Services
             var adminEntity = CreateTestUsuarioEntity(currentUser, isAdmin: 1);
             var targetEntity = CreateTestUsuarioEntity(dto.Username);
 
-            _mockRepository.Setup(r => r.GetByNombreAsync(currentUser))
+            _mockRepository.Setup(r => r.LeerPorNombre(currentUser))
                 .ReturnsAsync(adminEntity);
-            _mockRepository.SetupSequence(r => r.GetByNombreAsync(dto.Username))
+            _mockRepository.SetupSequence(r => r.LeerPorNombre(dto.Username))
                 .ReturnsAsync(targetEntity)
                 .ReturnsAsync((UsuarioEntity?)null);
-            _mockRepository.Setup(r => r.UpdateActivStatusAsync(dto.Username, dto.IsActive, dto.VersionFila, currentUser))
+            _mockRepository.Setup(r => r.ActualizarEstadoActivo(dto.Username, dto.IsActive, dto.VersionFila, currentUser))
                 .ReturnsAsync(true);
 
             // Act
@@ -1328,7 +1328,7 @@ namespace KindoHub.Services.Tests.Services
         public async Task ChangeRolStatusAsync_WithValidData_ShouldSucceed()
         {
             // Arrange
-            var dto = new ChangeUserRoleDto
+            var dto = new CambiarRolUsuarioDto
             {
                 Username = "targetuser",
                 GestionFamilias = 1,
@@ -1347,12 +1347,12 @@ namespace KindoHub.Services.Tests.Services
             updatedTarget.GestionGastos = 1;
             updatedTarget.ConsultaGastos = 1;
 
-            _mockRepository.Setup(r => r.GetByNombreAsync(currentUser))
+            _mockRepository.Setup(r => r.LeerPorNombre(currentUser))
                 .ReturnsAsync(adminEntity);
-            _mockRepository.SetupSequence(r => r.GetByNombreAsync(dto.Username))
+            _mockRepository.SetupSequence(r => r.LeerPorNombre(dto.Username))
                 .ReturnsAsync(targetEntity)
                 .ReturnsAsync(updatedTarget);
-            _mockRepository.Setup(r => r.UpdateRolStatusAsync(
+            _mockRepository.Setup(r => r.ActualizarEstadoRol(
                     dto.Username, dto.GestionFamilias, dto.ConsultaFamilias,
                     dto.GestionGastos, dto.ConsultaGastos, dto.VersionFila, currentUser))
                 .ReturnsAsync(true);
@@ -1370,7 +1370,7 @@ namespace KindoHub.Services.Tests.Services
         public async Task ChangeRolStatusAsync_WhenCurrentUserIsNotAdmin_ShouldReturnFailure()
         {
             // Arrange
-            var dto = new ChangeUserRoleDto
+            var dto = new CambiarRolUsuarioDto
             {
                 Username = "targetuser",
                 GestionFamilias = 1,
@@ -1382,7 +1382,7 @@ namespace KindoHub.Services.Tests.Services
             var currentUser = "normaluser";
 
             var normalUserEntity = CreateTestUsuarioEntity(currentUser, isAdmin: 0);
-            _mockRepository.Setup(r => r.GetByNombreAsync(currentUser))
+            _mockRepository.Setup(r => r.LeerPorNombre(currentUser))
                 .ReturnsAsync(normalUserEntity);
 
             // Act
@@ -1398,7 +1398,7 @@ namespace KindoHub.Services.Tests.Services
         public async Task ChangeRolStatusAsync_WhenCurrentUserDoesNotExist_ShouldReturnFailure()
         {
             // Arrange
-            var dto = new ChangeUserRoleDto
+            var dto = new CambiarRolUsuarioDto
             {
                 Username = "targetuser",
                 GestionFamilias = 1,
@@ -1409,7 +1409,7 @@ namespace KindoHub.Services.Tests.Services
             };
             var currentUser = "nonexistent";
 
-            _mockRepository.Setup(r => r.GetByNombreAsync(currentUser))
+            _mockRepository.Setup(r => r.LeerPorNombre(currentUser))
                 .ReturnsAsync((UsuarioEntity?)null);
 
             // Act
@@ -1425,7 +1425,7 @@ namespace KindoHub.Services.Tests.Services
         public async Task ChangeRolStatusAsync_WhenTargetUserDoesNotExist_ShouldReturnFailure()
         {
             // Arrange
-            var dto = new ChangeUserRoleDto
+            var dto = new CambiarRolUsuarioDto
             {
                 Username = "nonexistent",
                 GestionFamilias = 1,
@@ -1437,9 +1437,9 @@ namespace KindoHub.Services.Tests.Services
             var currentUser = "admin";
 
             var adminEntity = CreateTestUsuarioEntity(currentUser, isAdmin: 1);
-            _mockRepository.Setup(r => r.GetByNombreAsync(currentUser))
+            _mockRepository.Setup(r => r.LeerPorNombre(currentUser))
                 .ReturnsAsync(adminEntity);
-            _mockRepository.Setup(r => r.GetByNombreAsync(dto.Username))
+            _mockRepository.Setup(r => r.LeerPorNombre(dto.Username))
                 .ReturnsAsync((UsuarioEntity?)null);
 
             // Act
@@ -1455,7 +1455,7 @@ namespace KindoHub.Services.Tests.Services
         public async Task ChangeRolStatusAsync_WhenEnablingAllPermissions_ShouldSucceed()
         {
             // Arrange
-            var dto = new ChangeUserRoleDto
+            var dto = new CambiarRolUsuarioDto
             {
                 Username = "targetuser",
                 GestionFamilias = 1,
@@ -1474,12 +1474,12 @@ namespace KindoHub.Services.Tests.Services
             updatedTarget.GestionGastos = 1;
             updatedTarget.ConsultaGastos = 1;
 
-            _mockRepository.Setup(r => r.GetByNombreAsync(currentUser))
+            _mockRepository.Setup(r => r.LeerPorNombre(currentUser))
                 .ReturnsAsync(adminEntity);
-            _mockRepository.SetupSequence(r => r.GetByNombreAsync(dto.Username))
+            _mockRepository.SetupSequence(r => r.LeerPorNombre(dto.Username))
                 .ReturnsAsync(targetEntity)
                 .ReturnsAsync(updatedTarget);
-            _mockRepository.Setup(r => r.UpdateRolStatusAsync(
+            _mockRepository.Setup(r => r.ActualizarEstadoRol(
                     dto.Username, 1, 1, 1, 1, dto.VersionFila, currentUser))
                 .ReturnsAsync(true);
 
@@ -1498,7 +1498,7 @@ namespace KindoHub.Services.Tests.Services
         public async Task ChangeRolStatusAsync_WhenDisablingAllPermissions_ShouldSucceed()
         {
             // Arrange
-            var dto = new ChangeUserRoleDto
+            var dto = new CambiarRolUsuarioDto
             {
                 Username = "targetuser",
                 GestionFamilias = 0,
@@ -1513,12 +1513,12 @@ namespace KindoHub.Services.Tests.Services
             var targetEntity = CreateTestUsuarioEntity(dto.Username);
             var updatedTarget = CreateTestUsuarioEntity(dto.Username);
 
-            _mockRepository.Setup(r => r.GetByNombreAsync(currentUser))
+            _mockRepository.Setup(r => r.LeerPorNombre(currentUser))
                 .ReturnsAsync(adminEntity);
-            _mockRepository.SetupSequence(r => r.GetByNombreAsync(dto.Username))
+            _mockRepository.SetupSequence(r => r.LeerPorNombre(dto.Username))
                 .ReturnsAsync(targetEntity)
                 .ReturnsAsync(updatedTarget);
-            _mockRepository.Setup(r => r.UpdateRolStatusAsync(
+            _mockRepository.Setup(r => r.ActualizarEstadoRol(
                     dto.Username, 0, 0, 0, 0, dto.VersionFila, currentUser))
                 .ReturnsAsync(true);
 
@@ -1537,7 +1537,7 @@ namespace KindoHub.Services.Tests.Services
         public async Task ChangeRolStatusAsync_WhenUpdateFails_ShouldReturnError()
         {
             // Arrange
-            var dto = new ChangeUserRoleDto
+            var dto = new CambiarRolUsuarioDto
             {
                 Username = "targetuser",
                 GestionFamilias = 1,
@@ -1551,11 +1551,11 @@ namespace KindoHub.Services.Tests.Services
             var adminEntity = CreateTestUsuarioEntity(currentUser, isAdmin: 1);
             var targetEntity = CreateTestUsuarioEntity(dto.Username);
 
-            _mockRepository.Setup(r => r.GetByNombreAsync(currentUser))
+            _mockRepository.Setup(r => r.LeerPorNombre(currentUser))
                 .ReturnsAsync(adminEntity);
-            _mockRepository.Setup(r => r.GetByNombreAsync(dto.Username))
+            _mockRepository.Setup(r => r.LeerPorNombre(dto.Username))
                 .ReturnsAsync(targetEntity);
-            _mockRepository.Setup(r => r.UpdateRolStatusAsync(
+            _mockRepository.Setup(r => r.ActualizarEstadoRol(
                     dto.Username, dto.GestionFamilias, dto.ConsultaFamilias,
                     dto.GestionGastos, dto.ConsultaGastos, dto.VersionFila, currentUser))
                 .ReturnsAsync(false);
@@ -1573,7 +1573,7 @@ namespace KindoHub.Services.Tests.Services
         public async Task ChangeRolStatusAsync_WhenGetUpdatedUserFails_ShouldReturnError()
         {
             // Arrange
-            var dto = new ChangeUserRoleDto
+            var dto = new CambiarRolUsuarioDto
             {
                 Username = "targetuser",
                 GestionFamilias = 1,
@@ -1587,12 +1587,12 @@ namespace KindoHub.Services.Tests.Services
             var adminEntity = CreateTestUsuarioEntity(currentUser, isAdmin: 1);
             var targetEntity = CreateTestUsuarioEntity(dto.Username);
 
-            _mockRepository.Setup(r => r.GetByNombreAsync(currentUser))
+            _mockRepository.Setup(r => r.LeerPorNombre(currentUser))
                 .ReturnsAsync(adminEntity);
-            _mockRepository.SetupSequence(r => r.GetByNombreAsync(dto.Username))
+            _mockRepository.SetupSequence(r => r.LeerPorNombre(dto.Username))
                 .ReturnsAsync(targetEntity)
                 .ReturnsAsync((UsuarioEntity?)null);
-            _mockRepository.Setup(r => r.UpdateRolStatusAsync(
+            _mockRepository.Setup(r => r.ActualizarEstadoRol(
                     dto.Username, dto.GestionFamilias, dto.ConsultaFamilias,
                     dto.GestionGastos, dto.ConsultaGastos, dto.VersionFila, currentUser))
                 .ReturnsAsync(true);

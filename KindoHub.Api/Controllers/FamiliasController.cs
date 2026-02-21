@@ -21,7 +21,7 @@ namespace KindoHub.Api.Controllers
 
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> LeerFamilia(int id)
+        public async Task<IActionResult> LeerPorId(int id)
         {
             // 400 - Validación de username
             if (id<=0)
@@ -86,7 +86,7 @@ namespace KindoHub.Api.Controllers
             }
         }
         [HttpPost("registrar")]
-        public async Task<IActionResult> Register([FromBody] RegisterFamiliaDto request)
+        public async Task<IActionResult> Registrar([FromBody] RegistrarFamiliaDto request)
         {
             // 400 - Validación de modelo
             if (!ModelState.IsValid)
@@ -118,7 +118,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpPatch("actualizar")]
-        public async Task<IActionResult> Actualizar([FromBody] ChangeFamiliaDto request)
+        public async Task<IActionResult> Actualizar([FromBody] CambiarFamiliaDto request)
         {
             // 400 - Validación de modelo
             if (!ModelState.IsValid)
@@ -154,7 +154,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpDelete]
-        public async Task<IActionResult> Eliminar([FromBody] DeleteFamilyDto request)
+        public async Task<IActionResult> Eliminar([FromBody] EliminarFamiliaDto request)
         {
             // 400 - Validación de username
             if (request.Id<=0)

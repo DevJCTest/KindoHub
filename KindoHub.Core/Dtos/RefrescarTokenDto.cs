@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace KindoHub.Core.Dtos
 {
-    public class SetEstadoAsociadoPredeterminaadoDto
+    public class RefrescarTokenDto
     {
-        public string Nombre { get; set; }
+        public string RefreshToken { get; set; }
     }
 }

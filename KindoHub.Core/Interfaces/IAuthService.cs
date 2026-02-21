@@ -9,6 +9,6 @@ namespace KindoHub.Core.Interfaces
 {
     public interface IAuthService
     {
-        Task<(bool IsValid, string[] Roles, string[] Permissions)> ValidateUserAsync(LoginDto loginDto);
+        Task<(bool IsValid, string[] Roles, string[] Permissions)> ValidarUsuario(LoginDto loginDto);
     }
 }

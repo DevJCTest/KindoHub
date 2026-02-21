@@ -34,13 +34,13 @@ namespace KindoHub.Services.Services
 
 
 
-        public async Task<(bool Success, FamiliaDto? Familia)> Crear(RegisterFamiliaDto dto, string usuarioActual)
+        public async Task<(bool Success, FamiliaDto? Familia)> Crear(RegistrarFamiliaDto dto, string usuarioActual)
         {
             var familia=FamiliaMapper.MapToFamiliaEntity(dto);
 
             if (!string.IsNullOrEmpty(dto.NombreFormaPago))
             {
-                var formaPago = await _formaPagoService.GetFormapagoAsync(dto.NombreFormaPago);
+                var formaPago = await _formaPagoService.LeerPorNombre(dto.NombreFormaPago);
                 if (formaPago == null)
                 {
                     return (false, null);
@@ -106,7 +106,7 @@ namespace KindoHub.Services.Services
             return FamiliaMapper.MapToFamiliaDto(familia);
         }
 
-        public  async Task<(bool Success, FamiliaDto? Familia)> Actualizar(ChangeFamiliaDto dto, string usuarioActual)
+        public  async Task<(bool Success, FamiliaDto? Familia)> Actualizar(CambiarFamiliaDto dto, string usuarioActual)
         {
             // Verificar que el la familia a cambiar exista
             var targetFamilia = await _familiaRepository.LeerPorId(dto.Id);

@@ -842,9 +842,9 @@ namespace KindoHub.Services.Tests.Services
 
         #region Helper Methods
 
-        private static RegisterFamiliaDto CreateTestRegisterDto(string nombre = "Familia Test")
+        private static RegistrarFamiliaDto CreateTestRegisterDto(string nombre = "Familia Test")
         {
-            return new RegisterFamiliaDto
+            return new RegistrarFamiliaDto
             {
                 Nombre = nombre,
                 Email = "test@familia.com",
@@ -881,9 +881,9 @@ namespace KindoHub.Services.Tests.Services
             };
         }
 
-        private static ChangeFamiliaDto CreateTestChangeFamiliaDto(int id = 1, string nombre = "Familia Test")
+        private static CambiarFamiliaDto CreateTestChangeFamiliaDto(int id = 1, string nombre = "Familia Test")
         {
-            return new ChangeFamiliaDto
+            return new CambiarFamiliaDto
             {
                 Id = id,
                 NumeroSocio = 100,

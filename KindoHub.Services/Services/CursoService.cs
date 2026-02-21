@@ -51,7 +51,7 @@ namespace KindoHub.Services.Services
             return CursoMapper.MapToDto(curso);
         }
 
-        public async Task<(bool Success, CursoDto? Curso)> Crear(RegisterCursoDto dto, string usuarioActual)
+        public async Task<(bool Success, CursoDto? Curso)> Crear(RegistrarCursoDto dto, string usuarioActual)
         {
             var curso = CursoMapper.MapToEntity(dto);
 
@@ -66,7 +66,7 @@ namespace KindoHub.Services.Services
             }
         }
 
-        public async Task<(bool Success, CursoDto? Curso)> Actualizar(UpdateCursoDto dto, string usuarioActual)
+        public async Task<(bool Success, CursoDto? Curso)> Actualizar(ActualizarCursoDto dto, string usuarioActual)
         {
             var cursoEntity = CursoMapper.MapToEntity(dto);
 

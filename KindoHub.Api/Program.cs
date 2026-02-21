@@ -94,7 +94,7 @@ try
     builder.Services.AddScoped<IAlumnoRepository, AlumnoRepository>();
     builder.Services.AddScoped<IAuthService, AuthService>();
     builder.Services.AddScoped<ITokenService, JwtTokenService>();
-    builder.Services.AddScoped<IUserService, UserService>();
+    builder.Services.AddScoped<IUsuarioService, UserService>();
     builder.Services.AddScoped<IFormaPagoService, FormaPagoService>();
     builder.Services.AddScoped<IEstadoAsociadoService, EstadoAsociadoService>();
     builder.Services.AddScoped<IFamiliaService, FamiliaService>();

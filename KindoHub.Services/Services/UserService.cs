@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace KindoHub.Services.Services
 {
-    public class UserService : IUserService
+    public class UserService : IUsuarioService
     {
         private readonly IUsuarioRepository _usuarioRepository;
         private readonly ILogger<UserService> _logger;
@@ -26,12 +26,12 @@ namespace KindoHub.Services.Services
 
 
 
-        public async Task<UserDto?> GetUserAsync(string username)
+        public async Task<UsuarioDto?> GetUserAsync(string username)
         {
             if (string.IsNullOrWhiteSpace(username))
                 return null;
 
-            var usuario = await _usuarioRepository.GetByNombreAsync(username);
+            var usuario = await _usuarioRepository.LeerPorNombre(username);
             if (usuario == null)
                 return null;
 
@@ -40,19 +40,19 @@ namespace KindoHub.Services.Services
         }
 
 
-        public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
+        public async Task<IEnumerable<UsuarioDto>> GetAllUsersAsync()
         {
-            var usuarios = await _usuarioRepository.GetAllAsync();
+            var usuarios = await _usuarioRepository.LeerTodos();
             return usuarios.Select(u => UserMapper.MapToUserDto(u));
         }
 
-        public async Task<(bool Success, string Message, UserDto? User)> RegisterAsync(RegisterUserDto registerDto, string currentUser)
+        public async Task<(bool Success, string Message, UsuarioDto? User)> RegisterAsync(RegistrarUsuarioDto registerDto, string currentUser)
         {
             _logger.LogInformation("Iniciando registro de usuario: {Username} por {CurrentUser}", 
                 registerDto.Username, currentUser);
 
             // Validar que el usuario no exista
-            var existingUser = await _usuarioRepository.GetByNombreAsync(registerDto.Username);
+            var existingUser = await _usuarioRepository.LeerPorNombre(registerDto.Username);
             if (existingUser != null)
             {
                 _logger.LogWarning("Intento de registro de usuario existente: {Username}", registerDto.Username);
@@ -86,17 +86,17 @@ namespace KindoHub.Services.Services
             }
         }
 
-        public async Task<(bool Success, string Message, UserDto? User)> ChangePasswordAsync(ChangePasswordDto dto, string currentUser)
+        public async Task<(bool Success, string Message, UsuarioDto? User)> ChangePasswordAsync(CambiarContrasenaDto dto, string currentUser)
         {
             // Verificar que el usuario actual sea administrador
-            var currentUsuario = await _usuarioRepository.GetByNombreAsync(currentUser);
+            var currentUsuario = await _usuarioRepository.LeerPorNombre(currentUser);
             if (currentUsuario == null || currentUsuario.EsAdministrador != 1)
             {
                 return (false, "No tienes permisos para cambiar contraseñas", null);
             }
 
             // Verificar que el usuario a cambiar exista
-            var targetUsuario = await _usuarioRepository.GetByNombreAsync(dto.Username);
+            var targetUsuario = await _usuarioRepository.LeerPorNombre(dto.Username);
             if (targetUsuario == null)
             {
                 return (false, "El usuario a cambiar no existe", null);
@@ -115,7 +115,7 @@ namespace KindoHub.Services.Services
             var updated = await _usuarioRepository.UpdatePasswordAsync(dto.Username, newPasswordHash, dto.VersionFila, currentUser);
             if (updated)
             {
-                var updatedUser = await _usuarioRepository.GetByNombreAsync(dto.Username);
+                var updatedUser = await _usuarioRepository.LeerPorNombre(dto.Username);
                 if (updatedUser != null)
                 {
                     return (true, "Contraseña actualizada exitosamente", UserMapper.MapToUserDto(updatedUser));
@@ -125,17 +125,17 @@ namespace KindoHub.Services.Services
             return (false, "Error al actualizar la contraseña", null);
         }
 
-        public async Task<(bool Success, string Message)> DeleteUserAsync(DeleteUserDto dto, string currentUser)
+        public async Task<(bool Success, string Message)> DeleteUserAsync(EliminarUsuarioDto dto, string currentUser)
         {
             // Verificar que el usuario actual sea administrador
-            var currentUsuario = await _usuarioRepository.GetByNombreAsync(currentUser);
+            var currentUsuario = await _usuarioRepository.LeerPorNombre(currentUser);
             if (currentUsuario == null || currentUsuario.EsAdministrador != 1)
             {
                 return (false, "No tienes permisos para eliminar usuarios");
             }
 
             // Verificar que el usuario a eliminar exista
-            var targetUsuario = await _usuarioRepository.GetByNombreAsync(dto.Username);
+            var targetUsuario = await _usuarioRepository.LeerPorNombre(dto.Username);
             if (targetUsuario == null)
             {
                 return (false, "El usuario a eliminar no existe");
@@ -148,7 +148,7 @@ namespace KindoHub.Services.Services
             }
 
 
-            var updates = await _usuarioRepository.UpdateAdminStatusAsync(currentUsuario.Nombre, currentUsuario.EsAdministrador, currentUsuario.VersionFila, currentUser);
+            var updates = await _usuarioRepository.ActualizarEstadoAdmin(currentUsuario.Nombre, currentUsuario.EsAdministrador, currentUsuario.VersionFila, currentUser);
 
 
             // Eliminar el usuario
@@ -163,17 +163,17 @@ namespace KindoHub.Services.Services
             }
         }
 
-        public async Task<(bool Success, string Message, UserDto? User)> ChangeAdminStatusAsync(ChangeAdminStatusDto dto, string currentUser)
+        public async Task<(bool Success, string Message, UsuarioDto? User)> ChangeAdminStatusAsync(CambiarEstadoAdminDto dto, string currentUser)
         {
             // Verificar que el usuario actual sea administrador
-            var currentUsuario = await _usuarioRepository.GetByNombreAsync(currentUser);
+            var currentUsuario = await _usuarioRepository.LeerPorNombre(currentUser);
             if (currentUsuario == null || currentUsuario.EsAdministrador != 1)
             {
                 return (false, "No tienes permisos para cambiar el estado de administrador", null);
             }
 
             // Verificar que el usuario a cambiar exista
-            var targetUsuario = await _usuarioRepository.GetByNombreAsync(dto.Username);
+            var targetUsuario = await _usuarioRepository.LeerPorNombre(dto.Username);
             if (targetUsuario == null)
             {
                 return (false, "El usuario a cambiar no existe", null);
@@ -186,10 +186,10 @@ namespace KindoHub.Services.Services
             }
 
             // Actualizar el estado de administrador
-            var updated = await _usuarioRepository.UpdateAdminStatusAsync(dto.Username, dto.IsAdmin, dto.VersionFila, currentUser);
+            var updated = await _usuarioRepository.ActualizarEstadoAdmin(dto.Username, dto.IsAdmin, dto.VersionFila, currentUser);
             if (updated)
             {
-                var updatedUser = await _usuarioRepository.GetByNombreAsync(dto.Username);
+                var updatedUser = await _usuarioRepository.LeerPorNombre(dto.Username);
                 if (updatedUser != null)
                 {
                     return (true, "Estado de administrador actualizado exitosamente", UserMapper.MapToUserDto(updatedUser));
@@ -199,17 +199,17 @@ namespace KindoHub.Services.Services
             return (false, "Error al actualizar el estado de administrador", null);
         }
 
-        public async Task<(bool Success, string Message, UserDto? User)> ChangeActivStatusAsync(ChangeActivStatusDto dto, string currentUser)
+        public async Task<(bool Success, string Message, UsuarioDto? User)> ChangeActivStatusAsync(CambiarEstadoActivoDto dto, string currentUser)
         {
             // Verificar que el usuario actual sea administrador
-            var currentUsuario = await _usuarioRepository.GetByNombreAsync(currentUser);
+            var currentUsuario = await _usuarioRepository.LeerPorNombre(currentUser);
             if (currentUsuario == null || currentUsuario.EsAdministrador != 1)
             {
                 return (false, "No tienes permisos para cambiar el estado de administrador", null);
             }
 
             // Verificar que el usuario a cambiar exista
-            var targetUsuario = await _usuarioRepository.GetByNombreAsync(dto.Username);
+            var targetUsuario = await _usuarioRepository.LeerPorNombre(dto.Username);
             if (targetUsuario == null)
             {
                 return (false, "El usuario a cambiar no existe", null);
@@ -217,10 +217,10 @@ namespace KindoHub.Services.Services
 
 
             // Actualizar el estado de activo
-            var updated = await _usuarioRepository.UpdateActivStatusAsync(dto.Username, dto.IsActive, dto.VersionFila, currentUser);
+            var updated = await _usuarioRepository.ActualizarEstadoActivo(dto.Username, dto.IsActive, dto.VersionFila, currentUser);
             if (updated)
             {
-                var updatedUser = await _usuarioRepository.GetByNombreAsync(dto.Username);
+                var updatedUser = await _usuarioRepository.LeerPorNombre(dto.Username);
                 if (updatedUser != null)
                 {
                     return (true, "Estado de usuario actualizado exitosamente", UserMapper.MapToUserDto(updatedUser));
@@ -230,17 +230,17 @@ namespace KindoHub.Services.Services
             return (false, "Error al actualizar el estado del usuario", null);
         }
 
-        public async Task<(bool Success, string Message, UserDto? User)> ChangeRolStatusAsync(ChangeUserRoleDto dto, string currentUser)
+        public async Task<(bool Success, string Message, UsuarioDto? User)> ChangeRolStatusAsync(CambiarRolUsuarioDto dto, string currentUser)
         {
             // Verificar que el usuario actual sea administrador
-            var currentUsuario = await _usuarioRepository.GetByNombreAsync(currentUser);
+            var currentUsuario = await _usuarioRepository.LeerPorNombre(currentUser);
             if (currentUsuario == null || currentUsuario.EsAdministrador != 1)
             {
                 return (false, "No tienes permisos para cambiar el rol a los usuarios", null);
             }
 
             // Verificar que el usuario a cambiar exista
-            var targetUsuario = await _usuarioRepository.GetByNombreAsync(dto.Username);
+            var targetUsuario = await _usuarioRepository.LeerPorNombre(dto.Username);
             if (targetUsuario == null)
             {
                 return (false, "El usuario a cambiar no existe", null);
@@ -248,11 +248,11 @@ namespace KindoHub.Services.Services
 
 
             // Actualizar el rol del usuario
-            var updated = await _usuarioRepository.UpdateRolStatusAsync(dto.Username, dto.GestionFamilias, dto.ConsultaFamilias, 
+            var updated = await _usuarioRepository.ActualizarEstadoRol(dto.Username, dto.GestionFamilias, dto.ConsultaFamilias, 
                 dto.GestionGastos, dto.ConsultaGastos, dto.VersionFila, currentUser);
             if (updated)
             {
-                var updatedUser = await _usuarioRepository.GetByNombreAsync(dto.Username);
+                var updatedUser = await _usuarioRepository.LeerPorNombre(dto.Username);
                 if (updatedUser != null)
                 {
                     return (true, "Rol de usuario actualizado exitosamente", UserMapper.MapToUserDto(updatedUser));

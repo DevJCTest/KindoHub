@@ -7,11 +7,14 @@ using System.Threading.Tasks;
 
 namespace KindoHub.Core.Dtos
 {
-    public class DeleteUserDto
+    public class RegistrarUsuarioDto
     {
         [Required]
+        [StringLength(50, MinimumLength = 3)]
         public string Username { get; set; } = string.Empty;
+
         [Required]
-        public byte[] VersionFila { get; set; } = null!;
+        [StringLength(100, MinimumLength = 6)]
+        public string Password { get; set; } = string.Empty;
     }
 }

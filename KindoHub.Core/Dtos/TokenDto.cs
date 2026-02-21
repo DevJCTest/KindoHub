@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace KindoHub.Core.Dtos
 {
-    public class TokenResponse
+    public class TokenDto
     {
         public string Username { get; set; }
         public string AccessToken { get; set; }  // Renombrar Token a AccessToken para claridad

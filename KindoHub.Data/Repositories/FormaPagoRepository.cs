@@ -22,11 +22,11 @@ namespace KindoHub.Data.Repositories
 
         public FormaPagoRepository(IDbConnectionFactoryFactory factory, ILogger<FormaPagoRepository> logger)
         {
-            _connectionFactory = factory.Create("DefaultConnection");
+            _connectionFactory = factory.Crear("DefaultConnection");
             _logger = logger;
         }
 
-        public async Task<IEnumerable<FormaPagoEntity>> GetAllFormasPagoAsync()
+        public async Task<IEnumerable<FormaPagoEntity>> LeerTodos()
         {
             _logger.LogDebug("Obteniendo todos las formas de pago");
 
@@ -39,7 +39,7 @@ namespace KindoHub.Data.Repositories
 
             try
             {
-                await using var connection = await _connectionFactory.CreateConnectionAsync();
+                await using var connection = await _connectionFactory.CrearConexion();
                 await connection.OpenAsync();
                 await using var command = new SqlCommand(query, connection);
 
@@ -64,7 +64,7 @@ namespace KindoHub.Data.Repositories
             }
         }
 
-        public async Task<FormaPagoEntity?> GetFormaPagoAsync(string nombre)
+        public async Task<FormaPagoEntity?> LeerPorNombre(string nombre)
         {
             if (string.IsNullOrWhiteSpace(nombre))
                 throw new ArgumentException("El nombre de la forma de pago no puede estar vacío.", nameof(nombre));
@@ -78,7 +78,7 @@ namespace KindoHub.Data.Repositories
 
             try
             {
-                await using var connection = await _connectionFactory.CreateConnectionAsync();
+                await using var connection = await _connectionFactory.CrearConexion();
                 await connection.OpenAsync();
                 await using var command = new SqlCommand(query, connection);
                 command.Parameters.AddWithValue("@Nombre", nombre);
@@ -107,7 +107,7 @@ namespace KindoHub.Data.Repositories
             }
         }
 
-        public async Task<FormaPagoEntity?> GetFormaPagoAsync(int id)
+        public async Task<FormaPagoEntity?> LeerPorId(int id)
         {
             if (id <= 0)
                 throw new ArgumentException("El ID de la forma de pago no puede ser menor o igual a cero.", nameof(id));
@@ -120,7 +120,7 @@ namespace KindoHub.Data.Repositories
 
             try
             {
-                await using var connection = await _connectionFactory.CreateConnectionAsync();
+                await using var connection = await _connectionFactory.CrearConexion();
                 await connection.OpenAsync();
                 await using var command = new SqlCommand(query, connection);
                 command.Parameters.AddWithValue("@FormaPagoId", id);

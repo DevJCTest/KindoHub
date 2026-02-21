@@ -1,13 +1,14 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace KindoHub.Core.Dtos
 {
-    public class RefreshTokenRequest
+    public class CambiarCursoPredeterminadoDto
     {
-        public string RefreshToken { get; set; }
+        public int CursoId { get; set; }
     }
 }

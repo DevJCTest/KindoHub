@@ -24,7 +24,7 @@ namespace KindoHub.Data.Repositories
 
         public EstadoAsociadoRepository(IDbConnectionFactoryFactory factory, ILogger<EstadoAsociadoRepository> logger)
         {
-            _connectionFactory = factory.Create("DefaultConnection");
+            _connectionFactory = factory.Crear("DefaultConnection");
             _logger = logger;
         }
 
@@ -39,7 +39,7 @@ namespace KindoHub.Data.Repositories
 
             try
             {
-                await using var connection = await _connectionFactory.CreateConnectionAsync();
+                await using var connection = await _connectionFactory.CrearConexion();
                 await connection.OpenAsync();
                 await using var command = new SqlCommand(query, connection);
 
@@ -70,7 +70,7 @@ namespace KindoHub.Data.Repositories
 
             try
             {
-                await using var connection = await _connectionFactory.CreateConnectionAsync();
+                await using var connection = await _connectionFactory.CrearConexion();
                 await connection.OpenAsync();
                 await using var command = new SqlCommand(query, connection);
                 command.Parameters.AddWithValue("@Nombre", nombre);
@@ -111,7 +111,7 @@ namespace KindoHub.Data.Repositories
             WHERE EstadoId = @EstadoAsociadoId";
             try
             {
-                await using var connection = await _connectionFactory.CreateConnectionAsync();
+                await using var connection = await _connectionFactory.CrearConexion();
                 await connection.OpenAsync();
                 await using var command = new SqlCommand(query, connection);
                 command.Parameters.AddWithValue("@EstadoAsociadoId", id);
@@ -149,7 +149,7 @@ namespace KindoHub.Data.Repositories
             WHERE Predeterminado=1";
             try
             {
-                await using var connection = await _connectionFactory.CreateConnectionAsync();
+                await using var connection = await _connectionFactory.CrearConexion();
                 await connection.OpenAsync();
                 await using var command = new SqlCommand(query, connection);
 
@@ -195,7 +195,7 @@ namespace KindoHub.Data.Repositories
 
             try
             {
-                await using var connection = await _connectionFactory.CreateConnectionAsync();
+                await using var connection = await _connectionFactory.CrearConexion();
                 await connection.OpenAsync();
 
                 await using var commandPrevia = new SqlCommand(queryPrevia, connection);

@@ -9,8 +9,8 @@ namespace KindoHub.Core.Interfaces
     {
         Task<AlumnoDto?> LeerPorId(int id);
         Task<IEnumerable<AlumnoDto>> LeerTodos();
-        Task<(bool Success, AlumnoDto? Alumno)> Crear(RegisterAlumnoDto dto, string usuarioActual);
-        Task<(bool Success, AlumnoDto? Alumno)> Actualizar(UpdateAlumnoDto dto, string usuarioActual);
+        Task<(bool Success, AlumnoDto? Alumno)> Crear(RegistrarAlumnoDto dto, string usuarioActual);
+        Task<(bool Success, AlumnoDto? Alumno)> Actualizar(ActualizarAlumnoDto dto, string usuarioActual);
         Task<bool> Eliminar(int alumnoId, byte[] versionFila, string usuarioActual);
 
         Task<IEnumerable<AlumnoDto>> LeerPorFamiliaId(int familiaId);

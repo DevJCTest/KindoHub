@@ -19,7 +19,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> LeerCurso(int id)
+        public async Task<IActionResult> LeerPorId(int id)
         {
             if (id <= 0)
             {
@@ -87,7 +87,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpPost("registrar")]
-        public async Task<IActionResult> Registrar([FromBody] RegisterCursoDto request)
+        public async Task<IActionResult> Registrar([FromBody] RegistrarCursoDto request)
         {
             if (!ModelState.IsValid)
             {
@@ -118,7 +118,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpPatch("actualizar")]
-        public async Task<IActionResult> Actualizar([FromBody] UpdateCursoDto request)
+        public async Task<IActionResult> Actualizar([FromBody] ActualizarCursoDto request)
         {
             if (!ModelState.IsValid)
             {
@@ -150,7 +150,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpDelete]
-        public async Task<IActionResult> Eliminar([FromBody] DeleteCursoDto request)
+        public async Task<IActionResult> Eliminar([FromBody] EliminarCursoDto request)
         {
             if (request.CursoId <= 0)
             {
@@ -183,7 +183,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpPatch("set-predeterminado")]
-        public async Task<IActionResult> SetPredeterminado([FromBody] ChangeCursoPredeterminadoDto request)
+        public async Task<IActionResult> EstablecerPredeterminado([FromBody] CambiarCursoPredeterminadoDto request)
         {
             if (!ModelState.IsValid)
             {

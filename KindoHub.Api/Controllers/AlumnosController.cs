@@ -104,7 +104,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpGet("sin-familia")]
-        public async Task<IActionResult> LeerAlumnosSinFamilia()
+        public async Task<IActionResult> LeerSinFamilia()
         {
             try
             {
@@ -119,7 +119,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpGet("curso/{cursoId}")]
-        public async Task<IActionResult> GetAlumnosByCurso(int cursoId)
+        public async Task<IActionResult> LeerPorCursoId(int cursoId)
         {
             if (cursoId <= 0)
             {
@@ -139,7 +139,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpPost("registrar")]
-        public async Task<IActionResult> Registrar([FromBody] RegisterAlumnoDto request)
+        public async Task<IActionResult> Registrar([FromBody] RegistrarAlumnoDto request)
         {
             if (!ModelState.IsValid)
             {
@@ -170,7 +170,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpPatch("actualizar")]
-        public async Task<IActionResult> Actualizar([FromBody] UpdateAlumnoDto request)
+        public async Task<IActionResult> Actualizar([FromBody] ActualizarAlumnoDto request)
         {
             if (!ModelState.IsValid)
             {
@@ -202,7 +202,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpDelete]
-        public async Task<IActionResult> Delete([FromBody] DeleteAlumnoDto request)
+        public async Task<IActionResult> Eliminar([FromBody] EliminarAlumnoDto request)
         {
             if (request.AlumnoId <= 0)
             {

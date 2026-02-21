@@ -17,7 +17,7 @@ namespace KindoHub.Data.Repositories
 
         public AlumnoRepository(IDbConnectionFactoryFactory factory, ILogger<AlumnoRepository> logger)
         {
-            _connectionFactory = factory.Create("DefaultConnection");
+            _connectionFactory = factory.Crear("DefaultConnection");
             _logger = logger;
         }
 
@@ -30,7 +30,7 @@ namespace KindoHub.Data.Repositories
 
             try
             {
-                await using var connection = await _connectionFactory.CreateConnectionAsync();
+                await using var connection = await _connectionFactory.CrearConexion();
                 await connection.OpenAsync();
                 await using var command = new SqlCommand(query, connection);
                 command.Parameters.AddWithValue("@AlumnoId", id);
@@ -62,7 +62,7 @@ namespace KindoHub.Data.Repositories
 
             try
             {
-                await using var connection = await _connectionFactory.CreateConnectionAsync();
+                await using var connection = await _connectionFactory.CrearConexion();
                 await connection.OpenAsync();
                 await using var command = new SqlCommand(query, connection);
 
@@ -90,7 +90,7 @@ namespace KindoHub.Data.Repositories
 
             try
             {
-                await using var connection = await _connectionFactory.CreateConnectionAsync();
+                await using var connection = await _connectionFactory.CrearConexion();
                 await connection.OpenAsync();
                 await using var command = new SqlCommand(query, connection);
 
@@ -133,7 +133,7 @@ namespace KindoHub.Data.Repositories
 
             try
             {
-                await using var connection = await _connectionFactory.CreateConnectionAsync();
+                await using var connection = await _connectionFactory.CrearConexion();
                 await connection.OpenAsync();
                 await using var command = new SqlCommand(query, connection);
 
@@ -200,7 +200,7 @@ namespace KindoHub.Data.Repositories
 
             try
             {
-                await using var connection = await _connectionFactory.CreateConnectionAsync();
+                await using var connection = await _connectionFactory.CrearConexion();
                 await connection.OpenAsync();
                 await using var command = new SqlCommand(query, connection);
                 command.Parameters.AddWithValue("@AlumnoId", alumnoId);
@@ -231,7 +231,7 @@ namespace KindoHub.Data.Repositories
 
             try
             {
-                await using var connection = await _connectionFactory.CreateConnectionAsync();
+                await using var connection = await _connectionFactory.CrearConexion();
                 await connection.OpenAsync();
                 await using var command = new SqlCommand(query, connection);
                 command.Parameters.AddWithValue("@FamiliaId", familiaId);
@@ -264,7 +264,7 @@ namespace KindoHub.Data.Repositories
 
             try
             {
-                await using var connection = await _connectionFactory.CreateConnectionAsync();
+                await using var connection = await _connectionFactory.CrearConexion();
                 await connection.OpenAsync();
                 await using var command = new SqlCommand(query, connection);
 
@@ -299,7 +299,7 @@ namespace KindoHub.Data.Repositories
 
             try
             {
-                await using var connection = await _connectionFactory.CreateConnectionAsync();
+                await using var connection = await _connectionFactory.CrearConexion();
                 await connection.OpenAsync();
                 await using var command = new SqlCommand(query, connection);
                 command.Parameters.AddWithValue("@CursoId", cursoId);
@@ -328,7 +328,7 @@ namespace KindoHub.Data.Repositories
 
             try
             {
-                await using var connection = await _connectionFactory.CreateConnectionAsync();
+                await using var connection = await _connectionFactory.CrearConexion();
                 await connection.OpenAsync();
                 await using var command = new SqlCommand(query, connection);
                 command.Parameters.AddWithValue("@FamiliaId", familiaId);
@@ -352,7 +352,7 @@ namespace KindoHub.Data.Repositories
 
             try
             {
-                await using var connection = await _connectionFactory.CreateConnectionAsync();
+                await using var connection = await _connectionFactory.CrearConexion();
                 await connection.OpenAsync();
                 await using var command = new SqlCommand(query, connection);
                 command.Parameters.AddWithValue("@CursoId", cursoId);
@@ -391,7 +391,7 @@ namespace KindoHub.Data.Repositories
 
             try
             {
-                await using var connection = await _connectionFactory.CreateConnectionAsync();
+                await using var connection = await _connectionFactory.CrearConexion();
                 await connection.OpenAsync();
                 await using var command = new SqlCommand(query, connection);
                 command.Parameters.AddWithValue("@AlumnoId", id);

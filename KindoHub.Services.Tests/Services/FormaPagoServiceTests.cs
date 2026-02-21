@@ -32,11 +32,11 @@ namespace KindoHub.Services.Tests.Services
                 CreateTestFormaPagoEntity(1, "Efectivo"),
                 CreateTestFormaPagoEntity(2, "Banco")
             };
-            _mockRepository.Setup(r => r.GetAllFormasPagoAsync())
+            _mockRepository.Setup(r => r.LeerTodos())
                 .ReturnsAsync(formasPago);
 
             // Act
-            var result = await _sut.GetAllFormasPagoAsync();
+            var result = await _sut.LeerTodos();
 
             // Assert
             result.Should().HaveCount(2);
@@ -49,11 +49,11 @@ namespace KindoHub.Services.Tests.Services
         public async Task GetAllFormasPagoAsync_WhenNoFormasPago_ShouldReturnEmptyCollection()
         {
             // Arrange
-            _mockRepository.Setup(r => r.GetAllFormasPagoAsync())
+            _mockRepository.Setup(r => r.LeerTodos())
                 .ReturnsAsync(new List<FormaPagoEntity>());
 
             // Act
-            var result = await _sut.GetAllFormasPagoAsync();
+            var result = await _sut.LeerTodos();
 
             // Assert
             result.Should().BeEmpty();
@@ -67,11 +67,11 @@ namespace KindoHub.Services.Tests.Services
             {
                 CreateTestFormaPagoEntity(1, "Efectivo")
             };
-            _mockRepository.Setup(r => r.GetAllFormasPagoAsync())
+            _mockRepository.Setup(r => r.LeerTodos())
                 .ReturnsAsync(formasPago);
 
             // Act
-            var result = await _sut.GetAllFormasPagoAsync();
+            var result = await _sut.LeerTodos();
 
             // Assert
             var formaPago = result.First();
@@ -84,14 +84,14 @@ namespace KindoHub.Services.Tests.Services
         public async Task GetAllFormasPagoAsync_ShouldCallRepositoryGetAllFormasPagoAsync()
         {
             // Arrange
-            _mockRepository.Setup(r => r.GetAllFormasPagoAsync())
+            _mockRepository.Setup(r => r.LeerTodos())
                 .ReturnsAsync(new List<FormaPagoEntity>());
 
             // Act
-            await _sut.GetAllFormasPagoAsync();
+            await _sut.LeerTodos();
 
             // Assert
-            _mockRepository.Verify(r => r.GetAllFormasPagoAsync(), Times.Once);
+            _mockRepository.Verify(r => r.LeerTodos(), Times.Once);
         }
 
         [Fact]
@@ -111,11 +111,11 @@ namespace KindoHub.Services.Tests.Services
                 CreateTestFormaPagoEntity(9, "Stripe"),
                 CreateTestFormaPagoEntity(10, "Otro")
             };
-            _mockRepository.Setup(r => r.GetAllFormasPagoAsync())
+            _mockRepository.Setup(r => r.LeerTodos())
                 .ReturnsAsync(formasPago);
 
             // Act
-            var result = await _sut.GetAllFormasPagoAsync();
+            var result = await _sut.LeerTodos();
 
             // Assert
             result.Should().HaveCount(10);
@@ -137,11 +137,11 @@ namespace KindoHub.Services.Tests.Services
             // Arrange
             var nombre = "Efectivo";
             var formaPagoEntity = CreateTestFormaPagoEntity(1, nombre);
-            _mockRepository.Setup(r => r.GetFormaPagoAsync(nombre))
+            _mockRepository.Setup(r => r.LeerPorNombre(nombre))
                 .ReturnsAsync(formaPagoEntity);
 
             // Act
-            var result = await _sut.GetFormapagoAsync(nombre);
+            var result = await _sut.LeerPorNombre(nombre);
 
             // Assert
             result.Should().NotBeNull();
@@ -155,11 +155,11 @@ namespace KindoHub.Services.Tests.Services
         {
             // Arrange
             var nombre = "NoExiste";
-            _mockRepository.Setup(r => r.GetFormaPagoAsync(nombre))
+            _mockRepository.Setup(r => r.LeerPorNombre(nombre))
                 .ReturnsAsync((FormaPagoEntity?)null);
 
             // Act
-            var result = await _sut.GetFormapagoAsync(nombre);
+            var result = await _sut.LeerPorNombre(nombre);
 
             // Assert
             result.Should().BeNull();
@@ -169,33 +169,33 @@ namespace KindoHub.Services.Tests.Services
         public async Task GetFormapagoAsync_ByName_WhenNameIsNull_ShouldReturnNull()
         {
             // Act
-            var result = await _sut.GetFormapagoAsync((string)null!);
+            var result = await _sut.LeerPorNombre((string)null!);
 
             // Assert
             result.Should().BeNull();
-            _mockRepository.Verify(r => r.GetFormaPagoAsync(It.IsAny<string>()), Times.Never);
+            _mockRepository.Verify(r => r.LeerPorNombre(It.IsAny<string>()), Times.Never);
         }
 
         [Fact]
         public async Task GetFormapagoAsync_ByName_WhenNameIsEmpty_ShouldReturnNull()
         {
             // Act
-            var result = await _sut.GetFormapagoAsync(string.Empty);
+            var result = await _sut.LeerPorNombre(string.Empty);
 
             // Assert
             result.Should().BeNull();
-            _mockRepository.Verify(r => r.GetFormaPagoAsync(It.IsAny<string>()), Times.Never);
+            _mockRepository.Verify(r => r.LeerPorNombre(It.IsAny<string>()), Times.Never);
         }
 
         [Fact]
         public async Task GetFormapagoAsync_ByName_WhenNameIsWhitespace_ShouldReturnNull()
         {
             // Act
-            var result = await _sut.GetFormapagoAsync("   ");
+            var result = await _sut.LeerPorNombre("   ");
 
             // Assert
             result.Should().BeNull();
-            _mockRepository.Verify(r => r.GetFormaPagoAsync(It.IsAny<string>()), Times.Never);
+            _mockRepository.Verify(r => r.LeerPorNombre(It.IsAny<string>()), Times.Never);
         }
 
         [Fact]
@@ -203,14 +203,14 @@ namespace KindoHub.Services.Tests.Services
         {
             // Arrange
             var nombre = "Banco";
-            _mockRepository.Setup(r => r.GetFormaPagoAsync(nombre))
+            _mockRepository.Setup(r => r.LeerPorNombre(nombre))
                 .ReturnsAsync((FormaPagoEntity?)null);
 
             // Act
-            await _sut.GetFormapagoAsync(nombre);
+            await _sut.LeerPorNombre(nombre);
 
             // Assert
-            _mockRepository.Verify(r => r.GetFormaPagoAsync(nombre), Times.Once);
+            _mockRepository.Verify(r => r.LeerPorNombre(nombre), Times.Once);
         }
 
         [Fact]
@@ -219,11 +219,11 @@ namespace KindoHub.Services.Tests.Services
             // Arrange
             var nombre = "Efectivo";
             var formaPagoEntity = CreateTestFormaPagoEntity(99, nombre);
-            _mockRepository.Setup(r => r.GetFormaPagoAsync(nombre))
+            _mockRepository.Setup(r => r.LeerPorNombre(nombre))
                 .ReturnsAsync(formaPagoEntity);
 
             // Act
-            var result = await _sut.GetFormapagoAsync(nombre);
+            var result = await _sut.LeerPorNombre(nombre);
 
             // Assert
             result.Should().NotBeNull();
@@ -242,11 +242,11 @@ namespace KindoHub.Services.Tests.Services
             // Arrange
             var id = 1;
             var formaPagoEntity = CreateTestFormaPagoEntity(id, "Efectivo");
-            _mockRepository.Setup(r => r.GetFormaPagoAsync(id))
+            _mockRepository.Setup(r => r.LeerPorId(id))
                 .ReturnsAsync(formaPagoEntity);
 
             // Act
-            var result = await _sut.GetFormapagoAsync(id);
+            var result = await _sut.LeerPorId(id);
 
             // Assert
             result.Should().NotBeNull();
@@ -260,11 +260,11 @@ namespace KindoHub.Services.Tests.Services
         {
             // Arrange
             var id = 999;
-            _mockRepository.Setup(r => r.GetFormaPagoAsync(id))
+            _mockRepository.Setup(r => r.LeerPorId(id))
                 .ReturnsAsync((FormaPagoEntity?)null);
 
             // Act
-            var result = await _sut.GetFormapagoAsync(id);
+            var result = await _sut.LeerPorId(id);
 
             // Assert
             result.Should().BeNull();
@@ -274,22 +274,22 @@ namespace KindoHub.Services.Tests.Services
         public async Task GetFormapagoAsync_ById_WhenIdIsZero_ShouldReturnNull()
         {
             // Act
-            var result = await _sut.GetFormapagoAsync(0);
+            var result = await _sut.LeerPorId(0);
 
             // Assert
             result.Should().BeNull();
-            _mockRepository.Verify(r => r.GetFormaPagoAsync(It.IsAny<int>()), Times.Never);
+            _mockRepository.Verify(r => r.LeerPorId(It.IsAny<int>()), Times.Never);
         }
 
         [Fact]
         public async Task GetFormapagoAsync_ById_WhenIdIsNegative_ShouldReturnNull()
         {
             // Act
-            var result = await _sut.GetFormapagoAsync(-1);
+            var result = await _sut.LeerPorId(-1);
 
             // Assert
             result.Should().BeNull();
-            _mockRepository.Verify(r => r.GetFormaPagoAsync(It.IsAny<int>()), Times.Never);
+            _mockRepository.Verify(r => r.LeerPorId(It.IsAny<int>()), Times.Never);
         }
 
         [Fact]
@@ -297,14 +297,14 @@ namespace KindoHub.Services.Tests.Services
         {
             // Arrange
             var id = 2;
-            _mockRepository.Setup(r => r.GetFormaPagoAsync(id))
+            _mockRepository.Setup(r => r.LeerPorId(id))
                 .ReturnsAsync((FormaPagoEntity?)null);
 
             // Act
-            await _sut.GetFormapagoAsync(id);
+            await _sut.LeerPorId(id);
 
             // Assert
-            _mockRepository.Verify(r => r.GetFormaPagoAsync(id), Times.Once);
+            _mockRepository.Verify(r => r.LeerPorId(id), Times.Once);
         }
 
         [Fact]
@@ -313,11 +313,11 @@ namespace KindoHub.Services.Tests.Services
             // Arrange
             var id = 5;
             var formaPagoEntity = CreateTestFormaPagoEntity(id, "Banco");
-            _mockRepository.Setup(r => r.GetFormaPagoAsync(id))
+            _mockRepository.Setup(r => r.LeerPorId(id))
                 .ReturnsAsync(formaPagoEntity);
 
             // Act
-            var result = await _sut.GetFormapagoAsync(id);
+            var result = await _sut.LeerPorId(id);
 
             // Assert
             result.Should().NotBeNull();

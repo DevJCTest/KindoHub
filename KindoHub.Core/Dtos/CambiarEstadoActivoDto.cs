@@ -7,16 +7,16 @@ using System.Threading.Tasks;
 
 namespace KindoHub.Core.Dtos
 {
-    public class ChangeAdminStatusDto
+    public class CambiarEstadoActivoDto
     {
-        [Required]
-        public string Username { get; set; } = string.Empty;
+        [Required] 
+        public string Username { get; set; } = null!;
 
         [Required]
-        [Range(0, 1)]
-        public int IsAdmin { get; set; } = 0;
+        [Range(0, 1)] 
+        public int IsActive { get; set; }
 
-        [Required]
+        [Required] 
         public byte[] VersionFila { get; set; } = null!;
     }
 }

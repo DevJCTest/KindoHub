@@ -7,18 +7,16 @@ using System.Threading.Tasks;
 
 namespace KindoHub.Core.Dtos
 {
-    public class ChangePasswordDto
+    public class CambiarEstadoAdminDto
     {
         [Required]
         public string Username { get; set; } = string.Empty;
 
         [Required]
-        [StringLength(100, MinimumLength = 6)]
-        public string NewPassword { get; set; } = string.Empty;
+        [Range(0, 1)]
+        public int IsAdmin { get; set; } = 0;
 
         [Required]
-        [Compare("NewPassword")]
-        public string ConfirmPassword { get; set; } = string.Empty;
         public byte[] VersionFila { get; set; } = null!;
     }
 }

@@ -42,7 +42,7 @@ namespace KindoHub.Services.Services
         }
 
         public async Task<(bool Success, AlumnoDto? Alumno)> Crear(
-            RegisterAlumnoDto dto, string usuarioActual)
+            RegistrarAlumnoDto dto, string usuarioActual)
         {
             if (dto.IdFamilia.HasValue && dto.IdFamilia.Value > 0)
             {
@@ -77,7 +77,7 @@ namespace KindoHub.Services.Services
         }
 
         public async Task<(bool Success, AlumnoDto? Alumno)> Actualizar(
-            UpdateAlumnoDto dto, string usuarioActual)
+            ActualizarAlumnoDto dto, string usuarioActual)
         {
             var alumnoExistente = await _alumnoRepository.LeerPorId(dto.AlumnoId);
             if (alumnoExistente == null)

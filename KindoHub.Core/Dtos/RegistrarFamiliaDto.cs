@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace KindoHub.Core.Dtos
 {
-    public class RegisterFamiliaDto
+    public class RegistrarFamiliaDto
     {
         public string Nombre { get; set; }
 

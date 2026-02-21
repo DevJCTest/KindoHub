@@ -56,7 +56,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpPost("registrar")]
-        public async Task<IActionResult> Register([FromBody] Registrar request)
+        public async Task<IActionResult> Registrar([FromBody] RegistrarAnotacionDto request)
         {
             try
             {
@@ -107,7 +107,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpDelete]
-        public async Task<IActionResult> Historia([FromBody] Eliminar request)
+        public async Task<IActionResult> Eliminar([FromBody] Eliminar request)
         {
             if (request.Id <= 0)
             {

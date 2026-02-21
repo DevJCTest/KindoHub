@@ -1,5 +1,4 @@
-﻿using KindoHub.Core;
-using KindoHub.Core.Dtos;
+﻿using KindoHub.Core.Dtos;
 using KindoHub.Core.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
@@ -11,6 +10,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using KindoHub.Core;
 
 namespace KindoHub.Services.Services
 {
@@ -27,7 +27,7 @@ namespace KindoHub.Services.Services
             _usuarioRepository = usuarioRepository;
         }
 
-        public TokenResponse GenerateTokens(string username, string[] roles, string[] permissions)
+        public TokenDto GenerarToken(string username, string[] roles, string[] permissions)
         {
             var claims = BuildClaims(username, roles, permissions);
             var credentials = CreateSigningCredentials();
@@ -38,7 +38,7 @@ namespace KindoHub.Services.Services
             var accessToken = CreateToken(claims, accessExpiration, credentials);
             var refreshToken = CreateToken(claims, refreshExpiration, credentials);
 
-            return new TokenResponse
+            return new TokenDto
             {
                 Username = username,
                 AccessToken = WriteToken(accessToken),
@@ -49,13 +49,13 @@ namespace KindoHub.Services.Services
             };
         }
 
-        public async Task<TokenResponse> RefreshTokens()
+        public async Task<TokenDto> RefrescarToken()
         {
             var refreshToken = GetRefreshTokenFromRequest();
             var principal = ValidateToken(refreshToken);
             var (username, roles, permissions) = ExtractClaimsFromPrincipal(principal);
 
-            var tokenResponse = GenerateTokens(username, roles, permissions);
+            var tokenResponse = GenerarToken(username, roles, permissions);
 
             // Validación adicional para asegurar que Username no sea null
             if (string.IsNullOrEmpty(tokenResponse.Username))
@@ -66,7 +66,7 @@ namespace KindoHub.Services.Services
             return tokenResponse;
         }
 
-        public void SetRefreshTokenCookie(TokenResponse tokenResponse)
+        public void SetRefreshTokenCookie(TokenDto tokenResponse)
         {
             var httpContext = _httpContextAccessor.HttpContext;
             if (httpContext == null) return;

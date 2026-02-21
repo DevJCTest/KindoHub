@@ -24,7 +24,7 @@ namespace KindoHub.Data
             return new SqlConnection(_connectionString);
         }
 
-        public Task<SqlConnection> CreateConnectionAsync()
+        public Task<SqlConnection> CrearConexion()
         {
             return Task.FromResult(CreateConnection());
         }

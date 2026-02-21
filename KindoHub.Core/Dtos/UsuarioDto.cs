@@ -1,6 +1,6 @@
 namespace KindoHub.Core.DTOs;
 
-public class UserDto
+public class UsuarioDto
 {
     public int UsuarioId { get; set; }
 

@@ -7,16 +7,9 @@ using System.Threading.Tasks;
 
 namespace KindoHub.Core.Dtos
 {
-    public class ChangeActivStatusDto
+    public class EliminarFamiliaDto
     {
-        [Required] 
-        public string Username { get; set; } = null!;
-
-        [Required]
-        [Range(0, 1)] 
-        public int IsActive { get; set; }
-
-        [Required] 
+        public int Id { get; set; } =0;
         public byte[] VersionFila { get; set; } = null!;
     }
 }

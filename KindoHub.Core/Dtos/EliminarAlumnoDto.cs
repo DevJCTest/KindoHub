@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace KindoHub.Core.Dtos
 {
-    public class DeleteAlumnoDto
+    public class EliminarAlumnoDto
     {
         public int AlumnoId { get; set; }
 

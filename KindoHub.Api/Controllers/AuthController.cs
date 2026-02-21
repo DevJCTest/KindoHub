@@ -22,7 +22,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginDto request)
+        public async Task<IActionResult> IniciarSesion([FromBody] LoginDto request)
         {
             // 400 - Validación de modelo
             if (!ModelState.IsValid)
@@ -40,7 +40,7 @@ namespace KindoHub.Api.Controllers
 
             try
             {
-                var result = await _authService.ValidateUserAsync(request);
+                var result = await _authService.ValidarUsuario(request);
 
                 // 401 - Credenciales incorrectas
                 if (!result.IsValid)
@@ -49,7 +49,7 @@ namespace KindoHub.Api.Controllers
                     return Unauthorized(new { message = "Credenciales incorrectas" });
                 }
 
-                var tokenResponse = _tokenService.GenerateTokens(request.Username, result.Roles, result.Permissions);
+                var tokenResponse = _tokenService.GenerarToken(request.Username, result.Roles, result.Permissions);
                 _tokenService.SetRefreshTokenCookie(tokenResponse);
 
                 _logger.LogInformation("Successful login for user: {Username}", request.Username);
@@ -67,7 +67,7 @@ namespace KindoHub.Api.Controllers
 
         [HttpPost("logout")]
         [Authorize]
-        public IActionResult Logout()
+        public IActionResult CerrarSesion()
         {
             try
             {
@@ -88,7 +88,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpPost("refresh")]
-        public async Task<IActionResult> Refresh()
+        public async Task<IActionResult> RefrescarToken()
         {
             try
             {
@@ -105,7 +105,7 @@ namespace KindoHub.Api.Controllers
                     return BadRequest(new { message = "RefreshToken no proporcionado" });
                 }
 
-                var tokenResponse = await _tokenService.RefreshTokens();
+                var tokenResponse = await _tokenService.RefrescarToken();
                 _tokenService.SetRefreshTokenCookie(tokenResponse);
 
                 _logger.LogInformation("Successful token refresh for user: {Username}", tokenResponse.Username);

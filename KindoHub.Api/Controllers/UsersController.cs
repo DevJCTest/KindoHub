@@ -9,10 +9,10 @@ namespace KindoHub.Api.Controllers
     [Route("api/[controller]")]
     public class UsersController : ControllerBase
     {
-        private readonly IUserService _userService;
+        private readonly IUsuarioService _userService;
         private readonly ILogger<UsersController> _logger;
 
-        public UsersController(IUserService userService, ILogger<UsersController> logger)
+        public UsersController(IUsuarioService userService, ILogger<UsersController> logger)
         {
             _userService = userService;
             _logger = logger;
@@ -20,7 +20,7 @@ namespace KindoHub.Api.Controllers
 
         [HttpGet("{username}")]
         [Authorize(Roles = "Administrator")]
-        public async Task<IActionResult> GetUser(string username)
+        public async Task<IActionResult> LeerPorNombre(string username)
         {
             // 400 - Validación de username
             if (string.IsNullOrWhiteSpace(username))
@@ -54,7 +54,7 @@ namespace KindoHub.Api.Controllers
        
         [HttpGet]
         [Authorize(Roles = "Administrator")]
-        public async Task<IActionResult> GetAllUsers()
+        public async Task<IActionResult> LeerTodos()
         {
             try
             {
@@ -73,7 +73,7 @@ namespace KindoHub.Api.Controllers
 
         [HttpPost("register")]
         //[Authorize(Roles = "Administrator")]
-        public async Task<IActionResult> Register([FromBody] RegisterUserDto request)
+        public async Task<IActionResult> Registrar([FromBody] RegistrarUsuarioDto request)
         {
             // 400 - Validación de modelo
             if (!ModelState.IsValid)
@@ -120,7 +120,7 @@ namespace KindoHub.Api.Controllers
 
         [HttpPatch("change-password")]
         [Authorize]  // Cualquier usuario autenticado puede intentar cambiar contraseña
-        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto request)
+        public async Task<IActionResult> CambiarContrasena([FromBody] CambiarContrasenaDto request)
         {
             // 400 - Validación de modelo
             if (!ModelState.IsValid)
@@ -201,7 +201,7 @@ namespace KindoHub.Api.Controllers
 
         [HttpDelete]
         [Authorize(Roles = "Administrator")]
-        public async Task<IActionResult> DeleteUser([FromBody] DeleteUserDto request)
+        public async Task<IActionResult> Eliminar([FromBody] EliminarUsuarioDto request)
         {
             // 400 - Validación de username
             if (string.IsNullOrWhiteSpace(request.Username))
@@ -270,7 +270,7 @@ namespace KindoHub.Api.Controllers
 
         [HttpPatch("change-admin-status")]
         [Authorize(Roles = "Administrator")]
-        public async Task<IActionResult> ChangeAdminStatus([FromBody] ChangeAdminStatusDto request)
+        public async Task<IActionResult> CambiarEstadoAdmin([FromBody] CambiarEstadoAdminDto request)
         {
             // 400 - Validación de modelo
             if (!ModelState.IsValid)
@@ -338,7 +338,7 @@ namespace KindoHub.Api.Controllers
 
         [HttpPatch("change-activ-status")]
         [Authorize(Roles = "Administrator")]
-        public async Task<IActionResult> ChangeActivStatus([FromBody] ChangeActivStatusDto request)
+        public async Task<IActionResult> CambiarEstadoActivo([FromBody] CambiarEstadoActivoDto request)
         {
             // 400 - Validación de modelo
             if (!ModelState.IsValid)
@@ -400,7 +400,7 @@ namespace KindoHub.Api.Controllers
 
         [HttpPatch("change-rol-status")]
         [Authorize(Roles = "Administrator")]
-        public async Task<IActionResult> ChangeRolStatus([FromBody] ChangeUserRoleDto request)
+        public async Task<IActionResult> ChangeRolStatus([FromBody] CambiarRolUsuarioDto request)
         {
             // 400 - Validación de modelo
             if (!ModelState.IsValid)

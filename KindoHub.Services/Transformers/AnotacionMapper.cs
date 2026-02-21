@@ -40,7 +40,7 @@ namespace KindoHub.Services.Transformers
             };
         }
 
-        public static AnotacionEntity MapToEntity(Registrar dto)
+        public static AnotacionEntity MapToEntity(RegistrarAnotacionDto dto)
         {
             return new AnotacionEntity
             {

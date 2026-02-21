@@ -7,14 +7,18 @@ using System.Threading.Tasks;
 
 namespace KindoHub.Core.Dtos
 {
-    public class RegisterUserDto
+    public class CambiarContrasenaDto
     {
         [Required]
-        [StringLength(50, MinimumLength = 3)]
         public string Username { get; set; } = string.Empty;
 
         [Required]
         [StringLength(100, MinimumLength = 6)]
-        public string Password { get; set; } = string.Empty;
+        public string NewPassword { get; set; } = string.Empty;
+
+        [Required]
+        [Compare("NewPassword")]
+        public string ConfirmPassword { get; set; } = string.Empty;
+        public byte[] VersionFila { get; set; } = null!;
     }
 }

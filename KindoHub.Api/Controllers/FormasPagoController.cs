@@ -20,7 +20,7 @@ namespace KindoHub.Api.Controllers
 
         [Authorize]
         [HttpGet("by-name")]
-        public async Task<IActionResult> GetFormaPagoByName(string name)
+        public async Task<IActionResult> LeerPorNombre(string name)
         {
             // 400 - Validación de username
             if (string.IsNullOrWhiteSpace(name))
@@ -31,7 +31,7 @@ namespace KindoHub.Api.Controllers
 
             try
             {
-                var dto = await _formaspagoService.GetFormapagoAsync(name);
+                var dto = await _formaspagoService.LeerPorNombre(name);
 
                 // 404 - Forma pago no encontrada
                 if (dto == null)
@@ -53,7 +53,7 @@ namespace KindoHub.Api.Controllers
 
         [Authorize]
         [HttpGet("by-id")]
-        public async Task<IActionResult> GetFormaPagoById(int  id)
+        public async Task<IActionResult> LeerPorId(int  id)
         {
             // 400 - Validación de username
             if (id<=0)
@@ -64,7 +64,7 @@ namespace KindoHub.Api.Controllers
 
             try
             {
-                var dto = await _formaspagoService.GetFormapagoAsync(id);
+                var dto = await _formaspagoService.LeerPorId(id);
 
                 // 404 - Forma pago no encontrada
                 if (dto == null)
@@ -86,11 +86,11 @@ namespace KindoHub.Api.Controllers
 
         [Authorize]
         [HttpGet]
-        public async Task<IActionResult> GetAllFormasPago()
+        public async Task<IActionResult> LeerTodas()
         {
             try
             {
-                var formasPago = await _formaspagoService.GetAllFormasPagoAsync();
+                var formasPago = await _formaspagoService.LeerTodos();
 
                 _logger.LogInformation("All formas pago retrieved. Count: {Count}", formasPago.Count());
                 return Ok(formasPago);

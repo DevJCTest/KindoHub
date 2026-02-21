@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace KindoHub.Core.Dtos
 {
-    public class ChangeUserRoleDto
+    public class CambiarRolUsuarioDto
     {
         [Required]
         public string Username { get; set; } = null!;

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace KindoHub.Core.Dtos
 {
-    public class DeleteCursoDto
+    public class EliminarCursoDto
     {
         public int CursoId { get; set; }
 

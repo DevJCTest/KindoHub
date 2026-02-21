@@ -7,9 +7,11 @@ using System.Threading.Tasks;
 
 namespace KindoHub.Core.Dtos
 {
-    public class DeleteFamilyDto
+    public class EliminarUsuarioDto
     {
-        public int Id { get; set; } =0;
+        [Required]
+        public string Username { get; set; } = string.Empty;
+        [Required]
         public byte[] VersionFila { get; set; } = null!;
     }
 }

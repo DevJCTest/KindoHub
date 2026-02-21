@@ -39,7 +39,7 @@ namespace KindoHub.Services.Transformers
             };
         }
 
-        public static AlumnoEntity MapToEntity(RegisterAlumnoDto dto)
+        public static AlumnoEntity MapToEntity(RegistrarAlumnoDto dto)
         {
             return new AlumnoEntity
             {
@@ -51,7 +51,7 @@ namespace KindoHub.Services.Transformers
             };
         }
 
-        public static AlumnoEntity MapToEntity(UpdateAlumnoDto dto)
+        public static AlumnoEntity MapToEntity(ActualizarAlumnoDto dto)
         {
             return new AlumnoEntity
             {

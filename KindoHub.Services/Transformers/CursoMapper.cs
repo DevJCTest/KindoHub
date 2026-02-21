@@ -40,7 +40,7 @@ namespace KindoHub.Services.Transformers
             };
         }
 
-        public static CursoEntity MapToEntity(RegisterCursoDto dto)
+        public static CursoEntity MapToEntity(RegistrarCursoDto dto)
         {
             return new CursoEntity
             {
@@ -50,7 +50,7 @@ namespace KindoHub.Services.Transformers
             };
         }
 
-        public static CursoEntity MapToEntity(UpdateCursoDto dto)
+        public static CursoEntity MapToEntity(ActualizarCursoDto dto)
         {
             return new CursoEntity
             {
