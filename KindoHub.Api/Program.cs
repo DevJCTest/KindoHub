@@ -101,6 +101,7 @@ try
     builder.Services.AddScoped<IAlumnoService, AlumnoService>();
     builder.Services.AddScoped<ILogRepository, LogRepository>();
     builder.Services.AddScoped<ILogService, LogService>();
+    builder.Services.AddScoped<IIbanService, IbanService>();
     builder.Services.AddSingleton<LoginAttemptTracker>();
 
     // Configuración JWT
