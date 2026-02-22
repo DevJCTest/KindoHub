@@ -10,9 +10,9 @@ namespace KindoHub.Core.Interfaces
 {
     public interface IFormaPagoRepository
     {
-        Task<FormaPagoEntity?> GetFormaPagoAsync(string nombre);
-        Task<FormaPagoEntity?> GetFormaPagoAsync(int id);
-        Task<IEnumerable<FormaPagoEntity>> GetAllFormasPagoAsync();
+        Task<FormaPagoEntity?> LeerPorNombre(string nombre);
+        Task<FormaPagoEntity?> LeerPorId(int id);
+        Task<IEnumerable<FormaPagoEntity>> LeerTodos();
 
 
     }

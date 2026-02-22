@@ -15,146 +15,153 @@ namespace KindoHub.Services.Services
     {
         private readonly ICursoRepository _cursoRepository;
         private readonly ILogger<CursoService> _logger;
+        private readonly IAlumnoService _alumnoService;
 
-        public CursoService(ICursoRepository cursoRepository, ILogger<CursoService> logger)
+        public CursoService(ICursoRepository cursoRepository, ILogger<CursoService> logger, IAlumnoService alumnoService)
         {
             _cursoRepository = cursoRepository;
             _logger = logger;
+            _alumnoService = alumnoService;
         }
 
-        public async Task<CursoDto?> GetByIdAsync(int cursoId)
+        public async Task<CursoDto?> LeerPorId(int cursoId)
         {
             if (cursoId <= 0)
                 return null;
 
-            var curso = await _cursoRepository.GetByIdAsync(cursoId);
+            var curso = await _cursoRepository.LeerPorId(cursoId);
             if (curso == null)
                 return null;
 
             return CursoMapper.MapToDto(curso);
         }
 
-        public async Task<IEnumerable<CursoDto>> GetAllAsync()
+        public async Task<IEnumerable<CursoDto>> LeerTodos()
         {
-            var cursos = await _cursoRepository.GetAllAsync();
+            var cursos = await _cursoRepository.LeerTodos();
             return cursos.Select(c => CursoMapper.MapToDto(c));
         }
 
-        public async Task<CursoDto?> GetPredeterminadoAsync()
+        public async Task<CursoDto?> LeerPredeterminado()
         {
-            var curso = await _cursoRepository.GetPredeterminadoAsync();
+            var curso = await _cursoRepository.LeerPredeterminado();
             if (curso == null)
                 return null;
 
             return CursoMapper.MapToDto(curso);
         }
 
-        public async Task<(bool Success, string Message, CursoDto? Curso)> CreateAsync(RegisterCursoDto dto, string usuarioActual)
+        public async Task<(bool Success, CursoDto? Curso)> Crear(RegistrarCursoDto dto, string usuarioActual)
         {
-            if (dto.Predeterminado)
-            {
-                var existente = await _cursoRepository.GetPredeterminadoAsync();
-                if (existente != null)
-                {
-                    return (false,
-                        $"Ya existe un curso predeterminado: '{existente.Nombre}'. " +
-                        "Usa el endpoint SetPredeterminado para cambiar.",
-                        null);
-                }
-            }
-
-            var cursos = await _cursoRepository.GetAllAsync();
-            if (!cursos.Any())
-            {
-                _logger.LogInformation("Es el primer curso a crear, se marcará como predeterminado automáticamente");
-                dto.Predeterminado = true;
-            }
-
             var curso = CursoMapper.MapToEntity(dto);
 
-            var createdCurso = await _cursoRepository.CreateAsync(curso, usuarioActual);
+            var createdCurso = await _cursoRepository.Crear(curso, usuarioActual);
             if (createdCurso != null)
             {
-                return (true, "Curso registrado correctamente", CursoMapper.MapToDto(createdCurso));
+                return (true, CursoMapper.MapToDto(createdCurso));
             }
             else
             {
-                return (false, "Error al registrar el curso", null);
+                return (false, null);
             }
         }
 
-        public async Task<(bool Success, string Message, CursoDto? Curso)> UpdateAsync(UpdateCursoDto dto, string usuarioActual)
+        public async Task<(bool Success, CursoDto? Curso)> Actualizar(ActualizarCursoDto dto, string usuarioActual)
         {
-            var cursoExistente = await _cursoRepository.GetByIdAsync(dto.CursoId);
-            if (cursoExistente == null)
-            {
-                return (false, "El curso a actualizar no existe", null);
-            }
-
             var cursoEntity = CursoMapper.MapToEntity(dto);
 
-            var updated = await _cursoRepository.UpdateAsync(cursoEntity, usuarioActual);
+            var updated = await _cursoRepository.Actualizar(cursoEntity, usuarioActual);
             if (updated)
             {
-                var updatedCurso = await _cursoRepository.GetByIdAsync(dto.CursoId);
-                return (true, "Curso actualizado exitosamente", CursoMapper.MapToDto(updatedCurso));
+                var updatedCurso = await _cursoRepository.LeerPorId(dto.CursoId);
+                return (true, CursoMapper.MapToDto(updatedCurso));
             }
             else
             {
-                return (false,
-                    "La versión del curso ha cambiado. Por favor, recarga los datos e intenta nuevamente.",
-                    null);
+                return (false,null);
             }
         }
 
-        public async Task<(bool Success, string Message)> DeleteAsync(int cursoId, byte[] versionFila)
+        public async Task<bool> Eliminar(int cursoId, byte[] versionFila, string usuarioActual)
         {
-            var curso = await _cursoRepository.GetByIdAsync(cursoId);
+            var curso = await _cursoRepository.LeerPorId(cursoId);
             if (curso == null)
             {
-                return (false, "El curso a eliminar no existe");
+                return (false);
             }
 
             if (curso.Predeterminado)
             {
-                return (false,
-                    "No se puede eliminar el curso predeterminado. " +
-                    "Primero marca otro curso como predeterminado.");
+                return (false);
             }
 
-            var deleted = await _cursoRepository.DeleteAsync(cursoId, versionFila);
+            var deleted = await _cursoRepository.Eliminar(cursoId, versionFila, usuarioActual);
             if (deleted)
             {
-                return (true, "Curso eliminado exitosamente");
+                return (true);
             }
             else
             {
-                return (false,
-                    "La versión del curso ha cambiado. Por favor, recarga los datos e intenta nuevamente.");
+                return (false);
             }
         }
 
-        public async Task<(bool Success, string Message, CursoDto? Curso)> SetPredeterminadoAsync(int cursoId)
+        public async Task<(bool Success, CursoDto? Curso)> EstablecerPredeterminado(int cursoId, string usuarioActual)
         {
-            var curso = await _cursoRepository.GetByIdAsync(cursoId);
+            var curso = await _cursoRepository.LeerPorId(cursoId);
             if (curso == null)
             {
-                return (false, "El curso no existe", null);
+                return (false, null);
             }
 
             if (curso.Predeterminado)
             {
-                return (true, "El curso ya es el predeterminado", CursoMapper.MapToDto(curso));
+                return (true, CursoMapper.MapToDto(curso));
             }
 
-            var success = await _cursoRepository.SetPredeterminadoAsync(cursoId);
+            var success = await _cursoRepository.EstablecerPredeterminado(cursoId,usuarioActual);
             if (!success)
             {
-                return (false, "Error al establecer el curso predeterminado", null);
+                return (false, null);
             }
 
-            var actualizado = await _cursoRepository.GetByIdAsync(cursoId);
-            return (true, "Curso marcado como predeterminado exitosamente", CursoMapper.MapToDto(actualizado));
+            var actualizado = await _cursoRepository.LeerPorId(cursoId);
+            if (actualizado == null)
+            {
+                return (false, null);
+            }
+            return (true, CursoMapper.MapToDto(actualizado));
+        }
+
+        public async Task<bool> EsEliminable(int id)
+        {
+            var cursoPredeterminado= await _cursoRepository.LeerPredeterminado();
+            if(cursoPredeterminado != null && cursoPredeterminado.Id == id)
+            {
+                return false;
+            }
+
+
+            var alumnos = await _alumnoService.LeerPorCursoId(id);
+            return !alumnos.Any();
+        }
+
+        public async Task<IEnumerable<CursoHistoriaDto>> LeerHistoria(int id)
+        {
+            var cursos = await _cursoRepository.LeerHistoria(id);
+            return cursos.Select(c => CursoMapper.MapToHistoriaDto(c));
+        }
+
+        public async Task<CursoDto?> LeerPorNombre(string nombre)
+        {
+            if (string.IsNullOrEmpty(nombre))
+                return null;
+
+            var curso = await _cursoRepository.LeerPorNombre(nombre);
+            if (curso == null)
+                return null;
+
+            return CursoMapper.MapToDto(curso);
         }
     }
 }

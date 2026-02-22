@@ -9,16 +9,12 @@ namespace KindoHub.Core.Dtos
 {
     public class AnotacionDto
     {
-        [Required]
-        public int AnotacionId { get; set; }
+        public int Id { get; set; }
 
-        [Required]
         public int IdFamilia { get; set; }
 
-        [Required]
         public DateTime Fecha { get; set; }
 
-        [Required]
         public string Descripcion { get; set; }
 
         public byte[] VersionFila { get; set; }

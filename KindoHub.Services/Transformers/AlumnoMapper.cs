@@ -19,7 +19,27 @@ namespace KindoHub.Services.Transformers
             };
         }
 
-        public static AlumnoEntity MapToEntity(RegisterAlumnoDto dto)
+        public static AlumnoHistoriaDto MapToAlumnoHistoriaDto(AlumnoHistoriaEntity entity)
+        {
+            return new AlumnoHistoriaDto
+            {
+                Id= entity.Id,
+                IdFamilia = entity.IdFamilia,
+                Nombre = entity.Nombre,
+                Observaciones = entity.Observaciones,
+                AutorizaRedes = entity.AutorizaRedes,
+                IdCurso = entity.IdCurso,
+                VersionFila = entity.VersionFila,
+                CreadoPor = entity.CreadoPor,
+                FechaCreacion = entity.FechaCreacion,
+                ModificadoPor = entity.ModificadoPor,
+                FechaModificacion = entity.FechaModificacion,
+                SysStartTime = entity.SysStartTime,
+                SysEndTime = entity.SysEndTime
+            };
+        }
+
+        public static AlumnoEntity MapToEntity(RegistrarAlumnoDto dto)
         {
             return new AlumnoEntity
             {
@@ -31,7 +51,7 @@ namespace KindoHub.Services.Transformers
             };
         }
 
-        public static AlumnoEntity MapToEntity(UpdateAlumnoDto dto)
+        public static AlumnoEntity MapToEntity(ActualizarAlumnoDto dto)
         {
             return new AlumnoEntity
             {

@@ -27,95 +27,98 @@ namespace KindoHub.Services.Services
             _logger = logger;
         }
 
-        public async Task<AnotacionDto?> GetByIdAsync(int anotacionId)
+        public async Task<AnotacionDto?> LeerPorId(int anotacionId)
         {
             if (anotacionId <= 0)
                 return null;
 
-            var anotacion = await _anotacionRepository.GetByIdAsync(anotacionId);
+            var anotacion = await _anotacionRepository.LeerPorId(anotacionId);
             if (anotacion == null)
                 return null;
 
             return AnotacionMapper.MapToDto(anotacion);
         }
 
-        public async Task<IEnumerable<AnotacionDto>> GetByFamiliaIdAsync(int idFamilia)
+        public async Task<IEnumerable<AnotacionDto>> LeerPorIdFamilia(int idFamilia)
         {
             if (idFamilia <= 0)
                 return Enumerable.Empty<AnotacionDto>();
 
-            var anotaciones = await _anotacionRepository.GetByFamiliaIdAsync(idFamilia);
+            var anotaciones = await _anotacionRepository.LeerPorFamilia(idFamilia);
             return anotaciones.Select(a => AnotacionMapper.MapToDto(a));
         }
 
-        public async Task<(bool Success, string Message, AnotacionDto? Anotacion)> CreateAsync(
-            RegisterAnotacionDto dto, string usuarioActual)
+        public async Task<(bool Success, AnotacionDto? Anotacion)> Crear(
+            RegistrarAnotacionDto dto, string usuarioActual)
         {
-            var familia = await _familiaRepository.GetByFamiliaIdAsync(dto.IdFamilia);
+            var familia = await _familiaRepository.LeerPorId(dto.IdFamilia);
             if (familia == null)
             {
-                return (false, $"La familia con ID '{dto.IdFamilia}' no existe", null);
+                return (false, null);
             }
 
             var anotacion = AnotacionMapper.MapToEntity(dto);
 
-            var createdAnotacion = await _anotacionRepository.CreateAsync(anotacion, usuarioActual);
+            var createdAnotacion = await _anotacionRepository.Crear(anotacion, usuarioActual);
             if (createdAnotacion != null)
             {
-                return (true, "Anotación registrada correctamente", AnotacionMapper.MapToDto(createdAnotacion));
+                return (true, AnotacionMapper.MapToDto(createdAnotacion));
             }
             else
             {
-                return (false, "Error al registrar la anotación", null);
+                return (false,  null);
             }
         }
 
-        public async Task<(bool Success, string Message, AnotacionDto? Anotacion)> UpdateAsync(
-            UpdateAnotacionDto dto, string usuarioActual)
+        public async Task<(bool Success, AnotacionDto? Anotacion)> Actualizar(
+            ActualizarAnotacionDto dto, string usuarioActual)
         {
-            var targetAnotacion = await _anotacionRepository.GetByIdAsync(dto.AnotacionId);
+            var targetAnotacion = await _anotacionRepository.LeerPorId(dto.Id);
             if (targetAnotacion == null)
             {
-                return (false, "La anotación a actualizar no existe", null);
-            }
-
-            var familia = await _familiaRepository.GetByFamiliaIdAsync(dto.IdFamilia);
-            if (familia == null)
-            {
-                return (false, $"La familia con ID '{dto.IdFamilia}' no existe", null);
+                return (false,  null);
             }
 
             var anotacionEntity = AnotacionMapper.MapToEntity(dto);
 
-            var updated = await _anotacionRepository.UpdateAsync(anotacionEntity, usuarioActual);
+            var updated = await _anotacionRepository.Actualizar(anotacionEntity, usuarioActual);
             if (updated)
             {
-                var updatedAnotacion = await _anotacionRepository.GetByIdAsync(dto.AnotacionId);
-                return (true, "Anotación actualizada exitosamente", AnotacionMapper.MapToDto(updatedAnotacion));
+                var updatedAnotacion = await _anotacionRepository.LeerPorId(dto.Id);
+                return (true, AnotacionMapper.MapToDto(updatedAnotacion));
             }
             else
             {
-                return (false, "La anotación ha sido modificada por otro usuario. Por favor, recarga los datos.", null);
+                return (false,  null);
             }
         }
 
-        public async Task<(bool Success, string Message)> DeleteAsync(int anotacionId, byte[] versionFila)
+        public async Task<bool> Eliminar(int anotacionId, byte[] versionFila, string usuarioActual)
         {
-            var targetAnotacion = await _anotacionRepository.GetByIdAsync(anotacionId);
+            var targetAnotacion = await _anotacionRepository.LeerPorId(anotacionId);
             if (targetAnotacion == null)
             {
-                return (false, "La anotación a eliminar no existe");
+                return (false);
             }
 
-            var deleted = await _anotacionRepository.DeleteAsync(anotacionId, versionFila);
+            var deleted = await _anotacionRepository.Eliminar(anotacionId, versionFila, usuarioActual);
             if (deleted)
             {
-                return (true, "Anotación eliminada exitosamente");
+                return (true);
             }
             else
             {
-                return (false, "La anotación ha sido modificada por otro usuario. Por favor, recarga los datos.");
+                return (false);
             }
+        }
+
+        public async Task<IEnumerable<AnotacionHistoriaDto>> LeerHistoria(int id)
+        {
+            if (id <= 0)
+                return Enumerable.Empty<AnotacionHistoriaDto>();
+
+            var anotaciones = await _anotacionRepository.LeerHistoria(id);
+            return anotaciones.Select(a => AnotacionMapper.MapToAnotacionHistoriaDto(a));
         }
     }
 }

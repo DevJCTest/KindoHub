@@ -1,3 +1,5 @@
+
+using KindoHub.Api.Middleware;
 using KindoHub.Core;
 using KindoHub.Core.Interfaces;
 using KindoHub.Data;
@@ -6,10 +8,9 @@ using KindoHub.Services.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System.Text;
 using Serilog;
 using Serilog.Events;
-using KindoHub.Api.Middleware;
+using System.Text;
 
 // ========================================
 // CONFIGURACIÓN DE SERILOG (PASO 1)
@@ -42,6 +43,10 @@ try
     // Add services to the container.
 
     builder.Services.AddControllers();
+
+
+
+
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen(options =>
@@ -87,13 +92,17 @@ try
     builder.Services.AddScoped<IAlumnoRepository, AlumnoRepository>();
     builder.Services.AddScoped<IAuthService, AuthService>();
     builder.Services.AddScoped<ITokenService, JwtTokenService>();
-    builder.Services.AddScoped<IUserService, UserService>();
+    builder.Services.AddScoped<IUsuarioService, UsuarioService>();
     builder.Services.AddScoped<IFormaPagoService, FormaPagoService>();
     builder.Services.AddScoped<IEstadoAsociadoService, EstadoAsociadoService>();
     builder.Services.AddScoped<IFamiliaService, FamiliaService>();
     builder.Services.AddScoped<IAnotacionService, AnotacionService>();
     builder.Services.AddScoped<ICursoService, CursoService>();
     builder.Services.AddScoped<IAlumnoService, AlumnoService>();
+    builder.Services.AddScoped<ILogRepository, LogRepository>();
+    builder.Services.AddScoped<ILogService, LogService>();
+    builder.Services.AddScoped<IIbanService, IbanService>();
+    builder.Services.AddSingleton<LoginAttemptTracker>();
 
     // Configuración JWT
     var jwtSettings = builder.Configuration.GetSection("Jwt");
@@ -158,7 +167,10 @@ try
     if (app.Environment.IsDevelopment())
     {
         app.UseSwagger();
-        app.UseSwaggerUI();
+        app.UseSwaggerUI(options =>
+        {
+            options.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.None);
+        });
     }
 
     app.UseHttpsRedirection();

@@ -14,7 +14,7 @@ namespace KindoHub.Data.Transformers
         {
             return new EstadoAsociadoEntity
             {
-                EstadoAsociadoId = reader.GetInt32(reader.GetOrdinal("EstadoId")),
+                Id = reader.GetInt32(reader.GetOrdinal("EstadoId")),
                 Nombre = reader.GetString(reader.GetOrdinal("Nombre")),
                 Descripcion = reader.GetString(reader.GetOrdinal("Descripcion")),
                 Predeterminado = reader.GetBoolean(reader.GetOrdinal("Predeterminado"))

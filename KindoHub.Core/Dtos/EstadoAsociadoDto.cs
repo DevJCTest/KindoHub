@@ -8,10 +8,9 @@ namespace KindoHub.Core.Dtos
 {
     public class EstadoAsociadoDto
     {
-        public int EstadoAsociadoId { get; set; }
-        public string Nombre { get; set; } = null!;
-        public string Descripcion { get; set; } = null!;
-
-        public bool Predeterminado{ get; set; } = false;
+        public int Id { get; set; }
+        public string Nombre { get; set; } 
+        public string Descripcion { get; set; }
+        public bool Predeterminado{ get; set; }
     }
 }

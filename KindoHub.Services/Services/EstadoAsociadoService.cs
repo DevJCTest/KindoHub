@@ -1,5 +1,4 @@
 ﻿using KindoHub.Core.Dtos;
-using KindoHub.Core.DTOs;
 using KindoHub.Core.Entities;
 using KindoHub.Core.Interfaces;
 using KindoHub.Services.Transformers;
@@ -25,66 +24,52 @@ namespace KindoHub.Services.Services
 
 
 
-        public async Task<IEnumerable<EstadoAsociadoDto>> GetAllEstadoAsociadoAsync()
+        public async Task<IEnumerable<EstadoAsociadoDto>> LeerTodos()
         {
-            var estadosAsociados = await _estadoAsociadoRepository.GetAllEstadoAsociadoAsync();
+            var estadosAsociados = await _estadoAsociadoRepository.LeerTodos();
             return estadosAsociados.Select(u => EstadoAsociadoMapper.MapToEstadoAsociadoDto(u));
         }
 
-        public async Task<EstadoAsociadoDto?> GetEstadoAsociadoAsync(string name)
+        public async Task<EstadoAsociadoDto?> LeerPorNombre(string name)
         {
             if (string.IsNullOrWhiteSpace(name))
                 return null;
 
-            var estadoAsociado = await _estadoAsociadoRepository.GetEstadoAsociadoAsync(name);
+            var estadoAsociado = await _estadoAsociadoRepository.LeerPorNombre(name);
             if (estadoAsociado == null)
                 return null;
 
             return EstadoAsociadoMapper.MapToEstadoAsociadoDto(estadoAsociado);
         }
 
-        public async Task<EstadoAsociadoDto?> GetEstadoAsociadoAsync(int id)
+        public async Task<EstadoAsociadoDto?> LeerPredeterminado()
         {
-            if (id <= 0)
-                return null;
-
-            var estadoAsociado = await _estadoAsociadoRepository.GetEstadoAsociadoAsync(id);
+            var estadoAsociado = await _estadoAsociadoRepository.LeerPredeterminado();
             if (estadoAsociado == null)
                 return null;
 
             return EstadoAsociadoMapper.MapToEstadoAsociadoDto(estadoAsociado);
         }
 
-        public async Task<EstadoAsociadoDto?> GetPredeterminadoAsync()
+        public async Task<(bool Success, EstadoAsociadoDto? EstadoAsociado)> EstablecerPredeterminado(int id)
         {
-            var estadoAsociado = await _estadoAsociadoRepository.GetPredeterminadoAsync();
-            if (estadoAsociado == null)
-                return null;
-
-            return EstadoAsociadoMapper.MapToEstadoAsociadoDto(estadoAsociado);
-        }
-
-        public async Task<(bool Success, string Message, EstadoAsociadoDto? EstadoAsociado)> SetPredeterminadoAsync(int id)
-        {
-            // Verificar que el la familia a cambiar exista
-            var targetEstadoPrevio = await _estadoAsociadoRepository.GetEstadoAsociadoAsync(id);
-            if (targetEstadoPrevio == null)
+            if(id<=0)
             {
-                return (false, "La familia a cambiar no existe", null);
+                return (false, null);
             }
 
-                       
-            var updated = await _estadoAsociadoRepository.SetPredeterminadoAsync(id);
+
+            var updated = await _estadoAsociadoRepository.EstablecerPredeterminado(id);
             if (updated)
             {
-                var updatedEstadoPrevio = await _estadoAsociadoRepository.GetEstadoAsociadoAsync(id);
+                var updatedEstadoPrevio = await _estadoAsociadoRepository.LeerPorId(id);
                 if (updatedEstadoPrevio != null)
                 {
-                    return (true, "Actualización realizada",EstadoAsociadoMapper.MapToEstadoAsociadoDto(updatedEstadoPrevio));
+                    return (true, EstadoAsociadoMapper.MapToEstadoAsociadoDto(updatedEstadoPrevio));
                 }
             }
 
-            return (false, "Error al establecer el EstadoAsociado predeterminado", null);
+            return (false, null);
         }
     }
 }

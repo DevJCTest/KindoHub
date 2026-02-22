@@ -1,7 +1,10 @@
 ﻿using Azure.Core;
+using KindoHub.Core.Dtos;
 using KindoHub.Core.Interfaces;
+using KindoHub.Core.Validators;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq;
 
 namespace KindoHub.Api.Controllers
 {
@@ -18,154 +21,115 @@ namespace KindoHub.Api.Controllers
             _logger = logger;
         }
 
-        [HttpGet("by-name")]
-        public async Task<IActionResult> GetEstadoAsociadoByName(string name)
+        [HttpGet("por-nombre")]
+        [Authorize(Policy = "Consulta_Familias")]
+        public async Task<IActionResult> LeerPorNombre(string nombre)
         {
-            // 400 - Validación de username
-            if (string.IsNullOrWhiteSpace(name))
+            var validator = new NombreEstadoAsociadoValidator(_estadoAsociadoService);
+            var validationResult = await validator.ValidateAsync(nombre);
+
+            if (!validationResult.IsValid)
             {
-                _logger.LogWarning("GetEstadoAsociado request with empty name");
-                return BadRequest(new { message = "El name es requerido" });
+                return BadRequest(new
+                {
+                    errors = validationResult.Errors.Select(e => e.ErrorMessage)
+                });
             }
 
             try
             {
-                var dto = await _estadoAsociadoService.GetEstadoAsociadoAsync(name);
+                var dto = await _estadoAsociadoService.LeerPorNombre(nombre);
 
-                // 404 - Forma pago no encontrada
                 if (dto == null)
                 {
-                    _logger.LogWarning("Estado asociado not found: {Name}", name);
-                    return NotFound(new { message = $"EstadoAsociado '{name}' no encontrada" });
+                    return NotFound(new { message = $"EstadoAsociado '{nombre}' no encontrado" });
                 }
 
-                _logger.LogInformation("Estado asociado retrieved: {Name}", name);
                 return Ok(dto);
             }
             catch (Exception ex)
             {
-                // 500 - Error interno
-                _logger.LogError(ex, "Error retrieving estado asociado: {Name}", name);
+                _logger.LogError(ex, "Error leyendo estado asociado por nombre: {Name}", nombre);
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }
 
-        [HttpGet("by-id")]
-        public async Task<IActionResult> GetEstadoAsociadoById(int id)
-        {
-            // 400 - Validación de username
-            if (id <= 0)
-            {
-                _logger.LogWarning("GetEstadoAsociado request with id <= 0");
-                return BadRequest(new { message = "El id es requerido" });
-            }
-
-            try
-            {
-                var dto = await _estadoAsociadoService.GetEstadoAsociadoAsync(id);
-
-                // 404 - Estado asociado no encontrado
-                if (dto == null)
-                {
-                    _logger.LogWarning("Estado asociado not found: {EstadoAsociadoId}", id);
-                    return NotFound(new { message = $"EstadoAsociado '{id}' no encontrada" });
-                }
-
-                _logger.LogInformation("Estado asociado retrieved: {EstadoAsociadoId}", id);
-                return Ok(dto);
-            }
-            catch (Exception ex)
-            {
-                // 500 - Error interno
-                _logger.LogError(ex, "Error retrieving estado asociado: {EstadoAsociadoId}", id);
-                return StatusCode(500, new { message = "Error interno del servidor" });
-            }
-        }
-
+       
         [HttpGet]
-        public async Task<IActionResult> GetAllEstadosAsociado()
+        [Authorize(Policy = "Consulta_Familias")]
+        public async Task<IActionResult> LeerTodos()
         {
             try
             {
-                var estadosAsociado = await _estadoAsociadoService.GetAllEstadoAsociadoAsync();
-                _logger.LogInformation("All estados asociado retrieved. Count: {Count}", estadosAsociado.Count());
+                var estadosAsociado = await _estadoAsociadoService.LeerTodos();               
                 return Ok(estadosAsociado);
             }
             catch (Exception ex)
             {
-                // 500 - Error interno
-                _logger.LogError(ex, "Error retrieving all estados asociado");
+                // 500 
+                _logger.LogError(ex, "Error leyendo los estados de asociado");
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }
 
         [HttpGet("predeterminado")]
-        public async Task<IActionResult> GetPredeterminado()
+        [Authorize(Policy = "Consulta_Familias")]
+        public async Task<IActionResult> LeerPredeterminado()
         {
 
 
             try
             {
-                var dto = await _estadoAsociadoService.GetPredeterminadoAsync();
+                var dto = await _estadoAsociadoService.LeerPredeterminado();
 
-                // 404 - Estado asociado no encontrado
+                // 404
                 if (dto == null)
                 {
-                    _logger.LogWarning("No se encontró ningún EstadoAsociado marcado como predeterminado");
-                    return NotFound(new { message = $"No se encontró el EstadoAsociado predeterminado" });
+                    return NotFound(new { message = $"No se encontró el estado de asociado predeterminado" });
                 }
 
-                _logger.LogInformation("Estado asociado retrieved: {EstadoAsociadoId}", dto.EstadoAsociadoId);
                 return Ok(dto);
             }
             catch (Exception ex)
             {
                 // 500 - Error interno
-                _logger.LogError(ex, "Error retrieving estado asociado predeterminado");
+                _logger.LogError(ex, "Error al leer el estado asociado predeterminado");
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }
 
-        [HttpGet("set-predeterminado")]
-        public async Task<IActionResult> SetPredeterminado(int id)
+        [HttpGet("asignar-predeterminado")]
+        [Authorize(Policy = "Gestion_Familias")]
+        public async Task<IActionResult> EstablecerPredeterminado(int id)
         {
-            // 400 - Validación de username
-            if (id <= 0)
+            var validator = new IdEstadoAsociadoValidator();
+            var validationResult = await validator.ValidateAsync(id);
+
+            if (!validationResult.IsValid)
             {
-                _logger.LogWarning("GetEstadoAsociado request with id <= 0");
-                return BadRequest(new { message = "El id es requerido" });
+                return BadRequest(new
+                {
+                    errors = validationResult.Errors.Select(e => e.ErrorMessage)
+                });
             }
 
             try
             {
-                var result = await _estadoAsociadoService.SetPredeterminadoAsync(id);
+                var result = await _estadoAsociadoService.EstablecerPredeterminado(id);
 
                 if (result.Success)
                 {
-                    _logger.LogInformation("Establecido como predeterminado EstadoAsociado with ID: {EstadoAsociadoId}",
-                        id);
-
                     return Ok(new
                     {
-                        message = result.Message,
-                        familia = result.EstadoAsociado
+                        EstadoAsociado = result.EstadoAsociado
                     });
                 }
 
-                // 404 - Familia no existe
-                if (result.Message.Contains("no existe"))
-                {
-                    _logger.LogWarning("Change attempt for non-existent family: {EstadoAsociadoId}", id);
-                    return NotFound(new { message = result.Message });
-                }
-
-                _logger.LogInformation("Estado asociado retrieved: {EstadoAsociadoId}", id);
-                return BadRequest(new { message = result.Message });
+                return BadRequest();
             }
             catch (Exception ex)
             {
-                // 500 - Error interno
-                _logger.LogError(ex, "Error retrieving estado asociado: {EstadoAsociadoId}", id);
+                _logger.LogError(ex, "Error al establecer el estado de asociado predeterminado: {EstadoAsociadoId}", id);
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }

@@ -10,12 +10,11 @@ namespace KindoHub.Core.Dtos
 {
     public class FamiliaDto
     {
-        [Required]
-        public int FamiliaId { get; set; }
+        public int Id { get; set; }
 
+        public int Referencia { get; set; }
         public int NumeroSocio { get; set; }
 
-        [Required]
         public string Nombre { get; set; }
 
         public string Email { get; set; }
@@ -26,22 +25,21 @@ namespace KindoHub.Core.Dtos
 
         public string Observaciones { get; set; }
 
-        [Required]
         public bool Apa { get; set; }
 
-        [DefaultValue(null)]
+        public int? IdEstadoApa { get; set; }    
+
         public string? NombreEstadoApa { get; set; }
         
-        [Required]
         public bool Mutual { get; set; }
 
-        [DefaultValue(null)] 
+        public int? IdEstadoMutual { get; set; }
+
         public string? NombreEstadoMutual { get; set; }
 
-        [Required]
         public bool BeneficiarioMutual { get; set; }
 
-        [DefaultValue(null)] 
+        public int? IdFormaPago { get; set; }
         public string? NombreFormaPago { get; set; }
 
         public string IBAN { get; set; }

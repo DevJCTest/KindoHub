@@ -9,9 +9,9 @@ namespace KindoHub.Core.Interfaces
 {
     public interface ITokenService
     {
-        TokenResponse GenerateTokens(string username, string[] roles, string[] permissions);
-        Task<TokenResponse> RefreshTokens();
-        void SetRefreshTokenCookie(TokenResponse tokenResponse);
+        TokenDto GenerarToken(string username, string[] roles, string[] permissions);
+        Task<TokenDto> RefrescarToken();
+        void SetRefreshTokenCookie(TokenDto tokenResponse);
         void ClearRefreshTokenCookie();
     }
 }

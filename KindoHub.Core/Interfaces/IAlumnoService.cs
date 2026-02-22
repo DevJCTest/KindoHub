@@ -1,4 +1,5 @@
 using KindoHub.Core.Dtos;
+using KindoHub.Core.Entities;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -6,14 +7,21 @@ namespace KindoHub.Core.Interfaces
 {
     public interface IAlumnoService
     {
-        Task<AlumnoDto?> GetByIdAsync(int alumnoId);
-        Task<IEnumerable<AlumnoDto>> GetAllAsync();
-        Task<(bool Success, string Message, AlumnoDto? Alumno)> CreateAsync(RegisterAlumnoDto dto, string usuarioActual);
-        Task<(bool Success, string Message, AlumnoDto? Alumno)> UpdateAsync(UpdateAlumnoDto dto, string usuarioActual);
-        Task<(bool Success, string Message)> DeleteAsync(int alumnoId, byte[] versionFila);
+        Task<AlumnoDto?> LeerPorId(int id);
+        Task<IEnumerable<AlumnoDto>> LeerTodos();
+        Task<(bool Success, AlumnoDto? Alumno)> Crear(RegistrarAlumnoDto dto, string usuarioActual);
+        Task<(bool Success, AlumnoDto? Alumno)> Actualizar(ActualizarAlumnoDto dto, string usuarioActual);
+        Task<bool> Eliminar(int alumnoId, byte[] versionFila, string usuarioActual);
 
-        Task<IEnumerable<AlumnoDto>> GetByFamiliaIdAsync(int familiaId);
-        Task<IEnumerable<AlumnoDto>> GetSinFamiliaAsync();
-        Task<IEnumerable<AlumnoDto>> GetByCursoIdAsync(int cursoId);
+        Task<IEnumerable<AlumnoDto>> LeerPorFamiliaId(int familiaId);
+        Task<IEnumerable<AlumnoDto>> LeerSinFamilia();
+        Task<IEnumerable<AlumnoDto>> LeerPorCursoId(int cursoId);
+        Task<IEnumerable<AlumnoHistoriaDto>> LeerHistoria(int id);
+
+        Task<IEnumerable<AlumnoDto>> GetPorFamiliaId(int id);
+
+        Task<IEnumerable<AlumnoDto>> LeerFiltrado(FilterAlumnoOptions[] filters);
+        IEnumerable<AlumnoFieldDto> ObtenerCamposDisponibles();
+
     }
 }

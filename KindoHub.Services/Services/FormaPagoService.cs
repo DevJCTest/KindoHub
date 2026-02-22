@@ -23,18 +23,18 @@ namespace KindoHub.Services.Services
 
 
 
-        public async Task<IEnumerable<FormaPagoDto>> GetAllFormasPagoAsync()
+        public async Task<IEnumerable<FormaPagoDto>> LeerTodos()
         {
-            var formasPago = await _formaPagoRepository.GetAllFormasPagoAsync();
+            var formasPago = await _formaPagoRepository.LeerTodos();
             return formasPago.Select(u => FormaPagoMapper.MapToFormaPagoDto(u));
         }
 
-        public async Task<FormaPagoDto?> GetFormapagoAsync(string name)
+        public async Task<FormaPagoDto?> LeerPorNombre(string name)
         {
             if (string.IsNullOrWhiteSpace(name))
                 return null;
 
-            var formaPago = await _formaPagoRepository.GetFormaPagoAsync(name);
+            var formaPago = await _formaPagoRepository.LeerPorNombre(name);
             if (formaPago == null)
                 return null;
 
@@ -42,12 +42,12 @@ namespace KindoHub.Services.Services
 
         }
 
-        public async Task<FormaPagoDto?> GetFormapagoAsync(int id)
+        public async Task<FormaPagoDto?> LeerPorId(int id)
         {
             if (id <= 0)
                 return null;
 
-            var formaPago = await _formaPagoRepository.GetFormaPagoAsync(id);
+            var formaPago = await _formaPagoRepository.LeerPorId(id);
             if (formaPago == null)
                 return null;
 

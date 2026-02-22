@@ -1,5 +1,6 @@
 ﻿using KindoHub.Core.Dtos;
 using KindoHub.Core.Interfaces;
+using KindoHub.Services.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -12,17 +13,19 @@ namespace KindoHub.Api.Controllers
     {
         private readonly IAuthService _authService;
         private readonly ITokenService _tokenService;
+        private readonly LoginAttemptTracker _loginAttemptTracker;
         private readonly ILogger<AuthController> _logger;
 
-        public AuthController(IAuthService authService, ITokenService tokenService, ILogger<AuthController> logger)
+        public AuthController(IAuthService authService, LoginAttemptTracker loginAttemptTracker, ITokenService tokenService, ILogger<AuthController> logger)
         {
             _authService = authService;
             _tokenService = tokenService;
+            _loginAttemptTracker = loginAttemptTracker;
             _logger = logger;
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginDto request)
+        public async Task<IActionResult> IniciarSesion([FromBody] LoginDto request)
         {
             // 400 - Validación de modelo
             if (!ModelState.IsValid)
@@ -38,18 +41,28 @@ namespace KindoHub.Api.Controllers
                 return BadRequest(new { message = "Usuario y contraseña son requeridos" });
             }
 
+            if (_loginAttemptTracker.IsUserBlocked(request.Username))
+            {
+                _logger.LogWarning($"Intento de login bloqueado para usuario '{request.Username}' - Demasiados intentos fallidos");
+                return StatusCode(429, new { message = "Usuario bloqueado temporalmente debido a múltiples intentos fallidos. El tiempo de bloqueo depende del número de intentos." });
+            }
+
+
             try
             {
-                var result = await _authService.ValidateUserAsync(request);
+                var result = await _authService.ValidarUsuario(request);
 
                 // 401 - Credenciales incorrectas
                 if (!result.IsValid)
                 {
+                    _loginAttemptTracker.RecordFailedAttempt(request.Username);
+                    var failedAttempts = _loginAttemptTracker.GetFailedAttempts(request.Username);
+
                     _logger.LogWarning("Failed login attempt for user: {Username}", request.Username);
                     return Unauthorized(new { message = "Credenciales incorrectas" });
                 }
 
-                var tokenResponse = _tokenService.GenerateTokens(request.Username, result.Roles, result.Permissions);
+                var tokenResponse = _tokenService.GenerarToken(request.Username, result.Roles, result.Permissions);
                 _tokenService.SetRefreshTokenCookie(tokenResponse);
 
                 _logger.LogInformation("Successful login for user: {Username}", request.Username);
@@ -67,7 +80,7 @@ namespace KindoHub.Api.Controllers
 
         [HttpPost("logout")]
         [Authorize]
-        public IActionResult Logout()
+        public IActionResult CerrarSesion()
         {
             try
             {
@@ -88,7 +101,7 @@ namespace KindoHub.Api.Controllers
         }
 
         [HttpPost("refresh")]
-        public async Task<IActionResult> Refresh()
+        public async Task<IActionResult> RefrescarToken()
         {
             try
             {
@@ -105,7 +118,7 @@ namespace KindoHub.Api.Controllers
                     return BadRequest(new { message = "RefreshToken no proporcionado" });
                 }
 
-                var tokenResponse = await _tokenService.RefreshTokens();
+                var tokenResponse = await _tokenService.RefrescarToken();
                 _tokenService.SetRefreshTokenCookie(tokenResponse);
 
                 _logger.LogInformation("Successful token refresh for user: {Username}", tokenResponse.Username);

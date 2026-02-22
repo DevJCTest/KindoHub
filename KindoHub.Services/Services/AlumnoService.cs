@@ -1,5 +1,7 @@
 using KindoHub.Core.Dtos;
+using KindoHub.Core.Entities;
 using KindoHub.Core.Interfaces;
+using KindoHub.Core.Validators;
 using KindoHub.Services.Transformers;
 using Microsoft.Extensions.Logging;
 using System;
@@ -28,146 +30,174 @@ namespace KindoHub.Services.Services
             _logger = logger;
         }
 
-        public async Task<AlumnoDto?> GetByIdAsync(int alumnoId)
+        public async Task<AlumnoDto?> LeerPorId(int alumnoId)
         {
-            var alumno = await _alumnoRepository.GetByIdAsync(alumnoId);
+            var alumno = await _alumnoRepository.LeerPorId(alumnoId);
             return alumno != null ? AlumnoMapper.MapToDto(alumno) : null;
         }
 
-        public async Task<IEnumerable<AlumnoDto>> GetAllAsync()
+        public async Task<IEnumerable<AlumnoDto>> LeerTodos()
         {
-            var alumnos = await _alumnoRepository.GetAllAsync();
+            var alumnos = await _alumnoRepository.LeerTodos();
             return alumnos.Select(a => AlumnoMapper.MapToDto(a));
         }
 
-        public async Task<(bool Success, string Message, AlumnoDto? Alumno)> CreateAsync(
-            RegisterAlumnoDto dto, string usuarioActual)
+        public async Task<(bool Success, AlumnoDto? Alumno)> Crear(
+            RegistrarAlumnoDto dto, string usuarioActual)
         {
             if (dto.IdFamilia.HasValue && dto.IdFamilia.Value > 0)
             {
-                var familia = await _familiaRepository.GetByFamiliaIdAsync(dto.IdFamilia.Value);
+                var familia = await _familiaRepository.LeerPorId(dto.IdFamilia.Value);
                 if (familia == null)
                 {
-                    _logger.LogWarning("Attempt to create alumno with non-existent familia: {FamiliaId}", dto.IdFamilia.Value);
-                    return (false, $"La familia con ID {dto.IdFamilia.Value} no existe", null);
+                    return (false, null);
                 }
             }
 
             if (dto.IdCurso.HasValue && dto.IdCurso.Value > 0)
             {
-                var curso = await _cursoRepository.GetByIdAsync(dto.IdCurso.Value);
+                var curso = await _cursoRepository.LeerPorId(dto.IdCurso.Value);
                 if (curso == null)
                 {
-                    _logger.LogWarning("Attempt to create alumno with non-existent curso: {CursoId}", dto.IdCurso.Value);
-                    return (false, $"El curso con ID {dto.IdCurso.Value} no existe", null);
+                    return (false, null);
                 }
             }
 
             var alumno = AlumnoMapper.MapToEntity(dto);
 
-            var createdAlumno = await _alumnoRepository.CreateAsync(alumno, usuarioActual);
+            var createdAlumno = await _alumnoRepository.Crear(alumno, usuarioActual);
 
             if (createdAlumno != null)
             {
-                _logger.LogInformation("Alumno created: {AlumnoId} - {Nombre}", createdAlumno.AlumnoId, createdAlumno.Nombre);
-                return (true, "Alumno registrado correctamente", AlumnoMapper.MapToDto(createdAlumno));
+                return (true, AlumnoMapper.MapToDto(createdAlumno));
             }
             else
             {
-                _logger.LogWarning("Failed to create alumno: {Nombre}", dto.Nombre);
-                return (false, "Error al registrar el alumno", null);
+                return (false, null);
             }
         }
 
-        public async Task<(bool Success, string Message, AlumnoDto? Alumno)> UpdateAsync(
-            UpdateAlumnoDto dto, string usuarioActual)
+        public async Task<(bool Success, AlumnoDto? Alumno)> Actualizar(
+            ActualizarAlumnoDto dto, string usuarioActual)
         {
-            var alumnoExistente = await _alumnoRepository.GetByIdAsync(dto.AlumnoId);
+            var alumnoExistente = await _alumnoRepository.LeerPorId(dto.AlumnoId);
             if (alumnoExistente == null)
             {
-                _logger.LogWarning("Attempt to update non-existent alumno: {AlumnoId}", dto.AlumnoId);
-                return (false, "El alumno a actualizar no existe", null);
+                return (false, null);
             }
 
-            if (dto.IdFamilia.HasValue && dto.IdFamilia.Value > 0)
+            if (dto.IdFamilia > 0)
             {
-                var familia = await _familiaRepository.GetByFamiliaIdAsync(dto.IdFamilia.Value);
+                var familia = await _familiaRepository.LeerPorId(dto.IdFamilia);
                 if (familia == null)
                 {
-                    _logger.LogWarning("Attempt to update alumno with non-existent familia: {FamiliaId}", dto.IdFamilia.Value);
-                    return (false, $"La familia con ID {dto.IdFamilia.Value} no existe", null);
+                    return (false,  null);
                 }
             }
 
-            if (dto.IdCurso.HasValue && dto.IdCurso.Value > 0)
+            if (dto.IdCurso > 0)
             {
-                var curso = await _cursoRepository.GetByIdAsync(dto.IdCurso.Value);
+                var curso = await _cursoRepository.LeerPorId(dto.IdCurso);
                 if (curso == null)
                 {
-                    _logger.LogWarning("Attempt to update alumno with non-existent curso: {CursoId}", dto.IdCurso.Value);
-                    return (false, $"El curso con ID {dto.IdCurso.Value} no existe", null);
+                    return (false,  null);
                 }
             }
 
             var alumnoEntity = AlumnoMapper.MapToEntity(dto);
 
-            var updated = await _alumnoRepository.UpdateAsync(alumnoEntity, usuarioActual);
+            var updated = await _alumnoRepository.Actualizar(alumnoEntity, usuarioActual);
 
             if (updated)
             {
-                var updatedAlumno = await _alumnoRepository.GetByIdAsync(dto.AlumnoId);
-                _logger.LogInformation("Alumno updated: {AlumnoId}", dto.AlumnoId);
-                return (true, "Alumno actualizado exitosamente", AlumnoMapper.MapToDto(updatedAlumno));
+                var updatedAlumno = await _alumnoRepository.LeerPorId(dto.AlumnoId);
+                if(updatedAlumno == null)
+                {
+                    return (false, null);
+                }
+                return (true, AlumnoMapper.MapToDto(updatedAlumno));
             }
             else
             {
-                _logger.LogWarning("Concurrency conflict or error updating alumno: {AlumnoId}", dto.AlumnoId);
-                return (false,
-                    "La versión del alumno ha cambiado. Por favor, recarga los datos e intenta nuevamente.",
-                    null);
+                return (false,null);
             }
         }
 
-        public async Task<(bool Success, string Message)> DeleteAsync(int alumnoId, byte[] versionFila)
+        public async Task<bool> Eliminar(int alumnoId, byte[] versionFila, string usuarioActual)
         {
-            var alumno = await _alumnoRepository.GetByIdAsync(alumnoId);
+            var alumno = await _alumnoRepository.LeerPorId(alumnoId);
             if (alumno == null)
             {
-                _logger.LogWarning("Attempt to delete non-existent alumno: {AlumnoId}", alumnoId);
-                return (false, "El alumno a eliminar no existe");
+                return false;
             }
 
-            var deleted = await _alumnoRepository.DeleteAsync(alumnoId, versionFila);
+            var deleted = await _alumnoRepository.Eliminar(alumnoId, versionFila,usuarioActual);
 
             if (deleted)
             {
-                _logger.LogInformation("Alumno deleted: {AlumnoId}", alumnoId);
-                return (true, "Alumno eliminado exitosamente");
+                return true;
             }
             else
             {
-                _logger.LogWarning("Concurrency conflict or error deleting alumno: {AlumnoId}", alumnoId);
-                return (false,
-                    "La versión del alumno ha cambiado. Por favor, recarga los datos e intenta nuevamente.");
+                return false;
             }
         }
 
-        public async Task<IEnumerable<AlumnoDto>> GetByFamiliaIdAsync(int familiaId)
+        public async Task<IEnumerable<AlumnoDto>> LeerPorFamiliaId(int familiaId)
         {
-            var alumnos = await _alumnoRepository.GetByFamiliaIdAsync(familiaId);
+            var alumnos = await _alumnoRepository.LeerPorFamiliaId(familiaId);
             return alumnos.Select(a => AlumnoMapper.MapToDto(a));
         }
 
-        public async Task<IEnumerable<AlumnoDto>> GetSinFamiliaAsync()
+        public async Task<IEnumerable<AlumnoDto>> LeerSinFamilia()
         {
-            var alumnos = await _alumnoRepository.GetSinFamiliaAsync();
+            var alumnos = await _alumnoRepository.LeerSinFamilia();
             return alumnos.Select(a => AlumnoMapper.MapToDto(a));
         }
 
-        public async Task<IEnumerable<AlumnoDto>> GetByCursoIdAsync(int cursoId)
+        public async Task<IEnumerable<AlumnoDto>> LeerPorCursoId(int cursoId)
         {
-            var alumnos = await _alumnoRepository.GetByCursoIdAsync(cursoId);
+            var alumnos = await _alumnoRepository.LeerPorCursoId(cursoId);
             return alumnos.Select(a => AlumnoMapper.MapToDto(a));
+        }
+
+        public async Task<IEnumerable<AlumnoDto>> GetPorFamiliaId(int idFamilia)
+        {
+            var alumnos = await _alumnoRepository.LeerPorFamiliaId(idFamilia);
+            return alumnos.Select(a => AlumnoMapper.MapToDto(a));
+        }
+
+        public async Task<IEnumerable<AlumnoHistoriaDto>> LeerHistoria(int id)
+        {
+            var alumnos = await _alumnoRepository.LeerHistoria(id);
+            return alumnos.Select(a => AlumnoMapper.MapToAlumnoHistoriaDto(a));
+        }
+
+        public async Task<IEnumerable<AlumnoDto>> LeerFiltrado(FilterAlumnoOptions[] filters)
+        {
+            FilterAlumnoOptionsValidator validator = new FilterAlumnoOptionsValidator();
+
+            foreach (var filter in filters)
+            {
+                var validationResult = validator.Validate(filter);
+                if (!validationResult.IsValid)
+                {
+                    throw new ArgumentException($"Filtro inválido: {string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage))}");
+                }
+            }
+
+            var logs = await _alumnoRepository.LeerFiltrado(filters);
+            return logs.Select(l => AlumnoMapper.MapToDto(l));
+        }
+
+        public IEnumerable<AlumnoFieldDto> ObtenerCamposDisponibles()
+        {
+            return Enum.GetValues<AlumnoField>()
+                .Select(field => new AlumnoFieldDto
+                {
+                    Name = field.ToString(),
+                    Value = (int)field
+                });
         }
     }
 }

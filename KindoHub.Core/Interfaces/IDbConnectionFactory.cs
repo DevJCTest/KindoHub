@@ -9,6 +9,6 @@ namespace KindoHub.Core.Interfaces
 {
     public interface IDbConnectionFactory
     {
-        Task<SqlConnection> CreateConnectionAsync();
+        Task<SqlConnection> CrearConexion();
     }
 }

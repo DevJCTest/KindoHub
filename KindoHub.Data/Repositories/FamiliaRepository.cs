@@ -23,19 +23,13 @@ namespace KindoHub.Data.Repositories
 
         public FamiliaRepository(IDbConnectionFactoryFactory factory, ILogger<FamiliaRepository> logger)
         {
-            _connectionFactory = factory.Create("DefaultConnection");
+            _connectionFactory = factory.Crear("DefaultConnection");
             _logger = logger;
         }
 
 
-        public async Task<FamiliaEntity?> CreateAsync(FamiliaEntity familia, string usuarioActual)
+        public async Task<FamiliaEntity?> Crear(FamiliaEntity familia, string usuarioActual)
         {
-            if (familia == null)
-                throw new ArgumentNullException(nameof(familia));
-            if (string.IsNullOrWhiteSpace(usuarioActual))
-                throw new ArgumentException("El usuario que realiza la acción no puede estar vacío.", nameof(usuarioActual));
-
-
             const string query = @"
             INSERT INTO familias (NumeroSocio, Nombre, Email, Telefono, Direccion,
                                 Observaciones, Apa, IdEstadoApa, Mutual, IdEstadoMutual, BeneficiarioMutual, 
@@ -47,7 +41,7 @@ namespace KindoHub.Data.Repositories
 
             try
             {
-                await using var connection = await _connectionFactory.CreateConnectionAsync();
+                await using var connection = await _connectionFactory.CrearConexion();
                 await connection.OpenAsync();
                 await using var command = new SqlCommand(query, connection);
                 command.Parameters.AddWithValue("@NumeroSocio", familia.NumeroSocio);
@@ -72,16 +66,16 @@ namespace KindoHub.Data.Repositories
 
                 if (result != null && result != DBNull.Value)
                 {
-                    familia.FamiliaId = Convert.ToInt32(result);
-                    return await GetByFamiliaIdAsync(familia.FamiliaId);
+                    familia.Id = Convert.ToInt32(result);
+                    return await LeerPorId(familia.Id);
                 }
 
                 return null;
             }
             catch (SqlException ex) when (ex.Number == SqlUniqueConstraintViolation)
             {
-                _logger.LogWarning("Intento de crear familia duplicado: {Nombre}", familia.Nombre);
-                return null;
+                _logger.LogWarning("Error al intentar crear una familia con el mismo id: {Nombre}", familia.Nombre);
+                throw;
             }
             catch (SqlException ex)
             {
@@ -90,25 +84,55 @@ namespace KindoHub.Data.Repositories
             }
         }
 
-        public async Task<bool> DeleteAsync(int familiaId, byte[] versionFila)
+        public async Task<bool> Eliminar(int id, byte[] versionFila, string usuarioActual)
         {
-            if (familiaId<=0)
-                throw new ArgumentException("El identificador de la familia ha de ser mayor o igual a 0", nameof(familiaId));
-            if (versionFila == null || versionFila.Length == 0)
-                throw new ArgumentException("VersionFila es requerida para concurrencia optimista.", nameof(versionFila));
-
-
             const string query = @"
-            DELETE FROM familias
-            WHERE FamiliaId = @FamiliaId AND VersionFila = @VersionFila";
+                                    BEGIN TRANSACTION;
+                        BEGIN TRY
+
+                            UPDATE Familias
+                            SET ModificadoPor = @UsuarioActual,
+                                FechaModificacion = GETDATE()
+                            WHERE FamiliaId = @FamiliaId 
+                              AND VersionFila = @VersionFila;
+
+
+                            IF @@ROWCOUNT = 0
+                            BEGIN
+                                ROLLBACK TRANSACTION;
+                                SELECT 0 AS Result;
+                                RETURN;
+                            END
+
+                            DELETE FROM Familias
+                            WHERE FamiliaId = @FamiliaId;
+
+                            DECLARE @FilasBorradas INT = @@ROWCOUNT;
+
+                            IF @FilasBorradas = 0
+                            BEGIN
+                                ROLLBACK TRANSACTION;
+                                SELECT 0 AS Result;
+                                RETURN;
+                            END
+
+                            COMMIT TRANSACTION;
+                            SELECT 1 AS Result;
+
+                        END TRY
+                        BEGIN CATCH
+                            ROLLBACK TRANSACTION;
+                            THROW;
+                        END CATCH";
 
             try
             {
-                await using var connection = await _connectionFactory.CreateConnectionAsync();
+                await using var connection = await _connectionFactory.CrearConexion();
                 await connection.OpenAsync();
                 await using var command = new SqlCommand(query, connection);
-                command.Parameters.AddWithValue("@FamiliaId", familiaId);
+                command.Parameters.AddWithValue("@FamiliaId", id);
                 command.Parameters.AddWithValue("@VersionFila", versionFila);
+                command.Parameters.AddWithValue("@UsuarioActual", usuarioActual);
 
                 var result = await command.ExecuteNonQueryAsync();
 
@@ -116,17 +140,17 @@ namespace KindoHub.Data.Repositories
             }
             catch (SqlException ex) when (ex.Number == SqlForeignKeyViolation)
             {
-                _logger.LogError(ex, "Error de clave foránea al eliminar familia: {FamiliaId}", familiaId);
+                _logger.LogError(ex, "Error de clave foránea al eliminar familia: {FamiliaId}", id);
                 throw;
             }
             catch (SqlException ex)
             {
-                _logger.LogError(ex, "Error SQL al eliminar familia: {FamiliaId}", familiaId);
+                _logger.LogError(ex, "Error SQL al eliminar familia: {FamiliaId}", id);
                 throw;
             }
         }
 
-        public async Task<IEnumerable<FamiliaEntity>> GetAllAsync()
+        public async Task<IEnumerable<FamiliaEntity>> LeerTodos()
         {
             const string query = @"
             SELECT [FamiliaId]
@@ -164,7 +188,7 @@ namespace KindoHub.Data.Repositories
 
             try
             {
-                await using var connection = await _connectionFactory.CreateConnectionAsync();
+                await using var connection = await _connectionFactory.CrearConexion();
                 await connection.OpenAsync();
                 await using var command = new SqlCommand(query, connection);
 
@@ -178,16 +202,13 @@ namespace KindoHub.Data.Repositories
             }
             catch (SqlException ex)
             {
-                _logger.LogError(ex, "Error SQL al obtener todas las familias");
+                _logger.LogError(ex, "Error SQL al leer todas las familias");
                 throw;
             }
         }
 
-        public async Task<FamiliaEntity?> GetByFamiliaIdAsync(int familiaId)
+        public async Task<FamiliaEntity?> LeerPorId(int id)
         {
-            if (familiaId <= 0)
-                throw new ArgumentException("El identificador de la familia ha de ser mayor o igual a 0", nameof(familiaId));
-
             const string query = @"
             SELECT [FamiliaId]
                 ,[NumeroSocio]
@@ -222,15 +243,14 @@ namespace KindoHub.Data.Repositories
 
             try
             {
-                await using var connection = await _connectionFactory.CreateConnectionAsync();
+                await using var connection = await _connectionFactory.CrearConexion();
                 await connection.OpenAsync();
                 await using var command = new SqlCommand(query, connection);
-                command.Parameters.AddWithValue("@FamiliaId", familiaId);
+                command.Parameters.AddWithValue("@FamiliaId", id);
 
                 await using var reader = await command.ExecuteReaderAsync();
                 if (!await reader.ReadAsync())
                 {
-                    _logger.LogDebug("Familia no encontrada: {FamiliaId}", familiaId);
                     return null;
                 }
 
@@ -240,23 +260,13 @@ namespace KindoHub.Data.Repositories
             }
             catch (SqlException ex)
             {
-                _logger.LogError(ex, "Error SQL al buscar usuario: {FamiliaId}",familiaId);
+                _logger.LogError(ex, "Error SQL al leer familia por Id: {FamiliaId}",id);
                 throw;
             }
         }
 
-        public async Task<bool> UpdateFamiliaAsync(FamiliaEntity familia, string usuarioActual)
+        public async Task<bool> Actualizar(FamiliaEntity familia, string usuarioActual)
         {
-            if (familia == null)
-                throw new ArgumentNullException(nameof(familia));
-            if (string.IsNullOrWhiteSpace(familia.Nombre))
-                throw new ArgumentException("El nombre de usuario no puede estar vacío.", nameof(familia.Nombre));
-            if (familia.VersionFila == null || familia.VersionFila.Length == 0)
-                throw new ArgumentException("VersionFila es requerida para concurrencia optimista.", nameof(familia.VersionFila));
-            if (string.IsNullOrWhiteSpace(usuarioActual))
-                throw new ArgumentException("El usuario actual no puede estar vacío.", nameof(usuarioActual));
-
-
             const string query = @"
             UPDATE Familias
             SET NumeroSocio=@NumeroSocio, Nombre=@Nombre, Email=@Email, Telefono=@Telefono, Direccion=@Direccion,
@@ -267,7 +277,7 @@ namespace KindoHub.Data.Repositories
 
             try
             {
-                await using var connection = await _connectionFactory.CreateConnectionAsync();
+                await using var connection = await _connectionFactory.CrearConexion();
                 await connection.OpenAsync();
                 await using var command = new SqlCommand(query, connection);
                 command.Parameters.AddWithValue("@NumeroSocio", familia.NumeroSocio);
@@ -284,7 +294,7 @@ namespace KindoHub.Data.Repositories
                 command.Parameters.AddWithValue("@IdFormaPago", familia.IdFormaPago ?? (object)DBNull.Value);
                 command.Parameters.AddWithValue("@Iban", familia.IBAN ?? (object)DBNull.Value);
                 command.Parameters.AddWithValue("@UsuarioActual", usuarioActual);
-                command.Parameters.AddWithValue("@FamiliaId", familia.FamiliaId);
+                command.Parameters.AddWithValue("@FamiliaId", familia.Id);
                 command.Parameters.AddWithValue("@VersionFila", familia.VersionFila);
 
                 var result = await command.ExecuteNonQueryAsync();
@@ -293,9 +303,168 @@ namespace KindoHub.Data.Repositories
             }
             catch (SqlException ex)
             {
-                _logger.LogError(ex, "Error SQL al actualizar la información de la familia: {FamiliaId}", familia.FamiliaId);
+                _logger.LogError(ex, "Error SQL al actualizar la información de la familia: {FamiliaId}", familia.Id);
                 throw;
             }
+        }
+
+        public async Task<IEnumerable<FamiliaHistoriaEntity>> LeerHistoria(int id)
+        {
+            const string query = @"
+            SELECT [FamiliaId]
+                  ,[Referencia]
+                  ,[NumeroSocio]
+                  ,f.[Nombre]
+                  ,[Email]
+                  ,[Telefono]
+                  ,[Direccion]
+                  ,[Observaciones]
+                  ,[Apa]
+                  ,[IdEstadoApa]
+                   ,estApa.Nombre EstadoApa
+                  ,[Mutual]
+                  ,[IdEstadoMutual]
+                ,estMutual.Nombre EstadoMutual
+,[BeneficiarioMutual]
+                  ,[IdFormaPago]
+                ,forPago.Descripcion FormaPago
+                  ,[IBAN]
+                  ,[IBAN_Enmascarado]
+                  ,[CreadoPor]
+                  ,[FechaCreacion]
+                  ,[ModificadoPor]
+                  ,[FechaModificacion]
+                  ,[VersionFila]
+                  ,[SysStartTime]
+                  ,[SysEndTime]
+              FROM [dbo].[Familias_History] as f
+                    left join EstadosAsociado estApa on estApa.EstadoId=f.IdEstadoApa
+                    left join EstadosAsociado estMutual on estMutual.EstadoId=f.IdEstadoMutual
+                    left join FormasPago forPago on forPago.FormaPagoId=f.IdFormaPago
+                WHERE
+                    f.FamiliaId=@FamiliaId";
+
+            var familias = new List<FamiliaHistoriaEntity>();
+
+            try
+            {
+                await using var connection = await _connectionFactory.CrearConexion();
+                await connection.OpenAsync();
+                await using var command = new SqlCommand(query, connection);
+                command.Parameters.AddWithValue("@FamiliaId", id);
+                await using var reader = await command.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    familias.Add(FamiliaMapper.MapToFamiliaHistoriaEntity(reader));
+                }
+
+                return familias;
+            }
+            catch (SqlException ex)
+            {
+                _logger.LogError(ex, "Error SQL al leer todas las familias");
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<FamiliaEntity>> LeerFiltrado(FilterFamiliaOptions[] filters)
+        {
+            var queryBuilder = new StringBuilder(@"
+                SELECT [FamiliaId]
+                ,[NumeroSocio]
+                ,f.[Nombre]
+                ,[Email]
+                ,[Telefono]
+                ,[Direccion]
+                ,[Observaciones]
+                ,[Apa]
+                ,[IdEstadoApa]
+                ,estApa.Nombre EstadoApa
+                ,[Mutual]
+                ,[IdEstadoMutual]
+                ,estMutual.Nombre EstadoMutual
+                ,[BeneficiarioMutual]
+                ,[IdFormaPago]
+                ,forPago.Descripcion FormaPago
+                ,[IBAN]
+                ,[IBAN_Enmascarado]
+                ,[CreadoPor]
+                ,[FechaCreacion]
+                ,[ModificadoPor]
+                ,[FechaModificacion]
+                ,[VersionFila]
+                ,[SysStartTime]
+                ,[SysEndTime]
+            FROM [KindoHub].[dbo].[Familias] f
+            left join EstadosAsociado estApa on estApa.EstadoId=f.IdEstadoApa
+            left join EstadosAsociado estMutual on estMutual.EstadoId=f.IdEstadoMutual
+            left join FormasPago forPago on forPago.FormaPagoId=f.IdFormaPago ");
+
+            var parameters = new List<SqlParameter>();
+            var conditions = new List<string>();
+
+            // Agregar condiciones para cada filtro en el array
+            for (int i = 0; i < filters.Length; i++)
+            {
+                var filter = filters[i];
+                string paramName = $"@Value{i}";
+                conditions.Add(GetCondition(filter.Field, paramName));
+                parameters.Add(new SqlParameter(paramName, GetParameterValue(filter.Field, filter.Value)));
+            }
+
+            if (conditions.Any())
+            {
+                queryBuilder.Append(" WHERE ");
+                queryBuilder.Append(string.Join(" AND ", conditions));
+            }
+
+            queryBuilder.Append(" ORDER BY FamiliaId");
+
+            var logs = new List<FamiliaEntity>();
+
+            await using var connection = await _connectionFactory.CrearConexion();
+            await connection.OpenAsync();
+            await using var command = new SqlCommand(queryBuilder.ToString(), connection);
+            command.Parameters.AddRange(parameters.ToArray());
+
+            await using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                logs.Add(FamiliaMapper.MapToFamiliaEntity(reader));
+            }
+
+            return logs;
+        }
+
+        private string GetCondition(FamiliaField field, string paramName)
+        {
+            return field switch
+            {
+                FamiliaField.Id => $"FamiliaId = {paramName}",
+                FamiliaField.NumeroSocio => $"NumeroSocio = {paramName}",
+                FamiliaField.Nombre => $"f.Nombre LIKE {paramName}",
+                FamiliaField.Email => $"Email LIKE {paramName}",
+                FamiliaField.Observaciones => $"Observaciones LIKE {paramName}",
+                FamiliaField.Apa => $"Apa = {paramName}",
+                FamiliaField.Mutual => $"Mutual = {paramName}",
+                FamiliaField.BeneficiarioMutual => $"BeneficiarioMutual = {paramName}",
+            _ => throw new ArgumentException("Campo no válido")
+            };
+        }
+
+        private object GetParameterValue(FamiliaField field, string value)
+        {
+            return field switch
+            {
+                FamiliaField.Id => int.Parse(value),
+                FamiliaField.NumeroSocio => value,
+                FamiliaField.Nombre => $"%{value}%",
+                FamiliaField.Observaciones => $"%{value}%",
+                FamiliaField.Apa => bool.Parse(value),
+                FamiliaField.Mutual => bool.Parse(value),
+                FamiliaField.BeneficiarioMutual => bool.Parse(value),
+                _ => throw new ArgumentException("Campo no válido")
+            };
         }
     }
 }

@@ -17,7 +17,7 @@ namespace KindoHub.Data
             _configuration = configuration;
         }
 
-        public IDbConnectionFactory Create(string connectionStringName)
+        public IDbConnectionFactory Crear(string connectionStringName)
         {
             return new SqlConnectionFactory(_configuration, connectionStringName);
         }

@@ -1,0 +1,430 @@
+openapi: 3.0.3
+info:
+  title: KindoHub API
+  version: 1.0.0
+  description: API REST para la gestion integral de una asociacion de padres y madres (APA/AMPA). Incluye gestion de familias, alumnos, cursos, anotaciones, usuarios, formas de pago, estados de asociado y sistema de auditoria con logs.
+  contact:
+    name: KindoHub Development Team
+    email: dev@kindohub.com
+  license:
+    name: Proprietary
+    url: https://kindohub.com/license
+
+servers:
+  - url: https://api.kindohub.com
+    description: Servidor de produccion
+  - url: https://staging-api.kindohub.com
+    description: Servidor de staging
+  - url: http://localhost:5000
+    description: Desarrollo local
+
+tags:
+  - name: Autenticacion
+    description: Endpoints de login, logout y gestion de tokens
+  - name: Usuarios
+    description: Gestion de usuarios del sistema
+  - name: Familias
+    description: Gestion de familias asociadas
+  - name: Alumnos
+    description: Gestion de alumnos
+  - name: Cursos
+    description: Gestion de cursos academicos
+  - name: Anotaciones
+    description: Anotaciones y observaciones sobre familias
+  - name: Estados de Asociado
+    description: Estados de afiliacion de los asociados
+  - name: Formas de Pago
+    description: Metodos de pago disponibles
+  - name: Logs
+    description: Consulta de logs del sistema
+
+paths:
+  /api/auth/login:
+    post:
+      tags:
+        - Autenticacion
+      summary: Iniciar sesion
+      description: Autentica un usuario y retorna un token JWT
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginDto'
+      responses:
+        '200':
+          description: Login exitoso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenDto'
+        '400':
+          description: Datos invalidos
+        '401':
+          description: Credenciales incorrectas
+        '500':
+          description: Error interno del servidor
+
+  /api/auth/logout:
+    post:
+      tags:
+        - Autenticacion
+      summary: Cerrar sesion
+      description: Invalida el token de refresco del usuario
+      operationId: logout
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Logout exitoso
+        '401':
+          description: No autenticado
+        '500':
+          description: Error interno del servidor
+
+  /api/auth/refresh:
+    post:
+      tags:
+        - Autenticacion
+      summary: Refrescar token
+      description: Obtiene un nuevo access token usando el refresh token
+      operationId: refreshToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefrescarTokenDto'
+      responses:
+        '200':
+          description: Token refrescado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenDto'
+        '401':
+          description: Refresh token invalido o expirado
+        '500':
+          description: Error interno del servidor
+
+  /api/usuarios/{username}:
+    get:
+      tags:
+        - Usuarios
+      summary: Obtener usuario por nombre
+      operationId: getUserByUsername
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Usuario encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsuarioDto'
+        '404':
+          description: Usuario no encontrado
+        '401':
+          description: No autenticado
+
+  /api/usuarios:
+    get:
+      tags:
+        - Usuarios
+      summary: Listar todos los usuarios
+      operationId: getAllUsers
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Lista de usuarios
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UsuarioDto'
+
+  /api/usuarios/register:
+    post:
+      tags:
+        - Usuarios
+      summary: Registrar nuevo usuario
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegistrarUsuarioDto'
+      responses:
+        '200':
+          description: Usuario creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsuarioDto'
+        '400':
+          description: Datos invalidos
+
+  /api/familias/{id}:
+    get:
+      tags:
+        - Familias
+      summary: Obtener familia por ID
+      operationId: getFamilyById
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Familia encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamiliaDto'
+        '404':
+          description: Familia no encontrada
+
+  /api/familias:
+    get:
+      tags:
+        - Familias
+      summary: Listar todas las familias
+      operationId: getAllFamilies
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Lista de familias
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FamiliaDto'
+
+  /api/alumnos/{id}:
+    get:
+      tags:
+        - Alumnos
+      summary: Obtener alumno por ID
+      operationId: getStudentById
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Alumno encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlumnoDto'
+        '404':
+          description: Alumno no encontrado
+
+  /api/alumnos:
+    get:
+      tags:
+        - Alumnos
+      summary: Listar todos los alumnos
+      operationId: getAllStudents
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Lista de alumnos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AlumnoDto'
+
+  /api/cursos:
+    get:
+      tags:
+        - Cursos
+      summary: Listar todos los cursos
+      operationId: getAllCourses
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Lista de cursos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CursoDto'
+
+  /api/log:
+    get:
+      tags:
+        - Logs
+      summary: Obtener todos los logs
+      operationId: getAllLogs
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Lista de logs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LogDto'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    LoginDto:
+      type: object
+      required:
+        - Username
+        - Password
+      properties:
+        Username:
+          type: string
+          example: admin
+        Password:
+          type: string
+          format: password
+
+    TokenDto:
+      type: object
+      properties:
+        Username:
+          type: string
+        AccessToken:
+          type: string
+        RefreshToken:
+          type: string
+        Roles:
+          type: array
+          items:
+            type: string
+
+    RefrescarTokenDto:
+      type: object
+      required:
+        - RefreshToken
+      properties:
+        RefreshToken:
+          type: string
+
+    UsuarioDto:
+      type: object
+      properties:
+        Id:
+          type: integer
+        Username:
+          type: string
+        IsAdmin:
+          type: boolean
+        IsActive:
+          type: boolean
+        Rol:
+          type: string
+
+    RegistrarUsuarioDto:
+      type: object
+      required:
+        - Username
+        - Password
+        - ConfirmPassword
+      properties:
+        Username:
+          type: string
+        Password:
+          type: string
+          format: password
+        ConfirmPassword:
+          type: string
+          format: password
+
+    FamiliaDto:
+      type: object
+      properties:
+        Id:
+          type: integer
+        Nombre:
+          type: string
+        Email:
+          type: string
+          format: email
+        Telefono:
+          type: string
+        Direccion:
+          type: string
+        IdFormaPago:
+          type: integer
+
+    AlumnoDto:
+      type: object
+      properties:
+        Id:
+          type: integer
+        Nombre:
+          type: string
+        FechaNacimiento:
+          type: string
+          format: date-time
+        IdFamilia:
+          type: integer
+        IdCurso:
+          type: integer
+
+    CursoDto:
+      type: object
+      properties:
+        CursoId:
+          type: integer
+        Nombre:
+          type: string
+        Descripcion:
+          type: string
+        AnoAcademico:
+          type: string
+
+    LogDto:
+      type: object
+      properties:
+        Id:
+          type: integer
+        Message:
+          type: string
+        Level:
+          type: string
+        TimeStamp:
+          type: string
+          format: date-time
+        Username:
+          type: string
+
+security:
+  - BearerAuth: []

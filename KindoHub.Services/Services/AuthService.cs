@@ -26,7 +26,7 @@ namespace KindoHub.Services.Services
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<(bool IsValid, string[] Roles, string[] Permissions)> ValidateUserAsync(LoginDto loginDto)
+        public async Task<(bool IsValid, string[] Roles, string[] Permissions)> ValidarUsuario(LoginDto loginDto)
         {
             try
             {
@@ -105,7 +105,7 @@ namespace KindoHub.Services.Services
         {
             try
             {
-                return await _usuarioRepository.GetByNombreAsync(username);
+                return await _usuarioRepository.LeerPorNombre(username);
             }
             catch (Exception ex)
             {

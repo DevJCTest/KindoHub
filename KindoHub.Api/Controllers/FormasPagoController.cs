@@ -1,7 +1,9 @@
 ﻿using KindoHub.Core.Interfaces;
+using KindoHub.Core.Validators;
 using KindoHub.Services.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq;
 
 namespace KindoHub.Api.Controllers
 {
@@ -18,22 +20,25 @@ namespace KindoHub.Api.Controllers
             _logger = logger;
         }
 
-        [Authorize]
         [HttpGet("by-name")]
-        public async Task<IActionResult> GetFormaPagoByName(string name)
+        [Authorize(Policy = "Consulta_Familias")]
+        public async Task<IActionResult> LeerPorNombre(string name)
         {
-            // 400 - Validación de username
-            if (string.IsNullOrWhiteSpace(name))
+            var validator = new NombreFormaPagoValidator(_formaspagoService);
+            var validationResult = await validator.ValidateAsync(name);
+
+            if (!validationResult.IsValid)
             {
-                _logger.LogWarning("GetFormapago request with empty name");
-                return BadRequest(new { message = "El name es requerido" });
+                return BadRequest(new
+                {
+                    errors = validationResult.Errors.Select(e => e.ErrorMessage)
+                });
             }
 
             try
             {
-                var dto = await _formaspagoService.GetFormapagoAsync(name);
+                var dto = await _formaspagoService.LeerPorNombre(name);
 
-                // 404 - Forma pago no encontrada
                 if (dto == null)
                 {
                     _logger.LogWarning("Forma pago not found: {Name}", name);
@@ -45,28 +50,30 @@ namespace KindoHub.Api.Controllers
             }
             catch (Exception ex)
             {
-                // 500 - Error interno
                 _logger.LogError(ex, "Error retrieving forma pago: {Name}", name);
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }
 
-        [Authorize]
         [HttpGet("by-id")]
-        public async Task<IActionResult> GetFormaPagoById(int  id)
+        [Authorize(Policy = "Consulta_Familias")]
+        public async Task<IActionResult> LeerPorId(int  id)
         {
-            // 400 - Validación de username
-            if (id<=0)
+            var validator = new IdFormaPagoValidator(_formaspagoService);
+            var validationResult = await validator.ValidateAsync(id);
+
+            if (!validationResult.IsValid)
             {
-                _logger.LogWarning("GetFormapago request with id >0");
-                return BadRequest(new { message = "El id es requerido" });
+                return BadRequest(new
+                {
+                    errors = validationResult.Errors.Select(e => e.ErrorMessage)
+                });
             }
 
             try
             {
-                var dto = await _formaspagoService.GetFormapagoAsync(id);
+                var dto = await _formaspagoService.LeerPorId(id);
 
-                // 404 - Forma pago no encontrada
                 if (dto == null)
                 {
                     _logger.LogWarning("Forma pago not found: {FormaPagoId}", id);
@@ -78,19 +85,18 @@ namespace KindoHub.Api.Controllers
             }
             catch (Exception ex)
             {
-                // 500 - Error interno
                 _logger.LogError(ex, "Error retrieving forma pago: {FormaPagoId}", id);
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }
 
-        [Authorize]
         [HttpGet]
-        public async Task<IActionResult> GetAllFormasPago()
+        [Authorize(Policy = "Consulta_Familias")]
+        public async Task<IActionResult> LeerTodas()
         {
             try
             {
-                var formasPago = await _formaspagoService.GetAllFormasPagoAsync();
+                var formasPago = await _formaspagoService.LeerTodos();
 
                 _logger.LogInformation("All formas pago retrieved. Count: {Count}", formasPago.Count());
                 return Ok(formasPago);

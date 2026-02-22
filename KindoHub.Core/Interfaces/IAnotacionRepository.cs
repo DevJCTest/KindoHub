@@ -9,10 +9,11 @@ namespace KindoHub.Core.Interfaces
 {
     public interface IAnotacionRepository
     {
-        Task<AnotacionEntity?> GetByIdAsync(int anotacionId);
-        Task<IEnumerable<AnotacionEntity>> GetByFamiliaIdAsync(int idFamilia);
-        Task<AnotacionEntity?> CreateAsync(AnotacionEntity anotacion, string usuarioActual);
-        Task<bool> UpdateAsync(AnotacionEntity anotacion, string usuarioActual);
-        Task<bool> DeleteAsync(int anotacionId, byte[] versionFila);
+        Task<AnotacionEntity?> LeerPorId(int id);
+        Task<IEnumerable<AnotacionEntity>> LeerPorFamilia(int idFamilia);
+        Task<AnotacionEntity?> Crear(AnotacionEntity anotacion, string usuarioActual);
+        Task<bool> Actualizar(AnotacionEntity anotacion, string usuarioActual);
+        Task<bool> Eliminar(int id, byte[] versionFila, string usuarioActual);
+        Task<IEnumerable<AnotacionHistoriaEntity>> LeerHistoria(int id);
     }
 }

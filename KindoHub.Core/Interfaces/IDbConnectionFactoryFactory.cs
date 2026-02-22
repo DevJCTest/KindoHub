@@ -8,6 +8,6 @@ namespace KindoHub.Core.Interfaces
 {
     public interface IDbConnectionFactoryFactory
     {
-        IDbConnectionFactory Create(string connectionStringName);
+        IDbConnectionFactory Crear(string connectionStringName);
     }
 }

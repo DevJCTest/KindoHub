@@ -9,11 +9,11 @@ namespace KindoHub.Core.Interfaces
 {
     public interface IEstadoAsociadoRepository
     {
-        Task<EstadoAsociadoEntity?> GetEstadoAsociadoAsync(string nombre);
-        Task<EstadoAsociadoEntity?> GetEstadoAsociadoAsync(int id);
-        Task<bool> SetPredeterminadoAsync(int id);
-        Task<EstadoAsociadoEntity?> GetPredeterminadoAsync();
-        Task<IEnumerable<EstadoAsociadoEntity>> GetAllEstadoAsociadoAsync();
+        Task<IEnumerable<EstadoAsociadoEntity>> LeerTodos();
+        Task<EstadoAsociadoEntity?> LeerPredeterminado();
+        Task<bool> EstablecerPredeterminado(int id);
+        Task<EstadoAsociadoEntity?> LeerPorNombre(string nombre);
+        Task<EstadoAsociadoEntity?> LeerPorId(int id);
 
     }
 }

@@ -1,4 +1,4 @@
-﻿using KindoHub.Core.DTOs;
+﻿using KindoHub.Core.Dtos;
 using KindoHub.Core.Entities;
 using System;
 using System.Collections.Generic;
@@ -10,9 +10,9 @@ namespace KindoHub.Services.Transformers
 {
     internal class UserMapper
     {
-        public static UserDto MapToUserDto(UsuarioEntity entity)
+        public static UsuarioDto MapToUserDto(UsuarioEntity entity)
         {
-            return new UserDto
+            return new UsuarioDto
             {
                 UsuarioId = entity.UsuarioId,
                 Nombre = entity.Nombre,

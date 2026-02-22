@@ -21,11 +21,11 @@ namespace KindoHub.Data.Repositories
 
         public UsuarioRepository(IDbConnectionFactoryFactory factory, ILogger<UsuarioRepository> logger)
         {
-            _connectionFactory = factory.Create("DefaultConnection");
+            _connectionFactory = factory.Crear("DefaultConnection");
             _logger = logger;
         }
 
-        public async Task<UsuarioEntity?> GetByNombreAsync(string nombre)
+        public async Task<UsuarioEntity?> LeerPorNombre(string nombre)
         {
             if (string.IsNullOrWhiteSpace(nombre))
                 throw new ArgumentException("El nombre de usuario no puede estar vacío.", nameof(nombre));
@@ -40,7 +40,7 @@ namespace KindoHub.Data.Repositories
 
             try
             {
-                await using var connection = await _connectionFactory.CreateConnectionAsync();
+                await using var connection = await _connectionFactory.CrearConexion();
                 await connection.OpenAsync();
                 await using var command = new SqlCommand(query, connection);
                 command.Parameters.AddWithValue("@Nombre", nombre);
@@ -97,7 +97,7 @@ namespace KindoHub.Data.Repositories
 
             try
             {
-                await using var connection = await _connectionFactory.CreateConnectionAsync();
+                await using var connection = await _connectionFactory.CrearConexion();
                 await connection.OpenAsync();
                 await using var command = new SqlCommand(query, connection);
                 command.Parameters.AddWithValue("@Nombre", usuario.Nombre);
@@ -110,7 +110,7 @@ namespace KindoHub.Data.Repositories
                 if (result > 0)
                 {
                     _logger.LogInformation("Usuario creado exitosamente: {Nombre}", usuario.Nombre);
-                    return await GetByNombreAsync(usuario.Nombre);
+                    return await LeerPorNombre(usuario.Nombre);
                 }
 
                 _logger.LogWarning("No se pudo crear el usuario: {Nombre}", usuario.Nombre);
@@ -148,7 +148,7 @@ namespace KindoHub.Data.Repositories
 
             try
             {
-                await using var connection = await _connectionFactory.CreateConnectionAsync();
+                await using var connection = await _connectionFactory.CrearConexion();
                 await connection.OpenAsync();
                 await using var command = new SqlCommand(query, connection);
                 command.Parameters.AddWithValue("@Nombre", nombre);
@@ -187,7 +187,7 @@ namespace KindoHub.Data.Repositories
 
             try
             {
-                await using var connection = await _connectionFactory.CreateConnectionAsync();
+                await using var connection = await _connectionFactory.CrearConexion();
                 await connection.OpenAsync();
                 await using var command = new SqlCommand(query, connection);
                 command.Parameters.AddWithValue("@Nombre", nombre);
@@ -214,7 +214,7 @@ namespace KindoHub.Data.Repositories
             }
         }
 
-        public async Task<bool> UpdateAdminStatusAsync(string nombre, int isAdmin, byte[] versionFila, string usuarioActual)
+        public async Task<bool> ActualizarEstadoAdmin(string nombre, int isAdmin, byte[] versionFila, string usuarioActual)
         {
             if (string.IsNullOrWhiteSpace(nombre))
                 throw new ArgumentException("El nombre de usuario no puede estar vacío.", nameof(nombre));
@@ -233,7 +233,7 @@ namespace KindoHub.Data.Repositories
 
             try
             {
-                await using var connection = await _connectionFactory.CreateConnectionAsync();
+                await using var connection = await _connectionFactory.CrearConexion();
                 await connection.OpenAsync();
                 await using var command = new SqlCommand(query, connection);
                 command.Parameters.AddWithValue("@Nombre", nombre);
@@ -257,7 +257,7 @@ namespace KindoHub.Data.Repositories
             }
         }
 
-        public async Task<IEnumerable<UsuarioEntity>> GetAllAsync()
+        public async Task<IEnumerable<UsuarioEntity>> LeerTodos()
         {
             _logger.LogDebug("Obteniendo todos los usuarios");
 
@@ -272,7 +272,7 @@ namespace KindoHub.Data.Repositories
 
             try
             {
-                await using var connection = await _connectionFactory.CreateConnectionAsync();
+                await using var connection = await _connectionFactory.CrearConexion();
                 await connection.OpenAsync();
                 await using var command = new SqlCommand(query, connection);
 
@@ -305,7 +305,7 @@ namespace KindoHub.Data.Repositories
             }
         }
 
-        public async Task<bool> UpdateActivStatusAsync(string nombre, int isActiv, byte[] versionFila, string usuarioActual)
+        public async Task<bool> ActualizarEstadoActivo(string nombre, int isActiv, byte[] versionFila, string usuarioActual)
         {
             if (string.IsNullOrWhiteSpace(nombre))
                 throw new ArgumentException("El nombre de usuario no puede estar vacío.", nameof(nombre));
@@ -324,7 +324,7 @@ namespace KindoHub.Data.Repositories
 
             try
             {
-                await using var connection = await _connectionFactory.CreateConnectionAsync();
+                await using var connection = await _connectionFactory.CrearConexion();
                 await connection.OpenAsync();
                 await using var command = new SqlCommand(query, connection);
                 command.Parameters.AddWithValue("@Nombre", nombre);
@@ -348,7 +348,7 @@ namespace KindoHub.Data.Repositories
             }
         }
 
-        public async Task<bool> UpdateRolStatusAsync(string nombre, int gestionFamilias, int consultaFamilias, int gestionGastos, int consultaGastos, byte[] versionFila, string usuarioActual)
+        public async Task<bool> ActualizarEstadoRol(string nombre, int gestionFamilias, int consultaFamilias, int gestionGastos, int consultaGastos, byte[] versionFila, string usuarioActual)
         {
             if (string.IsNullOrWhiteSpace(nombre))
                 throw new ArgumentException("El nombre de usuario no puede estar vacío.", nameof(nombre));
@@ -368,7 +368,7 @@ namespace KindoHub.Data.Repositories
 
             try
             {
-                await using var connection = await _connectionFactory.CreateConnectionAsync();
+                await using var connection = await _connectionFactory.CrearConexion();
                 await connection.OpenAsync();
                 await using var command = new SqlCommand(query, connection);
                 command.Parameters.AddWithValue("@Nombre", nombre);

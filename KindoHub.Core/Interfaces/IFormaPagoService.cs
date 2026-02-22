@@ -1,5 +1,4 @@
 ﻿using KindoHub.Core.Dtos;
-using KindoHub.Core.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,8 +9,8 @@ namespace KindoHub.Core.Interfaces
 {
     public interface IFormaPagoService
     {
-        Task<FormaPagoDto?> GetFormapagoAsync(string name);
-        Task<FormaPagoDto?> GetFormapagoAsync(int id);
-        Task<IEnumerable<FormaPagoDto>> GetAllFormasPagoAsync();
+        Task<FormaPagoDto?> LeerPorNombre(string name);
+        Task<FormaPagoDto?> LeerPorId(int id);
+        Task<IEnumerable<FormaPagoDto>> LeerTodos();
     }
 }
