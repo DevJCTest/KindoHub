@@ -6,8 +6,12 @@
 
 ## 📋 Descripción
 
-**KindoHub** nace como una herramienta pensada para facilitar la gestión de familias y alumnos de una asociación de madres y padres de alumnos. 
+**KindoHub** nace como una herramienta pensada para facilitar la gestión de familias y alumnos de una asociación de madres y padres de alumnos.
 
+### 📑 Presentación del Proyecto
+
+- 📊 **[PowerPoint](Docs/Kindohub-La-Revolucion-en-la-Gestion-de-Socios-para-APA.pptx)** 
+- 📄 **[Documento PDF](Docs/Kindohub-La-Revolucion-en-la-Gestion-de-Socios-para-APA.pdf)**
 
 ## Situación actual
 
@@ -220,6 +224,11 @@ KindoHub implementa múltiples capas de seguridad:
   - [Secuencia: Cursos y Anotaciones](Docs/Diagramas/CURSOS_ANOTACIONES_SEQUENCE.md)
   - [Secuencia: Familias](Docs/Diagramas/FAMILIAS_SEQUENCE.md)
   - [Secuencia: Usuarios](Docs/Diagramas/USUARIOS_SEQUENCE.md)
+
+### 📑 Documentación Adicional
+
+- 📊 **[Presentación PowerPoint](Docs/Kindohub-La-Revolucion-en-la-Gestion-de-Socios-para-APA.pptx)** - Visión general del proyecto
+- 📄 **[Documento PDF](Docs/Kindohub-La-Revolucion-en-la-Gestion-de-Socios-para-APA.pdf)** - Documentación completa
 
 
 
