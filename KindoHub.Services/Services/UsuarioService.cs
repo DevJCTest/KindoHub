@@ -165,6 +165,37 @@ namespace KindoHub.Services.Services
 
             return (false,  null);
         }
+
+        public async Task<bool> RegistrarAdmin(RegistrarAdminDto dto, string userName)
+        {
+            var existingUser = await _usuarioRepository.LeerPorNombre(userName);
+            if (existingUser != null)
+            {
+                return (false);
+            }
+
+            // Generar hash de la contraseña
+            var passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+
+            // Crear entidad de usuario
+            var usuario = new UsuarioEntity
+            {
+                Nombre = userName,
+                Password = passwordHash,
+                EsAdministrador = 1
+            };
+
+            // Intentar crear el usuario
+            var createdUser = await _usuarioRepository.CreateAsync(usuario, "System");
+            if (createdUser != null)
+            {
+                return (true);
+            }
+            else
+            {
+                return (false);
+            }
+        }
     }
 
 }

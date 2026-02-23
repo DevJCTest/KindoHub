@@ -17,5 +17,6 @@ namespace KindoHub.Core.Interfaces
         Task<(bool Success, UsuarioDto? User)> CambiarEstadoAdmin(CambiarEstadoAdminDto dto, string currentUser);
         Task<(bool Success, UsuarioDto? User)> CambiarEstadoActivo(CambiarEstadoActivoDto dto, string currentUser);
         Task<(bool Success, UsuarioDto? User)> CambiarRol(CambiarRolUsuarioDto dto, string currentUser);
+        Task<bool> RegistrarAdmin(RegistrarAdminDto dto, string userName);
     }
 }

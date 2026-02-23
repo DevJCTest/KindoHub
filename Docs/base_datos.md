@@ -1,3 +1,0 @@
-- Las tablas tendrán un campo rowversion para registrar la versión actual del regtro.
-- Para validar en las eliminaciones y las actualizaciones que el usuario que se modifica/crea es el correcto, se usará una columna rowversion de tipo timestamp en la tabla de usuarios. De esta forma, cada vez que se actualice un usuario, se actualizará también el valor del timestamp y si otro usuario intenta modificar ese mismo usuario con un valor de timestamp diferente, se producirá un error de concurrencia y se evitará que se sobrescriban los cambios realizados por el otro usuario.
-- Las tablas principales tamibén tendran una tabla Temporal, para obtener una versión "espejo" donde se guarda cada versión de cada fila.

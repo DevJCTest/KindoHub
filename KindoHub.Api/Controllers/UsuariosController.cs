@@ -4,6 +4,7 @@ using KindoHub.Core.Interfaces;
 using KindoHub.Core.Validators;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using System.Linq;
 
 namespace KindoHub.Api.Controllers
@@ -12,6 +13,8 @@ namespace KindoHub.Api.Controllers
     [Route("api/[controller]")]
     public class UsuariosController : ControllerBase
     {
+        private const string USUARIO_ADMIN = "admin";
+
         private readonly IUsuarioService _userService;
         private readonly ILogger<UsuariosController> _logger;
 
@@ -347,6 +350,39 @@ namespace KindoHub.Api.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error changing rol status for user: {Username}", request.Username);
+                return StatusCode(500, new { message = "Error interno del servidor" });
+            }
+        }
+
+        [HttpPost("crear-admin")]
+        [AllowAnonymous]
+        public async Task<IActionResult> CrearAdmin([FromBody] RegistrarAdminDto request)
+        {
+            
+            var validator = new RegistrarAdminValidator(_userService, USUARIO_ADMIN);
+            var validationResult = await validator.ValidateAsync(request);
+
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(new
+                {
+                    errors = validationResult.Errors.Select(e => new
+                    {
+                        property = e.PropertyName,
+                        message = e.ErrorMessage
+                    })
+                });
+            }
+
+            try
+            {
+                var result = await _userService.RegistrarAdmin(request, USUARIO_ADMIN);
+
+               return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al generar el usuario");
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }
