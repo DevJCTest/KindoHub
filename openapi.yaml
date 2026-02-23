@@ -1,0 +1,2265 @@
+openapi: 3.0.3
+info:
+  title: KindoHub API
+  description: |
+    **KindoHub** es una API RESTful para la gestión de familias y alumnos de una asociación de madres y padres de alumnos.
+    
+    ## Características Principales
+    - 🔐 Autenticación y Autorización basada en JWT Bearer Tokens
+    - 👥 Gestión de Usuarios con control de roles (Admin/Usuario)
+    - 👨‍👩‍👧‍👦 Gestión de Familias y asociados
+    - 🎓 Gestión de Alumnos con histórico de cambios
+    - 📚 Gestión de Cursos académicos
+    - 📝 Sistema de Anotaciones
+    - 💳 Formas de Pago
+    - 📊 Logging Centralizado con Serilog
+    
+    ## Stack Tecnológico
+    - Framework: .NET 8.0
+    - Lenguaje: C# 12
+    - Base de Datos: SQL Server
+    - Autenticación: JWT Bearer
+    - Validación: FluentValidation
+    
+    ## Creación del primer usuario
+    para crear el primer usuario administrador, puedes usar el endpoint de registro público:
+    
+    ```bash
+    POST /api/usuarios/registrar
+    ```
+
+    ## Autenticación
+    La mayoría de los endpoints requieren autenticación mediante JWT Bearer Token.
+    
+    1. Obtén un token mediante el endpoint `/api/auth/login`
+    2. Incluye el token en el header `Authorization: Bearer {token}`
+    
+    ## Licencia
+    Este proyecto está bajo la licencia MIT.
+  version: 1.0.0
+  contact:
+    name: Equipo KindoHub
+    url: https://github.com/DevJCTest/KindoHub
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://localhost:7001
+    description: Servidor de desarrollo (HTTPS)
+  - url: http://localhost:5001
+    description: Servidor de desarrollo (HTTP)
+
+tags:
+  - name: Autenticación
+    description: Endpoints de autenticación y gestión de tokens JWT
+  - name: Usuarios
+    description: Gestión de usuarios del sistema
+  - name: Familias
+    description: Gestión de núcleos familiares y asociados
+  - name: Alumnos
+    description: Gestión de alumnos con histórico de cambios
+  - name: Cursos
+    description: Gestión de cursos académicos
+  - name: Anotaciones
+    description: Sistema de seguimiento de observaciones
+  - name: Formas de Pago
+    description: Catálogo de métodos de pago
+  - name: Logs
+    description: Consulta de logs del sistema
+
+security:
+  - BearerAuth: []
+
+paths:
+  # ==================== AUTENTICACIÓN ====================
+  /api/auth/login:
+    post:
+      tags:
+        - Autenticación
+      summary: Iniciar sesión
+      description: Autentica un usuario y devuelve un token JWT
+      operationId: login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            examples:
+              example1:
+                summary: Login de administrador
+                value:
+                  username: admin
+                  password: Admin123!
+              example2:
+                summary: Login de usuario
+                value:
+                  username: usuario1
+                  password: Usuario123!
+      responses:
+        '200':
+          description: Login exitoso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+              examples:
+                example1:
+                  summary: Respuesta exitosa
+                  value:
+                    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                    username: admin
+                    rol: Admin
+                    expiresAt: "2024-01-15T15:30:00Z"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/auth/refresh:
+    post:
+      tags:
+        - Autenticación
+      summary: Refrescar token
+      description: Obtiene un nuevo token JWT usando un token válido
+      operationId: refreshToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+      responses:
+        '200':
+          description: Token refrescado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ==================== USUARIOS ====================
+  /api/usuarios:
+    get:
+      tags:
+        - Usuarios
+      summary: Listar usuarios
+      description: Obtiene la lista de todos los usuarios del sistema
+      operationId: getUsuarios
+      parameters:
+        - name: rol
+          in: query
+          description: Filtrar por rol
+          schema:
+            type: string
+            enum: [Admin, Usuario]
+        - name: activo
+          in: query
+          description: Filtrar por estado activo
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Lista de usuarios
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Usuario'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      tags:
+        - Usuarios
+      summary: Crear usuario
+      description: Registra un nuevo usuario en el sistema
+      operationId: createUsuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUsuarioRequest'
+            examples:
+              admin:
+                summary: Crear administrador
+                value:
+                  username: admin2
+                  password: Admin123!
+                  email: admin2@kindohub.com
+                  nombreCompleto: Administrador 2
+                  rol: Admin
+              usuario:
+                summary: Crear usuario
+                value:
+                  username: usuario2
+                  password: Usuario123!
+                  email: usuario2@kindohub.com
+                  nombreCompleto: Usuario 2
+                  rol: Usuario
+      responses:
+        '201':
+          description: Usuario creado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Usuario'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/usuarios/{id}:
+    get:
+      tags:
+        - Usuarios
+      summary: Obtener usuario por ID
+      description: Obtiene los detalles de un usuario específico
+      operationId: getUsuarioById
+      parameters:
+        - $ref: '#/components/parameters/IdPathParam'
+      responses:
+        '200':
+          description: Detalles del usuario
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Usuario'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    put:
+      tags:
+        - Usuarios
+      summary: Actualizar usuario
+      description: Actualiza los datos de un usuario existente
+      operationId: updateUsuario
+      parameters:
+        - $ref: '#/components/parameters/IdPathParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUsuarioRequest'
+      responses:
+        '200':
+          description: Usuario actualizado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Usuario'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags:
+        - Usuarios
+      summary: Eliminar usuario
+      description: Elimina un usuario del sistema (eliminación lógica)
+      operationId: deleteUsuario
+      parameters:
+        - $ref: '#/components/parameters/IdPathParam'
+      responses:
+        '204':
+          description: Usuario eliminado exitosamente
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/usuarios/registrar:
+    post:
+      tags:
+        - Usuarios
+      summary: Registrar nuevo usuario (público)
+      description: Permite el registro de nuevos usuarios sin autenticación
+      operationId: registrarUsuario
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUsuarioRequest'
+      responses:
+        '201':
+          description: Usuario registrado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Usuario'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ==================== FAMILIAS ====================
+  /api/familias:
+    get:
+      tags:
+        - Familias
+      summary: Listar familias
+      description: Obtiene la lista de todas las familias registradas
+      operationId: getFamilias
+      parameters:
+        - name: estadoAsociado
+          in: query
+          description: Filtrar por estado de asociado
+          schema:
+            type: string
+        - name: formaPagoId
+          in: query
+          description: Filtrar por forma de pago
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de familias
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Familia'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      tags:
+        - Familias
+      summary: Crear familia
+      description: Registra una nueva familia en el sistema
+      operationId: createFamilia
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateFamiliaRequest'
+            examples:
+              example1:
+                summary: Familia completa
+                value:
+                  apellidos: García López
+                  direccion: Calle Principal 123
+                  codigoPostal: "28001"
+                  localidad: Madrid
+                  provincia: Madrid
+                  telefono1: "612345678"
+                  telefono2: "912345678"
+                  email: garcia.lopez@email.com
+                  formaPagoId: 1
+                  estadoAsociadoId: 1
+                  observaciones: Familia con 2 alumnos
+      responses:
+        '201':
+          description: Familia creada exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Familia'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/familias/{id}:
+    get:
+      tags:
+        - Familias
+      summary: Obtener familia por ID
+      description: Obtiene los detalles de una familia específica
+      operationId: getFamiliaById
+      parameters:
+        - $ref: '#/components/parameters/IdPathParam'
+      responses:
+        '200':
+          description: Detalles de la familia
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Familia'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    put:
+      tags:
+        - Familias
+      summary: Actualizar familia
+      description: Actualiza los datos de una familia existente
+      operationId: updateFamilia
+      parameters:
+        - $ref: '#/components/parameters/IdPathParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateFamiliaRequest'
+      responses:
+        '200':
+          description: Familia actualizada exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Familia'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags:
+        - Familias
+      summary: Eliminar familia
+      description: Elimina una familia del sistema
+      operationId: deleteFamilia
+      parameters:
+        - $ref: '#/components/parameters/IdPathParam'
+      responses:
+        '204':
+          description: Familia eliminada exitosamente
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ==================== ALUMNOS ====================
+  /api/alumnos:
+    get:
+      tags:
+        - Alumnos
+      summary: Listar alumnos
+      description: Obtiene la lista de todos los alumnos registrados
+      operationId: getAlumnos
+      parameters:
+        - name: familiaId
+          in: query
+          description: Filtrar por familia
+          schema:
+            type: integer
+        - name: cursoId
+          in: query
+          description: Filtrar por curso
+          schema:
+            type: integer
+        - name: activo
+          in: query
+          description: Filtrar por estado activo
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Lista de alumnos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Alumno'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      tags:
+        - Alumnos
+      summary: Crear alumno
+      description: Registra un nuevo alumno en el sistema
+      operationId: createAlumno
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAlumnoRequest'
+            examples:
+              example1:
+                summary: Alumno nuevo
+                value:
+                  nombre: Juan
+                  apellidos: García López
+                  fechaNacimiento: "2015-05-15"
+                  cursoId: 1
+                  familiaId: 1
+                  observaciones: Alergia a los frutos secos
+      responses:
+        '201':
+          description: Alumno creado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alumno'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/alumnos/{id}:
+    get:
+      tags:
+        - Alumnos
+      summary: Obtener alumno por ID
+      description: Obtiene los detalles de un alumno específico
+      operationId: getAlumnoById
+      parameters:
+        - $ref: '#/components/parameters/IdPathParam'
+      responses:
+        '200':
+          description: Detalles del alumno
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alumno'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    put:
+      tags:
+        - Alumnos
+      summary: Actualizar alumno
+      description: Actualiza los datos de un alumno existente (genera histórico de cambios)
+      operationId: updateAlumno
+      parameters:
+        - $ref: '#/components/parameters/IdPathParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAlumnoRequest'
+      responses:
+        '200':
+          description: Alumno actualizado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alumno'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags:
+        - Alumnos
+      summary: Eliminar alumno
+      description: Elimina un alumno del sistema (eliminación lógica)
+      operationId: deleteAlumno
+      parameters:
+        - $ref: '#/components/parameters/IdPathParam'
+      responses:
+        '204':
+          description: Alumno eliminado exitosamente
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/alumnos/{id}/historial:
+    get:
+      tags:
+        - Alumnos
+      summary: Obtener historial de cambios
+      description: Obtiene el historial completo de cambios de un alumno
+      operationId: getAlumnoHistorial
+      parameters:
+        - $ref: '#/components/parameters/IdPathParam'
+      responses:
+        '200':
+          description: Historial de cambios del alumno
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AlumnoHistorial'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ==================== CURSOS ====================
+  /api/cursos:
+    get:
+      tags:
+        - Cursos
+      summary: Listar cursos
+      description: Obtiene la lista de todos los cursos académicos
+      operationId: getCursos
+      parameters:
+        - name: activo
+          in: query
+          description: Filtrar por estado activo
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Lista de cursos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Curso'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      tags:
+        - Cursos
+      summary: Crear curso
+      description: Registra un nuevo curso académico
+      operationId: createCurso
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCursoRequest'
+            examples:
+              infantil:
+                summary: Educación Infantil
+                value:
+                  nombre: Infantil 3 años
+                  descripcion: Educación Infantil - 3 años
+                  nivel: Infantil
+                  orden: 1
+              primaria:
+                summary: Educación Primaria
+                value:
+                  nombre: 1º Primaria
+                  descripcion: Primero de Educación Primaria
+                  nivel: Primaria
+                  orden: 4
+      responses:
+        '201':
+          description: Curso creado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Curso'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/cursos/{id}:
+    get:
+      tags:
+        - Cursos
+      summary: Obtener curso por ID
+      description: Obtiene los detalles de un curso específico
+      operationId: getCursoById
+      parameters:
+        - $ref: '#/components/parameters/IdPathParam'
+      responses:
+        '200':
+          description: Detalles del curso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Curso'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    put:
+      tags:
+        - Cursos
+      summary: Actualizar curso
+      description: Actualiza los datos de un curso existente
+      operationId: updateCurso
+      parameters:
+        - $ref: '#/components/parameters/IdPathParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCursoRequest'
+      responses:
+        '200':
+          description: Curso actualizado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Curso'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags:
+        - Cursos
+      summary: Eliminar curso
+      description: Elimina un curso del sistema
+      operationId: deleteCurso
+      parameters:
+        - $ref: '#/components/parameters/IdPathParam'
+      responses:
+        '204':
+          description: Curso eliminado exitosamente
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ==================== ANOTACIONES ====================
+  /api/anotaciones:
+    get:
+      tags:
+        - Anotaciones
+      summary: Listar anotaciones
+      description: Obtiene la lista de todas las anotaciones
+      operationId: getAnotaciones
+      parameters:
+        - name: alumnoId
+          in: query
+          description: Filtrar por alumno
+          schema:
+            type: integer
+        - name: familiaId
+          in: query
+          description: Filtrar por familia
+          schema:
+            type: integer
+        - name: tipo
+          in: query
+          description: Filtrar por tipo de anotación
+          schema:
+            type: string
+        - name: fechaDesde
+          in: query
+          description: Fecha desde (formato ISO 8601)
+          schema:
+            type: string
+            format: date
+        - name: fechaHasta
+          in: query
+          description: Fecha hasta (formato ISO 8601)
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Lista de anotaciones
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Anotacion'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      tags:
+        - Anotaciones
+      summary: Crear anotación
+      description: Registra una nueva anotación
+      operationId: createAnotacion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAnotacionRequest'
+            examples:
+              alumno:
+                summary: Anotación de alumno
+                value:
+                  titulo: Comportamiento destacado
+                  descripcion: El alumno ha mostrado un comportamiento ejemplar
+                  tipo: Positiva
+                  alumnoId: 1
+                  fechaAnotacion: "2024-01-15"
+              familia:
+                summary: Anotación de familia
+                value:
+                  titulo: Retraso en pago
+                  descripcion: Familia con retraso en el pago de la cuota
+                  tipo: Administrativa
+                  familiaId: 1
+                  fechaAnotacion: "2024-01-15"
+      responses:
+        '201':
+          description: Anotación creada exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Anotacion'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/anotaciones/{id}:
+    get:
+      tags:
+        - Anotaciones
+      summary: Obtener anotación por ID
+      description: Obtiene los detalles de una anotación específica
+      operationId: getAnotacionById
+      parameters:
+        - $ref: '#/components/parameters/IdPathParam'
+      responses:
+        '200':
+          description: Detalles de la anotación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Anotacion'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    put:
+      tags:
+        - Anotaciones
+      summary: Actualizar anotación
+      description: Actualiza los datos de una anotación existente
+      operationId: updateAnotacion
+      parameters:
+        - $ref: '#/components/parameters/IdPathParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAnotacionRequest'
+      responses:
+        '200':
+          description: Anotación actualizada exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Anotacion'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags:
+        - Anotaciones
+      summary: Eliminar anotación
+      description: Elimina una anotación del sistema
+      operationId: deleteAnotacion
+      parameters:
+        - $ref: '#/components/parameters/IdPathParam'
+      responses:
+        '204':
+          description: Anotación eliminada exitosamente
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ==================== FORMAS DE PAGO ====================
+  /api/formaspago:
+    get:
+      tags:
+        - Formas de Pago
+      summary: Listar formas de pago
+      description: Obtiene el catálogo de formas de pago disponibles
+      operationId: getFormasPago
+      parameters:
+        - name: activa
+          in: query
+          description: Filtrar por estado activo
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Lista de formas de pago
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FormaPago'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      tags:
+        - Formas de Pago
+      summary: Crear forma de pago
+      description: Registra una nueva forma de pago
+      operationId: createFormaPago
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateFormaPagoRequest'
+            examples:
+              domiciliacion:
+                summary: Domiciliación bancaria
+                value:
+                  nombre: Domiciliación Bancaria
+                  descripcion: Pago mediante domiciliación bancaria mensual
+                  requiereCuenta: true
+              efectivo:
+                summary: Efectivo
+                value:
+                  nombre: Efectivo
+                  descripcion: Pago en efectivo
+                  requiereCuenta: false
+      responses:
+        '201':
+          description: Forma de pago creada exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FormaPago'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/formaspago/{id}:
+    get:
+      tags:
+        - Formas de Pago
+      summary: Obtener forma de pago por ID
+      description: Obtiene los detalles de una forma de pago específica
+      operationId: getFormaPagoById
+      parameters:
+        - $ref: '#/components/parameters/IdPathParam'
+      responses:
+        '200':
+          description: Detalles de la forma de pago
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FormaPago'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    put:
+      tags:
+        - Formas de Pago
+      summary: Actualizar forma de pago
+      description: Actualiza los datos de una forma de pago existente
+      operationId: updateFormaPago
+      parameters:
+        - $ref: '#/components/parameters/IdPathParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateFormaPagoRequest'
+      responses:
+        '200':
+          description: Forma de pago actualizada exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FormaPago'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags:
+        - Formas de Pago
+      summary: Eliminar forma de pago
+      description: Elimina una forma de pago del sistema
+      operationId: deleteFormaPago
+      parameters:
+        - $ref: '#/components/parameters/IdPathParam'
+      responses:
+        '204':
+          description: Forma de pago eliminada exitosamente
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ==================== LOGS ====================
+  /api/logs:
+    get:
+      tags:
+        - Logs
+      summary: Consultar logs del sistema
+      description: Obtiene los logs del sistema con filtros opcionales
+      operationId: getLogs
+      parameters:
+        - name: nivel
+          in: query
+          description: Filtrar por nivel de log
+          schema:
+            type: string
+            enum: [Verbose, Debug, Information, Warning, Error, Fatal]
+        - name: username
+          in: query
+          description: Filtrar por usuario
+          schema:
+            type: string
+        - name: fechaDesde
+          in: query
+          description: Fecha desde (formato ISO 8601)
+          schema:
+            type: string
+            format: date-time
+        - name: fechaHasta
+          in: query
+          description: Fecha hasta (formato ISO 8601)
+          schema:
+            type: string
+            format: date-time
+        - name: limite
+          in: query
+          description: Límite de resultados (por defecto 100)
+          schema:
+            type: integer
+            default: 100
+            maximum: 1000
+      responses:
+        '200':
+          description: Lista de logs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LogEntry'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/logs/{id}:
+    get:
+      tags:
+        - Logs
+      summary: Obtener log por ID
+      description: Obtiene los detalles de un log específico
+      operationId: getLogById
+      parameters:
+        - $ref: '#/components/parameters/IdPathParam'
+      responses:
+        '200':
+          description: Detalles del log
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogEntry'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        Autenticación mediante JWT Bearer Token.
+        
+        Para obtener un token:
+        1. Realiza POST a /api/auth/login con username y password
+        2. Copia el token de la respuesta
+        3. Incluye el token en el header: `Authorization: Bearer {token}`
+
+  parameters:
+    IdPathParam:
+      name: id
+      in: path
+      required: true
+      description: ID del recurso
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+
+  responses:
+    BadRequest:
+      description: Solicitud incorrecta - Error de validación
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            validationError:
+              summary: Error de validación
+              value:
+                error: Validation Error
+                message: Los datos proporcionados no son válidos
+                details:
+                  - field: email
+                    message: El formato del email no es válido
+                  - field: password
+                    message: La contraseña debe tener al menos 8 caracteres
+
+    Unauthorized:
+      description: No autorizado - Token inválido o no proporcionado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            noToken:
+              summary: Token no proporcionado
+              value:
+                error: Unauthorized
+                message: No se ha proporcionado un token de autenticación
+            invalidToken:
+              summary: Token inválido
+              value:
+                error: Unauthorized
+                message: El token proporcionado no es válido o ha expirado
+
+    Forbidden:
+      description: Prohibido - Sin permisos suficientes
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            insufficientPermissions:
+              summary: Permisos insuficientes
+              value:
+                error: Forbidden
+                message: No tienes permisos suficientes para realizar esta operación
+
+    NotFound:
+      description: Recurso no encontrado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            resourceNotFound:
+              summary: Recurso no encontrado
+              value:
+                error: Not Found
+                message: El recurso solicitado no existe
+
+    Conflict:
+      description: Conflicto - El recurso ya existe
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            duplicateResource:
+              summary: Recurso duplicado
+              value:
+                error: Conflict
+                message: Ya existe un usuario con ese nombre de usuario
+
+    InternalServerError:
+      description: Error interno del servidor
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            serverError:
+              summary: Error del servidor
+              value:
+                error: Internal Server Error
+                message: Ha ocurrido un error inesperado. Por favor, inténtelo más tarde
+
+  schemas:
+    # ==================== AUTH SCHEMAS ====================
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          description: Nombre de usuario
+          example: admin
+        password:
+          type: string
+          format: password
+          description: Contraseña del usuario
+          example: Admin123!
+
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: Token JWT
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        username:
+          type: string
+          description: Nombre de usuario
+          example: admin
+        rol:
+          type: string
+          description: Rol del usuario
+          enum: [Admin, Usuario]
+          example: Admin
+        expiresAt:
+          type: string
+          format: date-time
+          description: Fecha de expiración del token
+          example: "2024-01-15T15:30:00Z"
+
+    RefreshTokenRequest:
+      type: object
+      required:
+        - token
+      properties:
+        token:
+          type: string
+          description: Token JWT actual
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+    # ==================== USUARIO SCHEMAS ====================
+    Usuario:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID del usuario
+          example: 1
+        username:
+          type: string
+          description: Nombre de usuario
+          example: admin
+        email:
+          type: string
+          format: email
+          description: Email del usuario
+          example: admin@kindohub.com
+        nombreCompleto:
+          type: string
+          description: Nombre completo del usuario
+          example: Administrador Principal
+        rol:
+          type: string
+          description: Rol del usuario
+          enum: [Admin, Usuario]
+          example: Admin
+        activo:
+          type: boolean
+          description: Indica si el usuario está activo
+          example: true
+        fechaCreacion:
+          type: string
+          format: date-time
+          description: Fecha de creación del usuario
+          example: "2024-01-01T10:00:00Z"
+        fechaModificacion:
+          type: string
+          format: date-time
+          description: Fecha de última modificación
+          example: "2024-01-15T14:30:00Z"
+
+    CreateUsuarioRequest:
+      type: object
+      required:
+        - username
+        - password
+        - email
+        - nombreCompleto
+        - rol
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 50
+          description: Nombre de usuario (único)
+          example: usuario1
+        password:
+          type: string
+          format: password
+          minLength: 8
+          description: Contraseña (mínimo 8 caracteres)
+          example: Usuario123!
+        email:
+          type: string
+          format: email
+          description: Email del usuario
+          example: usuario1@kindohub.com
+        nombreCompleto:
+          type: string
+          minLength: 3
+          maxLength: 100
+          description: Nombre completo del usuario
+          example: Usuario Ejemplo
+        rol:
+          type: string
+          enum: [Admin, Usuario]
+          description: Rol del usuario
+          example: Usuario
+
+    UpdateUsuarioRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          description: Email del usuario
+          example: usuario1@kindohub.com
+        nombreCompleto:
+          type: string
+          minLength: 3
+          maxLength: 100
+          description: Nombre completo del usuario
+          example: Usuario Ejemplo Actualizado
+        password:
+          type: string
+          format: password
+          minLength: 8
+          description: Nueva contraseña (opcional)
+          example: NuevaPassword123!
+        rol:
+          type: string
+          enum: [Admin, Usuario]
+          description: Rol del usuario
+          example: Usuario
+        activo:
+          type: boolean
+          description: Estado del usuario
+          example: true
+
+    # ==================== FAMILIA SCHEMAS ====================
+    Familia:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID de la familia
+          example: 1
+        apellidos:
+          type: string
+          description: Apellidos de la familia
+          example: García López
+        direccion:
+          type: string
+          description: Dirección completa
+          example: Calle Principal 123
+        codigoPostal:
+          type: string
+          description: Código postal
+          example: "28001"
+        localidad:
+          type: string
+          description: Localidad
+          example: Madrid
+        provincia:
+          type: string
+          description: Provincia
+          example: Madrid
+        telefono1:
+          type: string
+          description: Teléfono principal
+          example: "612345678"
+        telefono2:
+          type: string
+          nullable: true
+          description: Teléfono secundario (opcional)
+          example: "912345678"
+        email:
+          type: string
+          format: email
+          description: Email de contacto
+          example: garcia.lopez@email.com
+        formaPagoId:
+          type: integer
+          description: ID de la forma de pago
+          example: 1
+        formaPagoNombre:
+          type: string
+          description: Nombre de la forma de pago
+          example: Domiciliación Bancaria
+        estadoAsociadoId:
+          type: integer
+          description: ID del estado de asociado
+          example: 1
+        estadoAsociadoNombre:
+          type: string
+          description: Nombre del estado de asociado
+          example: Activo
+        observaciones:
+          type: string
+          nullable: true
+          description: Observaciones adicionales
+          example: Familia con 2 alumnos
+        fechaAlta:
+          type: string
+          format: date
+          description: Fecha de alta en el sistema
+          example: "2024-01-01"
+        fechaCreacion:
+          type: string
+          format: date-time
+          description: Fecha de creación del registro
+          example: "2024-01-01T10:00:00Z"
+        fechaModificacion:
+          type: string
+          format: date-time
+          description: Fecha de última modificación
+          example: "2024-01-15T14:30:00Z"
+
+    CreateFamiliaRequest:
+      type: object
+      required:
+        - apellidos
+        - direccion
+        - codigoPostal
+        - localidad
+        - provincia
+        - telefono1
+        - email
+        - formaPagoId
+        - estadoAsociadoId
+      properties:
+        apellidos:
+          type: string
+          minLength: 2
+          maxLength: 100
+          description: Apellidos de la familia
+          example: García López
+        direccion:
+          type: string
+          minLength: 5
+          maxLength: 200
+          description: Dirección completa
+          example: Calle Principal 123
+        codigoPostal:
+          type: string
+          pattern: '^\d{5}$'
+          description: Código postal (5 dígitos)
+          example: "28001"
+        localidad:
+          type: string
+          minLength: 2
+          maxLength: 100
+          description: Localidad
+          example: Madrid
+        provincia:
+          type: string
+          minLength: 2
+          maxLength: 100
+          description: Provincia
+          example: Madrid
+        telefono1:
+          type: string
+          pattern: '^\d{9}$'
+          description: Teléfono principal (9 dígitos)
+          example: "612345678"
+        telefono2:
+          type: string
+          pattern: '^\d{9}$'
+          nullable: true
+          description: Teléfono secundario (opcional, 9 dígitos)
+          example: "912345678"
+        email:
+          type: string
+          format: email
+          description: Email de contacto
+          example: garcia.lopez@email.com
+        formaPagoId:
+          type: integer
+          minimum: 1
+          description: ID de la forma de pago
+          example: 1
+        estadoAsociadoId:
+          type: integer
+          minimum: 1
+          description: ID del estado de asociado
+          example: 1
+        observaciones:
+          type: string
+          maxLength: 500
+          nullable: true
+          description: Observaciones adicionales
+          example: Familia con 2 alumnos
+        fechaAlta:
+          type: string
+          format: date
+          description: Fecha de alta (opcional, por defecto fecha actual)
+          example: "2024-01-01"
+
+    UpdateFamiliaRequest:
+      type: object
+      properties:
+        apellidos:
+          type: string
+          minLength: 2
+          maxLength: 100
+          description: Apellidos de la familia
+          example: García López
+        direccion:
+          type: string
+          minLength: 5
+          maxLength: 200
+          description: Dirección completa
+          example: Calle Principal 123
+        codigoPostal:
+          type: string
+          pattern: '^\d{5}$'
+          description: Código postal (5 dígitos)
+          example: "28001"
+        localidad:
+          type: string
+          minLength: 2
+          maxLength: 100
+          description: Localidad
+          example: Madrid
+        provincia:
+          type: string
+          minLength: 2
+          maxLength: 100
+          description: Provincia
+          example: Madrid
+        telefono1:
+          type: string
+          pattern: '^\d{9}$'
+          description: Teléfono principal (9 dígitos)
+          example: "612345678"
+        telefono2:
+          type: string
+          pattern: '^\d{9}$'
+          nullable: true
+          description: Teléfono secundario (opcional, 9 dígitos)
+          example: "912345678"
+        email:
+          type: string
+          format: email
+          description: Email de contacto
+          example: garcia.lopez@email.com
+        formaPagoId:
+          type: integer
+          minimum: 1
+          description: ID de la forma de pago
+          example: 1
+        estadoAsociadoId:
+          type: integer
+          minimum: 1
+          description: ID del estado de asociado
+          example: 1
+        observaciones:
+          type: string
+          maxLength: 500
+          nullable: true
+          description: Observaciones adicionales
+          example: Familia con 2 alumnos
+
+    # ==================== ALUMNO SCHEMAS ====================
+    Alumno:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID del alumno
+          example: 1
+        nombre:
+          type: string
+          description: Nombre del alumno
+          example: Juan
+        apellidos:
+          type: string
+          description: Apellidos del alumno
+          example: García López
+        fechaNacimiento:
+          type: string
+          format: date
+          description: Fecha de nacimiento
+          example: "2015-05-15"
+        cursoId:
+          type: integer
+          description: ID del curso actual
+          example: 1
+        cursoNombre:
+          type: string
+          description: Nombre del curso
+          example: 1º Primaria
+        familiaId:
+          type: integer
+          description: ID de la familia
+          example: 1
+        familiaApellidos:
+          type: string
+          description: Apellidos de la familia
+          example: García López
+        observaciones:
+          type: string
+          nullable: true
+          description: Observaciones del alumno
+          example: Alergia a los frutos secos
+        activo:
+          type: boolean
+          description: Indica si el alumno está activo
+          example: true
+        fechaCreacion:
+          type: string
+          format: date-time
+          description: Fecha de creación del registro
+          example: "2024-01-01T10:00:00Z"
+        fechaModificacion:
+          type: string
+          format: date-time
+          description: Fecha de última modificación
+          example: "2024-01-15T14:30:00Z"
+
+    CreateAlumnoRequest:
+      type: object
+      required:
+        - nombre
+        - apellidos
+        - fechaNacimiento
+        - cursoId
+        - familiaId
+      properties:
+        nombre:
+          type: string
+          minLength: 2
+          maxLength: 50
+          description: Nombre del alumno
+          example: Juan
+        apellidos:
+          type: string
+          minLength: 2
+          maxLength: 100
+          description: Apellidos del alumno
+          example: García López
+        fechaNacimiento:
+          type: string
+          format: date
+          description: Fecha de nacimiento
+          example: "2015-05-15"
+        cursoId:
+          type: integer
+          minimum: 1
+          description: ID del curso
+          example: 1
+        familiaId:
+          type: integer
+          minimum: 1
+          description: ID de la familia
+          example: 1
+        observaciones:
+          type: string
+          maxLength: 500
+          nullable: true
+          description: Observaciones del alumno
+          example: Alergia a los frutos secos
+
+    UpdateAlumnoRequest:
+      type: object
+      properties:
+        nombre:
+          type: string
+          minLength: 2
+          maxLength: 50
+          description: Nombre del alumno
+          example: Juan
+        apellidos:
+          type: string
+          minLength: 2
+          maxLength: 100
+          description: Apellidos del alumno
+          example: García López
+        fechaNacimiento:
+          type: string
+          format: date
+          description: Fecha de nacimiento
+          example: "2015-05-15"
+        cursoId:
+          type: integer
+          minimum: 1
+          description: ID del curso
+          example: 1
+        familiaId:
+          type: integer
+          minimum: 1
+          description: ID de la familia
+          example: 1
+        observaciones:
+          type: string
+          maxLength: 500
+          nullable: true
+          description: Observaciones del alumno
+          example: Alergia a los frutos secos
+        activo:
+          type: boolean
+          description: Estado del alumno
+          example: true
+
+    AlumnoHistorial:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID del registro de historial
+          example: 1
+        alumnoId:
+          type: integer
+          description: ID del alumno
+          example: 1
+        campo:
+          type: string
+          description: Campo modificado
+          example: cursoId
+        valorAnterior:
+          type: string
+          nullable: true
+          description: Valor anterior del campo
+          example: "1"
+        valorNuevo:
+          type: string
+          description: Valor nuevo del campo
+          example: "2"
+        fechaCambio:
+          type: string
+          format: date-time
+          description: Fecha del cambio
+          example: "2024-01-15T10:00:00Z"
+        usuarioId:
+          type: integer
+          description: ID del usuario que realizó el cambio
+          example: 1
+        usuarioNombre:
+          type: string
+          description: Nombre del usuario
+          example: admin
+
+    # ==================== CURSO SCHEMAS ====================
+    Curso:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID del curso
+          example: 1
+        nombre:
+          type: string
+          description: Nombre del curso
+          example: 1º Primaria
+        descripcion:
+          type: string
+          nullable: true
+          description: Descripción del curso
+          example: Primero de Educación Primaria
+        nivel:
+          type: string
+          description: Nivel educativo
+          example: Primaria
+        orden:
+          type: integer
+          description: Orden de visualización
+          example: 4
+        activo:
+          type: boolean
+          description: Indica si el curso está activo
+          example: true
+        fechaCreacion:
+          type: string
+          format: date-time
+          description: Fecha de creación del curso
+          example: "2024-01-01T10:00:00Z"
+        fechaModificacion:
+          type: string
+          format: date-time
+          description: Fecha de última modificación
+          example: "2024-01-15T14:30:00Z"
+
+    CreateCursoRequest:
+      type: object
+      required:
+        - nombre
+        - nivel
+        - orden
+      properties:
+        nombre:
+          type: string
+          minLength: 2
+          maxLength: 100
+          description: Nombre del curso
+          example: 1º Primaria
+        descripcion:
+          type: string
+          maxLength: 500
+          nullable: true
+          description: Descripción del curso
+          example: Primero de Educación Primaria
+        nivel:
+          type: string
+          minLength: 2
+          maxLength: 50
+          description: Nivel educativo
+          example: Primaria
+        orden:
+          type: integer
+          minimum: 1
+          description: Orden de visualización
+          example: 4
+
+    UpdateCursoRequest:
+      type: object
+      properties:
+        nombre:
+          type: string
+          minLength: 2
+          maxLength: 100
+          description: Nombre del curso
+          example: 1º Primaria
+        descripcion:
+          type: string
+          maxLength: 500
+          nullable: true
+          description: Descripción del curso
+          example: Primero de Educación Primaria
+        nivel:
+          type: string
+          minLength: 2
+          maxLength: 50
+          description: Nivel educativo
+          example: Primaria
+        orden:
+          type: integer
+          minimum: 1
+          description: Orden de visualización
+          example: 4
+        activo:
+          type: boolean
+          description: Estado del curso
+          example: true
+
+    # ==================== ANOTACION SCHEMAS ====================
+    Anotacion:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID de la anotación
+          example: 1
+        titulo:
+          type: string
+          description: Título de la anotación
+          example: Comportamiento destacado
+        descripcion:
+          type: string
+          description: Descripción detallada
+          example: El alumno ha mostrado un comportamiento ejemplar
+        tipo:
+          type: string
+          description: Tipo de anotación
+          example: Positiva
+        alumnoId:
+          type: integer
+          nullable: true
+          description: ID del alumno (si aplica)
+          example: 1
+        alumnoNombre:
+          type: string
+          nullable: true
+          description: Nombre completo del alumno
+          example: Juan García López
+        familiaId:
+          type: integer
+          nullable: true
+          description: ID de la familia (si aplica)
+          example: 1
+        familiaApellidos:
+          type: string
+          nullable: true
+          description: Apellidos de la familia
+          example: García López
+        fechaAnotacion:
+          type: string
+          format: date
+          description: Fecha de la anotación
+          example: "2024-01-15"
+        usuarioId:
+          type: integer
+          description: ID del usuario que creó la anotación
+          example: 1
+        usuarioNombre:
+          type: string
+          description: Nombre del usuario
+          example: admin
+        fechaCreacion:
+          type: string
+          format: date-time
+          description: Fecha de creación del registro
+          example: "2024-01-15T10:00:00Z"
+        fechaModificacion:
+          type: string
+          format: date-time
+          description: Fecha de última modificación
+          example: "2024-01-15T14:30:00Z"
+
+    CreateAnotacionRequest:
+      type: object
+      required:
+        - titulo
+        - descripcion
+        - tipo
+        - fechaAnotacion
+      properties:
+        titulo:
+          type: string
+          minLength: 3
+          maxLength: 200
+          description: Título de la anotación
+          example: Comportamiento destacado
+        descripcion:
+          type: string
+          minLength: 5
+          maxLength: 2000
+          description: Descripción detallada
+          example: El alumno ha mostrado un comportamiento ejemplar
+        tipo:
+          type: string
+          minLength: 2
+          maxLength: 50
+          description: Tipo de anotación
+          example: Positiva
+        alumnoId:
+          type: integer
+          minimum: 1
+          nullable: true
+          description: ID del alumno (opcional)
+          example: 1
+        familiaId:
+          type: integer
+          minimum: 1
+          nullable: true
+          description: ID de la familia (opcional)
+          example: 1
+        fechaAnotacion:
+          type: string
+          format: date
+          description: Fecha de la anotación
+          example: "2024-01-15"
+
+    UpdateAnotacionRequest:
+      type: object
+      properties:
+        titulo:
+          type: string
+          minLength: 3
+          maxLength: 200
+          description: Título de la anotación
+          example: Comportamiento destacado
+        descripcion:
+          type: string
+          minLength: 5
+          maxLength: 2000
+          description: Descripción detallada
+          example: El alumno ha mostrado un comportamiento ejemplar
+        tipo:
+          type: string
+          minLength: 2
+          maxLength: 50
+          description: Tipo de anotación
+          example: Positiva
+        alumnoId:
+          type: integer
+          minimum: 1
+          nullable: true
+          description: ID del alumno
+          example: 1
+        familiaId:
+          type: integer
+          minimum: 1
+          nullable: true
+          description: ID de la familia
+          example: 1
+        fechaAnotacion:
+          type: string
+          format: date
+          description: Fecha de la anotación
+          example: "2024-01-15"
+
+    # ==================== FORMA DE PAGO SCHEMAS ====================
+    FormaPago:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID de la forma de pago
+          example: 1
+        nombre:
+          type: string
+          description: Nombre de la forma de pago
+          example: Domiciliación Bancaria
+        descripcion:
+          type: string
+          nullable: true
+          description: Descripción de la forma de pago
+          example: Pago mediante domiciliación bancaria mensual
+        requiereCuenta:
+          type: boolean
+          description: Indica si requiere cuenta bancaria
+          example: true
+        activa:
+          type: boolean
+          description: Indica si la forma de pago está activa
+          example: true
+        fechaCreacion:
+          type: string
+          format: date-time
+          description: Fecha de creación
+          example: "2024-01-01T10:00:00Z"
+        fechaModificacion:
+          type: string
+          format: date-time
+          description: Fecha de última modificación
+          example: "2024-01-15T14:30:00Z"
+
+    CreateFormaPagoRequest:
+      type: object
+      required:
+        - nombre
+        - requiereCuenta
+      properties:
+        nombre:
+          type: string
+          minLength: 2
+          maxLength: 100
+          description: Nombre de la forma de pago
+          example: Domiciliación Bancaria
+        descripcion:
+          type: string
+          maxLength: 500
+          nullable: true
+          description: Descripción de la forma de pago
+          example: Pago mediante domiciliación bancaria mensual
+        requiereCuenta:
+          type: boolean
+          description: Indica si requiere cuenta bancaria
+          example: true
+
+    UpdateFormaPagoRequest:
+      type: object
+      properties:
+        nombre:
+          type: string
+          minLength: 2
+          maxLength: 100
+          description: Nombre de la forma de pago
+          example: Domiciliación Bancaria
+        descripcion:
+          type: string
+          maxLength: 500
+          nullable: true
+          description: Descripción de la forma de pago
+          example: Pago mediante domiciliación bancaria mensual
+        requiereCuenta:
+          type: boolean
+          description: Indica si requiere cuenta bancaria
+          example: true
+        activa:
+          type: boolean
+          description: Estado de la forma de pago
+          example: true
+
+    # ==================== LOG SCHEMAS ====================
+    LogEntry:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID del log
+          example: 1
+        timestamp:
+          type: string
+          format: date-time
+          description: Fecha y hora del log
+          example: "2024-01-15T10:00:00Z"
+        nivel:
+          type: string
+          description: Nivel del log
+          enum: [Verbose, Debug, Information, Warning, Error, Fatal]
+          example: Information
+        mensaje:
+          type: string
+          description: Mensaje del log
+          example: Usuario admin inició sesión exitosamente
+        excepcion:
+          type: string
+          nullable: true
+          description: Información de la excepción (si aplica)
+          example: null
+        username:
+          type: string
+          nullable: true
+          description: Usuario asociado al log
+          example: admin
+        requestPath:
+          type: string
+          nullable: true
+          description: Ruta de la petición HTTP
+          example: /api/auth/login
+        requestMethod:
+          type: string
+          nullable: true
+          description: Método HTTP
+          example: POST
+        ipAddress:
+          type: string
+          nullable: true
+          description: Dirección IP del cliente
+          example: 192.168.1.100
+        userAgent:
+          type: string
+          nullable: true
+          description: User Agent del cliente
+          example: Mozilla/5.0 (Windows NT 10.0; Win64; x64)
+        propiedades:
+          type: object
+          nullable: true
+          description: Propiedades adicionales del log
+          additionalProperties: true
+
+    # ==================== ERROR SCHEMAS ====================
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Tipo de error
+          example: Bad Request
+        message:
+          type: string
+          description: Mensaje descriptivo del error
+          example: Los datos proporcionados no son válidos
+        details:
+          type: array
+          nullable: true
+          description: Detalles adicionales del error (opcional)
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+                description: Campo con error
+                example: email
+              message:
+                type: string
+                description: Mensaje de error del campo
+                example: El formato del email no es válido

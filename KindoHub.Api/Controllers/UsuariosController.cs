@@ -354,7 +354,7 @@ namespace KindoHub.Api.Controllers
             }
         }
 
-        [HttpPatch("crear-admin")]
+        [HttpPost("crear-admin")]
         [AllowAnonymous]
         public async Task<IActionResult> CrearAdmin([FromBody] RegistrarAdminDto request)
         {
