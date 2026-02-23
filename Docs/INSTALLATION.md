@@ -80,6 +80,18 @@ Crea el archivo `KindoHub.Api/appsettings.Development.json`:
 
 En la carpeta `database` puedes encontrar scripts SQL para crear la base de datos y las tablas necesarias. Ejecuta estos scripts en tu instancia de SQL Server.
 
+Primero los ficheros de creación de la base de datos:
+```
+KindoHub.ipynb
+KindoHubLog.ipynb
+```
+y a continuación el script para insertar los datos iniciales:
+
+```
+Insertar_datos_iniciales.sql
+```
+
+
 ### 6️⃣ Ejecutar la Aplicación
 
 ```bash
