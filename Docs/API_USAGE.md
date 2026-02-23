@@ -2,6 +2,12 @@
 
 Esta guía te ayudará a comenzar a utilizar la API de KindoHub.
 
+## 📄 Especificación OpenAPI
+
+Puedes consultar la especificación completa de la API en formato OpenAPI:
+
+🔗 **[openapi.yaml](../openapi.yaml)** - Especificación OpenAPI 3.0
+
 ## Documentación Interactiva
 
 Una vez que la aplicación esté ejecutándose, accede a la documentación Swagger:
